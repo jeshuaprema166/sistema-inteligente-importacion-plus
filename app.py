@@ -1142,14 +1142,16 @@ def main():
             (st.success if ok else st.warning)(msg)
             sheets_db.guardar_alertas(generar_alertas_reposicion(prods_guardar, conf_guardar))
             
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-        "📊 Análisis de costos", 
-        "🚦 Reposición", 
-        "📅 Flujo de caja", 
-        "🏷️ Auditoría aduanera", 
-        "📄 Reporte completo", 
-        "📚 Historial"
+    tab1, tab2, tab3, tab4, tab5, tab6, tab_salvavidas = st.tabs([
+        "📊 Análisis de costos",
+        "📦 Reposición",
+        "📈 Flujo de caja",
+        "🛃 Auditoría aduanera",
+        "📄 Reporte completo",
+        "📜 Historial",
+        "🛟 Salvavidas"
     ])
+
     
     with tab1: vista_analisis_costos(productos, config)
     with tab2: mostrar_alertas_en_panel(generar_alertas_reposicion(productos, config))
@@ -1176,7 +1178,9 @@ def main():
                 type="primary"
             )
     with tab6: vista_historial(config)
-
+    with tab_salvavidas:
+        renderizar_pestana_salvavidas(productos, config)
+        
 if __name__ == "__main__":
     main()
        
