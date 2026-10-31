@@ -154,6 +154,48 @@ BANCO_PRODUCTOS_SINTETICOS = {
     ]
 }
 
+# Mapeo de centros de distribución / ubicación en Venezuela para calcular flete y tiempo interno
+UBICACIONES_VENEZUELA = {
+    "Caracas / Región Capital": {"dias_flete_interno": 2, "factor_costo_flete": 1.0},
+    "Valencia / Maracay (Centro)": {"dias_flete_interno": 1, "factor_costo_flete": 0.8},
+    "Barquisimeto / Centro-Occidente": {"dias_flete_interno": 2, "factor_costo_flete": 1.1},
+    "Maracaibo / Zulia": {"dias_flete_interno": 3, "factor_costo_flete": 1.4},
+    "San Cristóbal / Táchira (Andes)": {"dias_flete_interno": 4, "factor_costo_flete": 1.6},
+    "Puerto La Cruz / Oriente": {"dias_flete_interno": 3, "factor_costo_flete": 1.3},
+    "Puerto Ordaz / Guayana": {"dias_flete_interno": 4, "factor_costo_flete": 1.7},
+    "Otro punto del país": {"dias_flete_interno": 3, "factor_costo_flete": 1.5}
+}
+
+def calcular_ruta_salvavidas_local(producto, cantidad_emergencia, ubicacion_empresa, proveedor_local="Distribuidor Mayorista Nacional"):
+    """
+    Calcula el escenario de emergencia (Plan Salvavidas) comprando a nivel nacional 
+    ajustado a los días y costos de despacho según la ubicación exacta del cliente en Venezuela.
+    """
+    info_ubicacion = UBICACIONES_VENEZUELA.get(ubicacion_empresa, {"dias_flete_interno": 3, "factor_costo_flete": 1.3})
+    
+    # Costo base de emergencia local (suele ser un poco mayor al FOB directo pero sin aranceles de importación masiva)
+    costo_fob_base = float(producto.get("precio_fob", 0))
+    # El proveedor local vende con un recargo por inmediatez y nacionalización previa (ej: 25% sobre el FOB internacional)
+    costo_unitario_local = costo_fob_base * 1.35 
+    
+    # Flete interno ponderado según la ciudad en Venezuela
+    gasto_flete_interno = 0.50 * info_ubicacion["factor_costo_flete"]
+    
+    costo_total_unitario_local = costo_unitario_local + gasto_flete_interno
+    dias_totales_entrega = info_ubicacion["dias_flete_interno"] # Entrega rápida local
+    
+    total_inversion_emergencia = float(cantidad_emergencia) * costo_total_unitario_local
+    
+    return {
+        "proveedor": proveedor_local,
+        "cantidad_sugerida": cantidad_emergencia,
+        "costo_unitario_local": round(costo_total_unitario_local, 2),
+        "dias_entrega": dias_totales_entrega,
+        "inversion_total": round(total_inversion_emergencia, 2),
+        "ubicacion_destino": ubicacion_empresa,
+        "mensaje_estrategico": f"🚨 Salvavidas Activo: Despacho a {ubicacion_empresa} en {dias_totales_entrega} días."
+    }
+
 def slugify(texto):
     if not texto: return "empresa-sin-nombre"
     t = unicodedata.normalize('NFKD', str(texto)).encode('ascii', 'ignore').decode('ascii')
