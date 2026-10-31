@@ -196,6 +196,51 @@ def calcular_ruta_salvavidas_local(producto, cantidad_emergencia, ubicacion_empr
         "mensaje_estrategico": f"🚨 Salvavidas Activo: Despacho a {ubicacion_empresa} en {dias_totales_entrega} días."
     }
 
+def comparar_rutas_abastecimiento(producto, config):
+    """
+    Compara el escenario de importación internacional habitual frente al 
+    Plan de Salvavidas (Compra Puente Nacional) considerando la ubicación de la empresa.
+    """
+    ubicacion = config.get("ubicacion_empresa", "Caracas / Región Capital")
+    ventas_sem = producto.get("ventas_semanales", 0)
+    stock_act = producto.get("stock_actual", 0)
+    
+    # Cobertura actual en semanas
+    cobertura_semanas = stock_act / ventas_sem if ventas_sem > 0 else 0
+    
+    # Días de tránsito internacional según el origen configurado
+    dias_int = obtener_dias_transito(config.get("origen", "China"))
+    semanas_int = dias_int / 7.0
+    
+    # ¿Hay riesgo de quiebre antes de que llegue el pedido internacional?
+    en_riesgo = cobertura_semanas <= semanas_int
+    
+    # Cantidad de emergencia necesaria para cubrir el bache hasta que llegue el contenedor
+    semanas_bache = max(0.0, semanas_int - cobertura_semanas)
+    unidades_emergencia_necesarias = int(semanas_bache * ventas_sem) if en_riesgo else 0
+    
+    # Datos de la ruta internacional (estándar ya calculado)
+    costo_unit_int = float(producto.get("costo_unitario", 0))
+    
+    # Datos de la ruta salvavidas local
+    salvavidas = None
+    if en_riesgo and unidades_emergencia_necesarias > 0:
+        salvavidas = calcular_ruta_salvavidas_local(
+            producto, 
+            unidades_emergencia_necesarias, 
+            ubicacion,
+            proveedor_local=config.get("proveedor_local_preferido", "Distribuidor Nacional de Emergencia")
+        )
+        
+    return {
+        "en_riesgo_quiebre": en_riesgo,
+        "cobertura_semanas": round(cobertura_semanas, 1),
+        "dias_tránsito_internacional": dias_int,
+        "unidades_puente_sugeridas": unidades_emergencia_necesarias,
+        "costo_unitario_internacional": costo_unit_int,
+        "salvavidas_local": salvavidas
+    }
+
 def slugify(texto):
     if not texto: return "empresa-sin-nombre"
     t = unicodedata.normalize('NFKD', str(texto)).encode('ascii', 'ignore').decode('ascii')
