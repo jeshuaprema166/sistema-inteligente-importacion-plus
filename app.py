@@ -173,22 +173,19 @@ def calcular_ruta_salvavidas_local(producto, cantidad_emergencia, ubicacion_empr
     """
     info_ubicacion = UBICACIONES_VENEZUELA.get(ubicacion_empresa, {"dias_flete_interno": 3, "factor_costo_flete": 1.3})
     
-    # Costo base de emergencia local (suele ser un poco mayor al FOB directo pero sin aranceles de importación masiva)
-    costo_fob_base = float(producto.get("precio_fob", 0))
-    # El proveedor local vende con un recargo por inmediatez y nacionalización previa (ej: 25% sobre el FOB internacional)
+    # Aseguramos conversión segura a float
+    costo_fob_base = float(producto.get("precio_fob", 0) or 0)
     costo_unitario_local = costo_fob_base * 1.35 
     
-    # Flete interno ponderado según la ciudad en Venezuela
-    gasto_flete_interno = 0.50 * info_ubicacion["factor_costo_flete"]
-    
+    gasto_flete_interno = 0.50 * float(info_ubicacion.get("factor_costo_flete", 1.3))
     costo_total_unitario_local = costo_unitario_local + gasto_flete_interno
-    dias_totales_entrega = info_ubicacion["dias_flete_interno"] # Entrega rápida local
+    dias_totales_entrega = int(info_ubicacion.get("dias_flete_interno", 3))
     
     total_inversion_emergencia = float(cantidad_emergencia) * costo_total_unitario_local
     
     return {
         "proveedor": proveedor_local,
-        "cantidad_sugerida": cantidad_emergencia,
+        "cantidad_sugerida": int(cantidad_emergencia),
         "costo_unitario_local": round(costo_total_unitario_local, 2),
         "dias_entrega": dias_totales_entrega,
         "inversion_total": round(total_inversion_emergencia, 2),
@@ -202,25 +199,27 @@ def comparar_rutas_abastecimiento(producto, config):
     Plan de Salvavidas (Compra Puente Nacional) considerando la ubicación de la empresa.
     """
     ubicacion = config.get("ubicacion_empresa", "Caracas / Región Capital")
-    ventas_sem = producto.get("ventas_semanales", 0)
-    stock_act = producto.get("stock_actual", 0)
+    
+    # Conversión robusta a float para evitar errores de tipo
+    ventas_sem = float(producto.get("ventas_semanales", 0) or 0)
+    stock_act = float(producto.get("stock_actual", 0) or 0)
     
     # Cobertura actual en semanas
-    cobertura_semanas = stock_act / ventas_sem if ventas_sem > 0 else 0
+    cobertura_semanas = (stock_act / ventas_sem) if ventas_sem > 0 else 0.0
     
     # Días de tránsito internacional según el origen configurado
-    dias_int = obtener_dias_transito(config.get("origen", "China"))
+    dias_int = float(obtener_dias_transito(config.get("origen", "China")) or 60)
     semanas_int = dias_int / 7.0
     
     # ¿Hay riesgo de quiebre antes de que llegue el pedido internacional?
     en_riesgo = cobertura_semanas <= semanas_int
     
-    # Cantidad de emergencia necesaria para cubrir el bache hasta que llegue el contenedor
+    # Cantidad de emergencia necesaria para cubrir el bache
     semanas_bache = max(0.0, semanas_int - cobertura_semanas)
     unidades_emergencia_necesarias = int(semanas_bache * ventas_sem) if en_riesgo else 0
     
-    # Datos de la ruta internacional (estándar ya calculado)
-    costo_unit_int = float(producto.get("costo_unitario", 0))
+    # Costo unitario internacional
+    costo_unit_int = float(producto.get("costo_unitario", 0) or 0)
     
     # Datos de la ruta salvavidas local
     salvavidas = None
@@ -231,6 +230,15 @@ def comparar_rutas_abastecimiento(producto, config):
             ubicacion,
             proveedor_local=config.get("proveedor_local_preferido", "Distribuidor Nacional de Emergencia")
         )
+        
+    return {
+        "en_riesgo_quiebre": en_riesgo,
+        "cobertura_semanas": round(cobertura_semanas, 1),
+        "dias_tránsito_internacional": int(dias_int),
+        "unidades_puente_sugeridas": unidades_emergencia_necesarias,
+        "costo_unitario_internacional": costo_unit_int,
+        "salvavidas_local": salvavidas
+    }
         
     return {
         "en_riesgo_quiebre": en_riesgo,
