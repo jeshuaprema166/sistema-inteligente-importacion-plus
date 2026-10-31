@@ -537,6 +537,82 @@ def mostrar_alertas_en_panel(alertas):
         </div>
         """, unsafe_allow_html=True)
 
+# --- MÓDULO VISUAL: PESTAÑA SALVAVIDAS Y RUTAS ÓPTIMAS ---
+def renderizar_pestana_salvavidas(productos, config):
+    st.subheader("🛟 Módulo 'Salvavidas': Rutas Paralelas y Proveedores Óptimos")
+    st.markdown("""
+    Este módulo evalúa en tiempo real si existe riesgo de quiebre de inventario antes de que llegue su carga internacional, 
+    calculando una **Ruta Puente de Auxilio Nacional** ajustada a la ubicación de su empresa en Venezuela y permitiéndole 
+    seleccionar el proveedor óptimo para recalcular la operación.
+    """)
+    
+    if not productos:
+        st.info("⚠️ Por favor, cargue o calcule los productos primero para activar el análisis de salvavidas.")
+        return
+
+    # Selector de ubicación de la empresa para calcular fletes internos reales
+    ubicacion_actual = config.get("ubicacion_empresa", "Caracas / Región Capital")
+    nueva_ubicacion = st.selectbox(
+        "📍 Ubicación de su Empresa / Almacén (para cálculo de flete interno en Venezuela):",
+        list(UBICACIONES_VENEZUELA.keys()),
+        index=list(UBICACIONES_VENEZUELA.keys()).index(ubicacion_actual) if ubicacion_actual in UBICACIONES_VENEZUELA else 0
+    )
+    config["ubicacion_empresa"] = nueva_ubicacion
+
+    st.markdown("---")
+    
+    for i, prod in enumerate(productos):
+        comparacion = comparar_rutas_abastecimiento(prod, config)
+        
+        with st.container():
+            col1, col2 = st.columns([2, 3])
+            
+            with col1:
+                st.markdown(f"**📦 {prod.get('nombre', 'Producto')}**")
+                st.caption(f"Stock Actual: {prod.get('stock_actual', 0)} unds | Venta Semanal: {prod.get('ventas_semanales', 0)} unds/sem")
+                st.markdown(f"⏱️ **Cobertura:** `{comparacion['cobertura_semanas']} semanas`")
+                st.markdown(f"🚢 **Tránsito Origen ({config.get('origen', 'China')}):** `{comparacion['dias_tránsito_internacional']} días`")
+                
+                if comparacion["en_riesgo_quiebre"]:
+                    st.error("🔴 **ALERTA DE QUIEBRE:** El stock se agotará antes de que llegue el pedido internacional.")
+                else:
+                    st.success("🟢 **Abastecimiento Seguro:** Cobertura suficiente hasta el próximo arribo.")
+
+            with col2:
+                if comparacion["en_riesgo_quiebre"] and comparacion["salvavidas_local"]:
+                    salv = comparacion["salvavidas_local"]
+                    st.markdown("##### 🌉 Opción de Auxilio: Ruta Puente Nacional")
+                    st.info(
+                        f"* **Proveedor Sugerido:** {salv['proveedor']}\n"
+                        f"* **Cantidad Puente:** `{salv['cantidad_sugerida']} unidades`\n"
+                        f"* **Costo Unitario Local (Puesto en {salv['ubicacion_destino']}):** `${salv['costo_unitario_local']}`\n"
+                        f"* **Tiempo de Entrega:** `{salv['dias_entrega']} días`\n"
+                        f"* **Inversión Total de Emergencia:** `${salv['inversion_total']}`"
+                    )
+                    
+                    # Simulador de elección de 3 a 5 proveedores óptimos
+                    proveedores_opciones = [
+                        "Distribuidor Mayorista Nacional (Estándar)",
+                        "Importadora & Mayorista Central, C.A.",
+                        "Proveedor Express Regional (Zonal)",
+                        "Aliado Comercial Directo (Stock Local)"
+                    ]
+                    
+                    prov_elegido = st.selectbox(
+                        f"Seleccione el Proveedor Óptimo para recálculo ({prod.get('nombre', '')})",
+                        proveedores_opciones,
+                        key=f"prov_optimo_{i}"
+                    )
+                    
+                    if st.button(f"⚡ Recalcular con {prov_elegido[:20]}...", key=f"btn_recalc_{i}"):
+                        config["proveedor_local_preferido"] = prov_elegido
+                        st.toast(f"✅ ¡Operación recalculada con éxito usando a {prov_elegido}!", icon="🚀")
+                else:
+                    st.markdown("##### 📌 Estado de Ruta")
+                    st.write("No se requiere activar la ruta de salvavidas local en este momento. La importación principal cubre la demanda.")
+            
+            st.markdown("---")
+
 def proyectar_flujo_caja(productos, config, semanas=13, crecimiento_semanal=0.02, costo_fijo_semanal=0.0, pago_importacion=None):
     hoy = date.today()
     saldo = float(config.get("capital_inicial", 0))
