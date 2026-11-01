@@ -756,13 +756,24 @@ def crear_reporte_html(productos, gastos_contenedor, config):
     html += "</table>"
 
     html += """<h3 style="color: #1f4e78; margin-bottom: 10px;">Desglose Individual y Prorrateo de Gastos</h3>"""
-    
-    for p in productos:
-        color_txt = "#c00000" if "🔴" in p.get("semaforo_color", "") else ("#bf8f00" if "🟡" in p.get("semaforo_color", "") else "#006100")
+    for p in products:
+        color_txt = "#c00000" if "🔴" in p.get("semaforo_color", "") else ("bf8f00" if "🟡" in p.get("semaforo_color", "") else "#006100")
         estado_txt = "ROJO" if "🔴" in p.get("semaforo_color", "") else ("AMARILLO" if "🟡" in p.get("semaforo_color", "") else "VERDE")
         
         _, _, sug_ahora, sug_futuro, _ = evaluar_semaforo(p.get("stock_actual", 0), p.get("ventas_semanales", 0), p.get("dias_entrega", 0), config.get("fecha_proximo_pedido"))
-        
+
+        # 1. Procesamos la fecha AQUÍ AFUERA del HTML de forma limpia y segura
+        fecha_ped_raw = config.get("fecha_proximo_pedido", "")
+        try:
+            if fecha_ped_raw:
+                dt_ped = datetime.strptime(str(fecha_ped_raw), "%Y-%m-%d")
+                fecha_ped_fmt = dt_ped.strftime("%d/%m/%Y")
+            else:
+                fecha_ped_fmt = "X/X/X"
+        except Exception:
+            fecha_ped_fmt = str(fecha_ped_raw)
+
+        # 2. Luego construimos el HTML usando la variable {fecha_ped_fmt} ya lista
         html += f"""
         <div style="page-break-inside: avoid; border: 1px solid #b3d4fc; border-radius: 5px; margin-bottom: 15px; overflow: hidden;">
             <div style="background-color: #e6f2ff; padding: 8px 12px; border-bottom: 1px solid #b3d4fc; font-weight: bold; color: #1f4e78;">
@@ -771,8 +782,13 @@ def crear_reporte_html(productos, gastos_contenedor, config):
             <div style="padding: 12px; font-size: 12px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                     <div><b style="color: {color_txt};">Estado: {estado_txt}</b> - {p['semaforo']}</div>
-                    <div style="text-align: right;"><b>=====> Pedir {sug_ahora} unds</b><br><span style="color: #666; font-style: italic;">Planificación: Pedir {sug_futuro} unds</span></div>
+                    <div style="text-align: right;">
+                        <b>======> Pedir {sug_ahora} unds</b><br>
+                        <span style="color: #666; font-style: italic;">Según Pedido Planificado para el {fecha_ped_fmt} Pedir {sug_futuro} Unds</span>
+                    </div>
                 </div>
+        """
+
                 <div style="margin-bottom: 10px; color: #444;">
                     <b>Cant.:</b> {p['cantidad']} unds | <b>FOB U.:</b> $ {float(p['precio_fob']):,.2f} | <b>Peso T.:</b> {float(p['peso_total']):,.2f} kg | <b>Vol. T.:</b> {float(p['volumen_total']):,.4f} m3
                 </div>
