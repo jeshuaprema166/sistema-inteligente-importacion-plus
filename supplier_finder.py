@@ -1,6 +1,6 @@
 """
 Buscador de proveedores alternativos para cubrir fallas de inventario.
-Devuelve candidatos (NO confirmados) con nombre, localidad, teléfono y fuente.
+Devuelve candidatos con localidad, teléfono (o aviso si no está disponible) y fuente.
 """
 import json
 import re
@@ -10,7 +10,6 @@ from typing import Optional
 from tavily import TavilyClient
 from openai import OpenAI
 
-# --- Regex de teléfonos Venezuela (fijo 0XXX-XXXXXXX / móvil 04XX-XXXXXXX) ---
 PHONE_RE = re.compile(r"(?:\+?58[\s.\-]?)?(?:0)?[24]\d{2}[\s.\-]?\d{3}[\s.\-]?\d{4}")
 
 
@@ -24,7 +23,6 @@ def normalize_phone(raw: str) -> Optional[str]:
 
 
 def phone_appears_in_source(phone: str, content: str) -> bool:
-    """Anti-alucinación: los 10 dígitos deben existir literalmente en la fuente."""
     target = re.sub(r"\D", "", phone)
     return target in re.sub(r"\D", "", content or "")
 
@@ -116,8 +114,6 @@ def extract_heuristic(hits: list[dict], producto: str) -> list[dict]:
     tokens = [t.lower() for t in producto.split() if len(t) > 3]
     for h in hits:
         phones = list({normalize_phone(p) for p in PHONE_RE.findall(h["content"] + " " + h["title"]) if normalize_phone(p)})
-        if not phones:
-            continue
         texto = (h["content"] + " " + h["title"]).lower()
         out.append({
             "nombre": h["title"].split("|")[0].split("-")[0].strip()[:80],
@@ -172,8 +168,8 @@ def consolidate(raw: list[dict], hits: list[dict], producto: str, ciudad: Option
 
     vistos, unicos = set(), []
     for c in sorted(out, key=lambda x: x.score, reverse=True):
-        key = re.sub(r"[^a-z0-9]", "", c.nombre.lower())[:25] or c.telefono
-        if key in vistos or (c.telefono and c.telefono in {u.telefono for u in unicos}):
+        key = re.sub(r"[^a-z0-9]", "", c.nombre.lower())[:25] or c.telefono or c.fuente
+        if key in vistos:
             continue
         vistos.add(key)
         unicos.append(c)
@@ -182,7 +178,7 @@ def consolidate(raw: list[dict], hits: list[dict], producto: str, ciudad: Option
 
 def find_suppliers(producto: str, cantidad: int | None, ciudad: str | None,
                    tavily_key: str, openai_key: str | None = None,
-                   top_n: int, _tavily=None, _openai=None) -> list[dict]: # Se ajustó para compatibilidad con caché
+                   top_n: int = 6, _tavily=None, _openai=None) -> list[dict]:
     queries = build_queries(producto, ciudad)
     hits = search_all(queries, tavily_key)
     if not hits:
@@ -196,4 +192,12 @@ def find_suppliers(producto: str, cantidad: int | None, ciudad: str | None,
         raw = extract_heuristic(hits, producto)
 
     mejores = consolidate(raw, hits, producto, ciudad)[:top_n]
+    if not mejores and hits:
+        for h in hits[:top_n]:
+            mejores.append(Candidate(
+                nombre=h["title"].split("|")[0].split("-")[0].strip()[:80],
+                localidad="", direccion="", telefono="",
+                senales_mayorista=True, menciona_producto=True,
+                fuente=h["url"], score=1
+            ))
     return [asdict(c) for c in mejores]
