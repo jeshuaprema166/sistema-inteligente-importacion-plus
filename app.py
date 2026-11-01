@@ -579,8 +579,10 @@ def renderizar_pestana_salvavidas(productos, config):
                 st.markdown(f"**📦 {prod.get('nombre', 'Producto')}**")
                 st.caption(f"Stock Actual: {prod.get('stock_actual', 0)} unds | Venta Semanal: {prod.get('ventas_semanales', 0)} unds/sem")
                 st.markdown(f"⏱️ **Cobertura:** `{comparacion['cobertura_semanas']} semanas`")
-                st.markdown(f"🚢 **Tránsito Origen ({config.get('origen', 'China')}):** `{comparacion['dias_tránsito_internacional']} días`")
-                
+                dias_t = comparacion['dias_tránsito_internacional']
+                sems_t = round(dias_t / 7.0, 1)
+                st.markdown(f"🚢 **Tránsito Origen ({config.get('origen', 'China')}):** `{dias_t} días ({sems_t} Sem)`")
+                       
                 if comparacion["en_riesgo_quiebre"]:
                     fecha_pedido_str = config.get("fecha_proximo_pedido")
                     if fecha_pedido_str:
