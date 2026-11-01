@@ -1131,8 +1131,13 @@ def main():
     if not config.get("empresa"): st.warning("👈 Crea o selecciona un **perfil de empresa** en la barra lateral para comenzar."); return
     panel_configuracion_avanzada(config); panel_monedas_sidebar(config)
     st.title("🛳️ Sistema de Análisis de Importación Inteligente Premium 🐉")
-    st.caption(f"Empresa activa: **{config['empresa']}** · Sector: {texto_efectivo(config.get('sector'), config.get('sector_otro'))} · Origen: {texto_efectivo(config.get('origen'), config.get('origen_otro'))}")
-    st.caption("Metodología: **Prof. Jesús Pulido V.** · Asesor de Importación Inteligente")
+    st.markdown(
+        f"<span style='font-size: 16px; color: #1f4e78; font-weight: bold;'>"
+        f"Empresa activa: {config['empresa']} &nbsp;|&nbsp; Sector: {texto_efectivo(config.get('sector'), config.get('sector_otro'))} &nbsp;|&nbsp; Origen: {origen_efectivo}"
+        f"</span>",
+        unsafe_allow_html=True
+    )
+    st.caption("Ingeniería con IA: **Prof. Jesús Pulido V.** · Asesor de Importación Inteligente")
     
     with st.sidebar:
         st.markdown("---")
