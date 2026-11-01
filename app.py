@@ -626,8 +626,6 @@ def renderizar_pestana_salvavidas(productos, config):
 
             with col2:
                 if comparacion["en_riesgo_quiebre"]:
-                    
-                    # Buscador inteligente y real de proveedores web (Sustituto del fantasma)
                     st.markdown("---")
                     st.markdown("##### 🔍 Búsqueda de Proveedores Alternativos en Tiempo Real")
                     
