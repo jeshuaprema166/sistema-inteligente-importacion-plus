@@ -787,8 +787,6 @@ def crear_reporte_html(productos, gastos_contenedor, config):
                         <span style="color: #666; font-style: italic;">Según Pedido Planificado para el {fecha_ped_fmt} Pedir {sug_futuro} Unds</span>
                     </div>
                 </div>
-        """
-
                 <div style="margin-bottom: 10px; color: #444;">
                     <b>Cant.:</b> {p['cantidad']} unds | <b>FOB U.:</b> $ {float(p['precio_fob']):,.2f} | <b>Peso T.:</b> {float(p['peso_total']):,.2f} kg | <b>Vol. T.:</b> {float(p['volumen_total']):,.4f} m3
                 </div>
