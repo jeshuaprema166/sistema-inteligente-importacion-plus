@@ -6,3 +6,5 @@ fpdf2
 gspread
 google-auth
 xhtml2pdf
+tavily-python
+openai
