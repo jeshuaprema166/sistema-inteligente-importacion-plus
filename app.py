@@ -577,7 +577,7 @@ def renderizar_pestana_salvavidas(productos, config):
             
             with col1:
                 st.markdown(f"**📦 {prod.get('nombre', 'Producto')}**")
-                st.caption(f"Stock Actual: {prod.get('stock_actual', 0)} unds | Venta Semanal: {prod.get('ventas_semanales', 0)} unds/sem")
+                st.markdown(f"📦 **Stock Actual:** `{prod.get('stock_actual', 0)} unds` | **Venta Semanal:** `{prod.get('ventas_semanales', 0)} unds/sem`")
                 st.markdown(f"⏱️ **Cobertura:** `{comparacion['cobertura_semanas']} semanas`")
                 dias_t = comparacion['dias_tránsito_internacional']
                 sems_t = round(dias_t / 7.0, 1)
