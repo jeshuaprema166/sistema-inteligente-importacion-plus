@@ -617,23 +617,61 @@ def renderizar_pestana_salvavidas(productos, config):
                         f"* **Inversión Total de Emergencia:** `${salv['inversion_total']}`"
                     )
                     
-                    # Simulador de elección de 3 a 5 proveedores óptimos
-                    proveedores_opciones = [
-                        "Distribuidor Mayorista Nacional (Estándar)",
-                        "Importadora & Mayorista Central, C.A.",
-                        "Proveedor Express Regional (Zonal)",
-                        "Aliado Comercial Directo (Stock Local)"
-                    ]
+                    # Buscador inteligente y real de proveedores web (Módulo Salvavidas Híbrido)
+                    st.markdown("---")
+                    st.markdown("##### 🔍 Búsqueda de Proveedores Alternativos en Tiempo Real")
                     
-                    prov_elegido = st.selectbox(
-                        f"Seleccione el Proveedor Óptimo para recálculo ({prod.get('nombre', '')})",
-                        proveedores_opciones,
-                        key=f"prov_optimo_{i}"
-                    )
+                    has_tavily = "TAVILY_API_KEY" in st.secrets
                     
-                    if st.button(f"⚡ Recalcular con {prov_elegido[:20]}...", key=f"btn_recalc_{i}"):
-                        config["proveedor_local_preferido"] = prov_elegido
-                        st.toast(f"✅ ¡Operación recalculada con éxito usando a {prov_elegido}!", icon="🚀")
+                    if has_tavily:
+                        if st.button(f"🆘 Buscar Proveedores Reales para: {prod.get('nombre')}", key=f"btn_sup_{i}", type="primary"):
+                            with st.status("Rastreando mercado nacional y mayoristas…", expanded=True) as status:
+                                st.write("Generando consultas de búsqueda estratégicas…")
+                                st.write("Consultando fuentes web en tiempo real…")
+                                try:
+                                    res = buscar_con_cache(
+                                        producto=prod.get('nombre'),
+                                        cantidad=comparacion.get('cantidad_puente', 0),
+                                        ciudad=config.get('ubicacion_empresa', 'Caracas'),
+                                        _tavily=st.secrets["TAVILY_API_KEY"],
+                                        _openai=st.secrets.get("OPENAI_API_KEY")
+                                    )
+                                except Exception as e:
+                                    status.update(label="Error en la búsqueda", state="error")
+                                    st.error(f"No se pudo completar el rastreo: {e}")
+                                    res = []
+            
+                                st.write(f"Extracción y validación completada: {len(res)} candidatos encontrados.")
+                                status.update(label="¡Búsqueda finalizada!", state="complete")
+            
+                            if res:
+                                df = pd.DataFrame(res)
+                                df["WhatsApp"] = df["telefono"].apply(lambda t: wa_link(t) if t else "")
+                                df["Teléfono"] = df.apply(
+                                    lambda r: f"[{r['telefono']}](tel:{r['telefono']})" if r["telefono"] else "—",
+                                    axis=1,
+                                )
+                                df_display = df[[
+                                    "nombre", "localidad", "Teléfono", "WhatsApp", "fuente", "score"
+                                ]].rename(columns={
+                                    "nombre": "Empresa", "localidad": "Localidad",
+                                    "fuente": "Fuente web", "score": "Puntuación",
+                                })
+            
+                                st.dataframe(
+                                    df_display, use_container_width=True, hide_index=True,
+                                    column_config={
+                                        "Teléfono": st.column_config.LinkColumn(display_text="📞 Llamar"),
+                                        "WhatsApp": st.column_config.LinkColumn(display_text="💬 WhatsApp"),
+                                        "Fuente web": st.column_config.LinkColumn(display_text="🔗 Ver enlace"),
+                                    },
+                                )
+                                st.caption("⚠️ Son **candidatos web detectados**, no disponibilidad en inventario en vivo. Verifica existencias y precios llamando directamente.")
+                            else:
+                                st.info("No se encontraron candidatos directos con teléfono en la web. Intente consultar con un término más general.")
+                    else:
+                        st.info("💡 *Consejo:* Configure `TAVILY_API_KEY` en sus secretos de Streamlit Cloud para habilitar el buscador web automático de proveedores en tiempo real.")
+                        
                 else:
                     st.markdown("##### 📌 Estado de Ruta")
                     st.write("No se requiere activar la ruta de salvavidas local en este momento. La importación principal cubre la demanda.")
