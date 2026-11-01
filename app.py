@@ -1129,12 +1129,20 @@ def main():
     if not config.get("empresa"): st.warning("👈 Crea o selecciona un **perfil de empresa** en la barra lateral para comenzar."); return
     panel_configuracion_avanzada(config); panel_monedas_sidebar(config)
     st.title("🛳️ Sistema de Análisis de Importación Inteligente Premium 🐉")
-    # Definimos las variables efectivas para evitar el NameError
-    origen_efectivo = texto_efectivo(config.get("origen"), config.get("origen_otro"))
+    # Definimos de forma segura la función auxiliar localmente si no existe
+    def _texto_seguro(val, val_otro):
+        if val == "Otro" and val_otro:
+            return str(val_otro)
+        return str(val or "No especificado")
+
+    # Variables efectivas limpias
+    empresa_activa = config.get('empresa', 'Empresa Principal')
+    sector_activo = _texto_seguro(config.get('sector'), config.get('sector_otro'))
+    origen_efectivo = _texto_seguro(config.get('origen'), config.get('origen_otro'))
     
     st.markdown(
         f"<span style='font-size: 16px; color: #1f4e78; font-weight: bold;'>"
-        f"Empresa activa: {config['empresa']} &nbsp;|&nbsp; Sector: {texto_efectivo(config.get('sector'), config.get('sector_otro'))} &nbsp;|&nbsp; Origen: {origen_efectivo}"
+        f"Empresa activa: {empresa_activa} &nbsp;|&nbsp; Sector: {sector_activo} &nbsp;|&nbsp; Origen: {origen_efectivo}"
         f"</span>",
         unsafe_allow_html=True
     )
