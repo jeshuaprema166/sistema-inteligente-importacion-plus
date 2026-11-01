@@ -582,7 +582,7 @@ def renderizar_pestana_salvavidas(productos, config):
                 st.markdown(f"🚢 **Tránsito Origen ({config.get('origen', 'China')}):** `{comparacion['dias_tránsito_internacional']} días`")
                 
                 if comparacion["en_riesgo_quiebre"]:
-                    st.error("🔴 **ALERTA DE QUIEBRE:** El stock se agotará antes de que llegue el pedido internacional.")
+                    st.error("🔴 **ALERTA DE INVENTARIO:** El stock se agotará antes de que llegue el pedido internacional.")
                 else:
                     st.success("🟢 **Abastecimiento Seguro:** Cobertura suficiente hasta el próximo arribo.")
 
