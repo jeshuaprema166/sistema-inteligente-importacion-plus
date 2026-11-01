@@ -582,7 +582,24 @@ def renderizar_pestana_salvavidas(productos, config):
                 st.markdown(f"🚢 **Tránsito Origen ({config.get('origen', 'China')}):** `{comparacion['dias_tránsito_internacional']} días`")
                 
                 if comparacion["en_riesgo_quiebre"]:
-                    st.error("🔴 **ALERTA DE INVENTARIO:** El stock se agotará antes de que llegue el pedido internacional.")
+                    fecha_pedido_str = config.get("fecha_proximo_pedido")
+                    if fecha_pedido_str:
+                        try:
+                            fecha_pedido_dt = datetime.strptime(str(fecha_pedido_str), "%Y-%m-%d").date()
+                            dias_t = int(comparacion['dias_tránsito_internacional'])
+                            fecha_llegada_dt = fecha_pedido_dt + timedelta(days=dias_t)
+                            
+                            msg_alerta = (
+                                f"🔴 **ALERTA DE INVENTARIO:** El stock se agotará en {comparacion['cobertura_semanas']} semanas, "
+                                f"antes de que llegue el pedido programado a realizar el **{fecha_pedido_dt.strftime('%d/%m/%Y')}**, "
+                                f"cuyo arribo estimado será el **{fecha_llegada_dt.strftime('%d/%m/%Y')}**."
+                            )
+                            st.error(msg_alerta)
+                        except Exception:
+                            st.error("🔴 **ALERTA DE INVENTARIO:** El stock se agotará antes de que llegue el pedido internacional.")
+                    else:
+                        st.error("🔴 **ALERTA DE INVENTARIO:** El stock se agotará antes de que llegue el pedido internacional.")
+
                 else:
                     st.success("🟢 **Abastecimiento Seguro:** Cobertura suficiente hasta el próximo arribo.")
 
