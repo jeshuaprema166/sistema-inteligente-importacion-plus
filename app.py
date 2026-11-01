@@ -475,13 +475,32 @@ def calcular_costos(productos, gastos_ingresados, config):
     return gastos
 
 def consultar_partida(codigo):
-    return PARTIDAS_BASE.get(codigo, {
-        "descripcion": "No registrada en base local",
+    if not codigo:
+        return {
+            "descripcion": "No registrada en base local.",
+            "ad_valorem": None, "iva": None,
+            "requisitos": "Consultar con agente aduanal.",
+            "capitulo": "Desconocido",
+        }
+    
+    codigo_limpio = str(codigo).strip()
+    
+    # 1. Buscar tal cual viene escrito
+    if codigo_limpio in PARTIDAS_BASE:
+        return PARTIDAS_BASE[codigo_limpio]
+    
+    # 2. Buscar limpiando puntos, guiones y espacios (ej: "8467.21.00" -> "84672100")
+    codigo_alt = codigo_limpio.replace(".", "").replace("-", "").replace(" ", "")
+    if codigo_alt in PARTIDAS_BASE:
+        return PARTIDAS_BASE[codigo_alt]
+        
+    return {
+        "descripcion": "No registrada en base local.",
         "ad_valorem": None, "iva": None,
-        "requisitos": "Consultar con agente aduanal",
+        "requisitos": "Consultar con agente aduanal.",
         "capitulo": "Desconocido",
-    })
-
+    }
+    
 def estimar_derechos(codigo, valor_fob_usd, flete_usd=0.0, seguro_usd=0.0):
     info = consultar_partida(codigo)
     if info["ad_valorem"] is None:
