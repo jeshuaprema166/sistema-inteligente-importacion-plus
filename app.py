@@ -625,18 +625,9 @@ def renderizar_pestana_salvavidas(productos, config):
                     st.success("🟢 **Abastecimiento Seguro:** Cobertura suficiente hasta el próximo arribo.")
 
             with col2:
-                if comparacion["en_riesgo_quiebre"] and comparacion["salvavidas_local"]:
-                    salv = comparacion["salvavidas_local"]
-                    st.markdown("##### 🌉 Opción de Auxilio: Ruta Puente Nacional")
-                    st.info(
-                        f"* **Proveedor Sugerido:** {salv['proveedor']}\n"
-                        f"* **Cantidad Puente:** `{salv['cantidad_sugerida']} unidades`\n"
-                        f"* **Costo Unitario Local (Puesto en {salv['ubicacion_destino']}):** `${salv['costo_unitario_local']}`\n"
-                        f"* **Tiempo de Entrega:** `{salv['dias_entrega']} días`\n"
-                        f"* **Inversión Total de Emergencia:** `${salv['inversion_total']}`"
-                    )
+                if comparacion["en_riesgo_quiebre"]:
                     
-                    # Buscador inteligente y real de proveedores web (Módulo Salvavidas Híbrido)
+                    # Buscador inteligente y real de proveedores web (Sustituto del fantasma)
                     st.markdown("---")
                     st.markdown("##### 🔍 Búsqueda de Proveedores Alternativos en Tiempo Real")
                     
@@ -659,15 +650,16 @@ def renderizar_pestana_salvavidas(productos, config):
                                     status.update(label="Error en la búsqueda", state="error")
                                     st.error(f"No se pudo completar el rastreo: {e}")
                                     res = []
-            
+    
                                 st.write(f"Extracción y validación completada: {len(res)} candidatos encontrados.")
                                 status.update(label="¡Búsqueda finalizada!", state="complete")
-            
+    
                             if res:
                                 df = pd.DataFrame(res)
-                                df["WhatsApp"] = df["telefono"].apply(lambda t: wa_link(t) if t else "")
+                                df["telefono"] = df["telefono"].fillna("").apply(lambda t: t if t else "Sin Nro de TLF disponible")
+                                df["WhatsApp"] = df["telefono"].apply(lambda t: wa_link(t) if t and t != "Sin Nro de TLF disponible" else "")
                                 df["Teléfono"] = df.apply(
-                                    lambda r: f"[{r['telefono']}](tel:{r['telefono']})" if r["telefono"] else "—",
+                                    lambda r: f"[{r['telefono']}](tel:{r['telefono']})" if r['telefono'] != "Sin Nro de TLF disponible" else r['telefono'],
                                     axis=1,
                                 )
                                 df_display = df[[
@@ -676,7 +668,7 @@ def renderizar_pestana_salvavidas(productos, config):
                                     "nombre": "Empresa", "localidad": "Localidad",
                                     "fuente": "Fuente web", "score": "Puntuación",
                                 })
-            
+    
                                 st.dataframe(
                                     df_display, use_container_width=True, hide_index=True,
                                     column_config={
@@ -685,15 +677,15 @@ def renderizar_pestana_salvavidas(productos, config):
                                         "Fuente web": st.column_config.LinkColumn(display_text="🔗 Ver enlace"),
                                     },
                                 )
-                                st.caption("⚠️ Son **candidatos web detectados**, no disponibilidad en inventario en vivo. Verifica existencias y precios llamando directamente.")
+                                st.caption("⚠️ Se muestran empresas y fuentes web detectadas del sector. Verifique existencias y condiciones directamente.")
                             else:
-                                st.info("No se encontraron candidatos directos con teléfono en la web. Intente consultar con un término más general.")
+                                st.info("🔎 No se hallaron registros directos en la web para este término exacto. Intente con un término más genérico (ej. 'herramientas' o 'ferretería') para listar mayoristas de la zona.")
                     else:
-                        st.info("💡 *Consejo:* Configure `TAVILY_API_KEY` en sus secretos de Streamlit Cloud para habilitar el buscador web automático de proveedores en tiempo real.")
-                        
+                        st.info("💡 *Consejo:* Configure `TAVILY_API_KEY` en sus secretos de Streamlit Cloud para habilitar el buscador web automático.")
                 else:
-                    st.markdown("##### 📌 Estado de Ruta")
-                    st.write("No se requiere activar la ruta de salvavidas local en este momento. La importación principal cubre la demanda.")
+                    st.markdown("##### Estado de Ruta")
+                    st.write("No se requiere activar la ruta de salvavidas local en este momento.")
+                           
             
             st.markdown("---")
 
