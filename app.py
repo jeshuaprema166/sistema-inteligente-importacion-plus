@@ -756,7 +756,7 @@ def crear_reporte_html(productos, gastos_contenedor, config):
     html += "</table>"
 
     html += """<h3 style="color: #1f4e78; margin-bottom: 10px;">Desglose Individual y Prorrateo de Gastos</h3>"""
-        for p in productos:
+    for p in productos:
         color_txt = "#c00000" if "🔴" in p.get("semaforo_color", "") else ("bf8f00" if "🟡" in p.get("semaforo_color", "") else "#006100")
         estado_txt = "ROJO" if "🔴" in p.get("semaforo_color", "") else ("AMARILLO" if "🟡" in p.get("semaforo_color", "") else "VERDE")
         
