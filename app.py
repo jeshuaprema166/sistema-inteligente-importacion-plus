@@ -14,6 +14,9 @@ from xhtml2pdf import pisa
 import matplotlib.pyplot as plt
 from fpdf import FPDF
 
+# --- MÓDULO DE BÚSQUEDA WEB DE PROVEEDORES ---
+from supplier_finder import find_suppliers, wa_link
+
 try:
     import sheets_db
     SHEETS_DB_OK = True
