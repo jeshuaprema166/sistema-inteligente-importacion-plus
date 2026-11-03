@@ -682,7 +682,8 @@ def renderizar_pestana_salvavidas(productos, config):
                                                 "Fuente web": st.column_config.LinkColumn("🔗 Enlace", display_text="🔗 Ver fuente"),
                                             },
                                         )
-                                        
+                                        st.caption("ℹ️ *Mostrando directorio de proveedores nacionales pre-verificado (Modo de contingencia sin conexión web).*")
+
                                 except Exception as e:
                                     st.error(f"Error crítico en el buscador web: {e}")
     
