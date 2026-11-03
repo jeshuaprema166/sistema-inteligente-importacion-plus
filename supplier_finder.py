@@ -1,5 +1,6 @@
 """
-Buscador universal con consultas flexibles por rubro y red de seguridad garantizada.
+Buscador universal con consultas flexibles por rubro, limpieza de símbolos
+y red de seguridad robusta para garantizar resultados en todo momento.
 """
 import json
 import re
@@ -56,8 +57,12 @@ class Candidate:
     score: int = 0
 
 def build_queries(producto: str, ciudad: Optional[str] = None) -> list[str]:
-    base = producto.strip()
+    # 1. Limpieza de símbolos y caracteres especiales
+    base_limpia = re.sub(r'[^\w\s]', ' ', producto)
+    base_limpia = " ".join(base_limpia.split())
+    palabras_clave = " ".join(base_limpia.split()[:3]) # Tomamos las 3 palabras principales
     
+    # 2. Extracción del rubro activo en la sesión
     rubro_empresa = "Otro (especificar)"
     if "config_empresa" in st.session_state:
         rubro_empresa = st.session_state["config_empresa"].get("rubro", "Otro (especificar)")
@@ -66,15 +71,15 @@ def build_queries(producto: str, ciudad: Optional[str] = None) -> list[str]:
         
     terminos_rubro = RUBRO_QUERIES.get(rubro_empresa, RUBRO_QUERIES["Otro (especificar)"])
 
-    # Consultas abiertas y flexibles (sin comillas estrictas para evitar bloqueos de la API)
+    # Consultas naturales y flexibles
     qs = [
-        f'mayorista proveedor {base} Venezuela',
-        f'distribuidor comercial {base}',
+        f'mayorista {palabras_clave} Venezuela',
+        f'distribuidor {palabras_clave}',
         f'{terminos_rubro[0]}',
         f'{terminos_rubro[1]}',
     ]
     if ciudad:
-        qs.insert(0, f'mayorista {ciudad} {base}')
+        qs.insert(0, f'mayorista {palabras_clave} {ciudad}')
         qs.append(f'proveedor {ciudad} {terminos_rubro[2]}')
     
     return list(set(qs))
@@ -92,24 +97,6 @@ def search_all(queries: list[str], api_key: str, per_query: int = 4) -> list[dic
                     hits.append({"url": url, "title": r.get("title", ""), "content": r.get("content", "")})
         except Exception as e:
             print(f"[search] fallo en '{q}': {e}")
-            
-    # RED DE SEGURIDAD ABSOLUTA: Si la búsqueda específica no devolvió nada, disparamos una genérica por rubro
-    if not hits:
-        rubro_empresa = "Otro (especificar)"
-        if "config_empresa" in st.session_state:
-            rubro_empresa = st.session_state["config_empresa"].get("rubro", "Otro (especificar)")
-        termo = RUBRO_QUERIES.get(rubro_empresa, RUBRO_QUERIES["Otro (especificar)"])[0]
-        
-        try:
-            res_respaldo = client.search(query=termo, max_results=4, search_depth="advanced", include_raw_content=False)
-            for r in res_respaldo.get("results", []):
-                url = r.get("url", "")
-                if url and url not in seen:
-                    seen.add(url)
-                    hits.append({"url": url, "title": r.get("title", ""), "content": r.get("content", "")})
-        except Exception as e:
-            print(f"[search respaldo] fallo: {e}")
-            
     return hits
 
 LLM_PROMPT = """Extrae proveedores mayoristas, distribuidores o comercializadoras REALES del texto. Reglas estrictas:
@@ -210,9 +197,30 @@ def consolidate(raw: list[dict], hits: list[dict], producto: str, ciudad: Option
 def find_suppliers(producto: str, cantidad: int | None, ciudad: str | None,
                    tavily_key: str, openai_key: str | None = None,
                    top_n: int = 6, _tavily=None, _openai=None) -> list[dict]:
+    if not tavily_key:
+        raise ValueError("Falta la API Key de Tavily.")
+
     queries = build_queries(producto, ciudad)
     hits = search_all(queries, tavily_key)
     
+    # PARCHE DE SEGURIDAD ABSOLUTA: Si Tavily no trajo hits, ejecutamos búsqueda de respaldo por rubro
+    if not hits:
+        client = TavilyClient(api_key=tavily_key)
+        rubro_empresa = "Ferretería / Herramientas"
+        if "config_empresa" in st.session_state:
+            rubro_empresa = st.session_state["config_empresa"].get("rubro", "Ferretería / Herramientas")
+        elif "temp_config" in st.session_state:
+            rubro_empresa = st.session_state["temp_config"].get("rubro", "Ferretería / Herramientas")
+            
+        termino_salvavidas = RUBRO_QUERIES.get(rubro_empresa, ["ferretería mayorista Venezuela"])[0]
+        
+        try:
+            res_salvavidas = client.search(query=termino_salvavidas, max_results=5)
+            for r in res_salvavidas.get("results", []):
+                hits.append({"url": r.get("url", ""), "title": r.get("title", ""), "content": r.get("content", "")})
+        except Exception as e:
+            print(f"Error en salvavidas: {e}")
+
     if not hits:
         return []
 
@@ -225,7 +233,6 @@ def find_suppliers(producto: str, cantidad: int | None, ciudad: str | None,
 
     mejores = consolidate(raw, hits, producto, ciudad)[:top_n]
     
-    # Garantía absoluta: si por alguna razón los filtros dejan la lista vacía pero hay resultados web, los forzamos
     if not mejores and hits:
         for h in hits[:top_n]:
             mejores.append(Candidate(
@@ -236,3 +243,4 @@ def find_suppliers(producto: str, cantidad: int | None, ciudad: str | None,
             ))
             
     return [asdict(c) for c in mejores]
+                
