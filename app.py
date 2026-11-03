@@ -690,36 +690,114 @@ def renderizar_pestana_salvavidas(productos, config):
 
                                 except Exception as e:
                                     st.error(f"Error crítico en el buscador web: {e}")
-    
+                    # --- FORMULARIO DE COTIZACIÓN CON SELECCIÓN DE PROVEEDOR ---
+                    state_key = f"resultado_cot_{i}"
+                    cant_puente = comparacion.get('cantidad_puente', 0)
+                    
+                    st.divider()
+                    st.markdown("### 📝 Ingreso Manual de Cotización Real")
+                    
+                    # 1. Recuperamos los proveedores de la sesión (si existen)
+                    opciones_proveedores = ["Otro / Proveedor Externo (Escribir abajo)"]
+                    if f"lista_prov_{i}" in st.session_state:
+                        nombres_encontrados = [p["nombre"] for p in st.session_state[f"lista_prov_{i}"]]
+                        opciones_proveedores.extend(nombres_encontrados)
+                    
+                    with st.form(key=f"form_cot_{i}"):
+                        # 2. Agregamos el Selectbox para el Proveedor
+                        proveedor_elegido = st.selectbox(
+                            "Proveedor Seleccionado", 
+                            options=opciones_proveedores,
+                            key=f"select_prov_{i}"
+                        )
+                        
+                        # 3. Campo de texto por si eligió "Otro"
+                        proveedor_custom = ""
+                        if proveedor_elegido == "Otro / Proveedor Externo (Escribir abajo)":
+                            proveedor_custom = st.text_input("Nombre del Proveedor Externo:")
+                        
+                        col_f1, col_f2 = st.columns(2)
+                        precio_real = col_f1.number_input("Precio Unitario Cotizado ($)", min_value=0.0, step=0.5, value=0.0, key=f"p_real_{i}")
+                        dias_entrega = col_f2.number_input("Días de Entrega Reales", min_value=1, step=1, value=5, key=f"d_ent_{i}")
+                        submit_cot = st.form_submit_button("Recalcular Operación con Cotización Real")
+                        
+                        if submit_cot:
+                            nombre_final = proveedor_custom if proveedor_custom else proveedor_elegido
+                            inversion_total = precio_real * cant_puente
+                            
+                            st.session_state[state_key] = {
+                                "proveedor": nombre_final,
+                                "precio_real": precio_real,
+                                "dias_entrega": dias_entrega,
+                                "inversion_total": inversion_total,
+                                "cant_puente": cant_puente
+                            }
+                    
+                    # 4. Renderizamos el resultado con el nombre del proveedor seleccionado
+                    if state_key in st.session_state:
+                        cot = st.session_state[state_key]
+                        st.success(f"✅ **Operación Recalculada (Guardada en Sesión)**\n\n"
+                                   f"- **Proveedor Seleccionado:** {cot['proveedor']}\n"
+                                   f"- **Inversión Real Total:** ${cot['inversion_total']:,.2f}\n"
+                                   f"- **Plazo de Recepción:** {cot['dias_entrega']} días\n"
+                                   f"- **Cantidad Cubierta:** {cot['cant_puente']} unidades "
+                                   f"(a ${cot['precio_real']:,.2f} c/u)")
+                        
+                        
                         # Persistencia del cálculo de cotización real en st.session_state
+                        # --- FORMULARIO DE COTIZACIÓN CON SELECCIÓN DE PROVEEDOR ---
                         state_key = f"resultado_cot_{i}"
                         cant_puente = comparacion.get('cantidad_puente', 0)
                         
                         st.divider()
                         st.markdown("### 📝 Ingreso Manual de Cotización Real")
                         
+                        # 1. Recuperamos los proveedores de la sesión (si existen)
+                        opciones_proveedores = ["Otro / Proveedor Externo (Escribir abajo)"]
+                        if f"lista_prov_{i}" in st.session_state:
+                            nombres_encontrados = [p["nombre"] for p in st.session_state[f"lista_prov_{i}"]]
+                            opciones_proveedores.extend(nombres_encontrados)
+                        
                         with st.form(key=f"form_cot_{i}"):
+                            # 2. Agregamos el Selectbox para el Proveedor
+                            proveedor_elegido = st.selectbox(
+                                "Proveedor Seleccionado", 
+                                options=opciones_proveedores,
+                                key=f"select_prov_{i}"
+                            )
+                            
+                            # 3. Campo de texto por si eligió "Otro"
+                            proveedor_custom = ""
+                            if proveedor_elegido == "Otro / Proveedor Externo (Escribir abajo)":
+                                proveedor_custom = st.text_input("Nombre del Proveedor Externo:", key=f"p_custom_{i}")
+                            
                             col_f1, col_f2 = st.columns(2)
                             precio_real = col_f1.number_input("Precio Unitario Cotizado ($)", min_value=0.0, step=0.5, value=0.0, key=f"p_real_{i}")
                             dias_entrega = col_f2.number_input("Días de Entrega Reales", min_value=1, step=1, value=5, key=f"d_ent_{i}")
                             submit_cot = st.form_submit_button("Recalcular Operación con Cotización Real")
                             
                             if submit_cot:
+                                nombre_final = proveedor_custom if proveedor_custom else proveedor_elegido
                                 inversion_total = precio_real * cant_puente
+                                
                                 st.session_state[state_key] = {
+                                    "proveedor": nombre_final,
                                     "precio_real": precio_real,
                                     "dias_entrega": dias_entrega,
                                     "inversion_total": inversion_total,
                                     "cant_puente": cant_puente
                                 }
                         
+                        # 4. Renderizamos el resultado con el nombre del proveedor seleccionado
                         if state_key in st.session_state:
                             cot = st.session_state[state_key]
                             st.success(f"✅ **Operación Recalculada (Guardada en Sesión)**\n\n"
+                                       f"- **Proveedor Seleccionado:** {cot['proveedor']}\n"
                                        f"- **Inversión Real Total:** ${cot['inversion_total']:,.2f}\n"
                                        f"- **Plazo de Recepción:** {cot['dias_entrega']} días\n"
                                        f"- **Cantidad Cubierta:** {cot['cant_puente']} unidades "
                                        f"(a ${cot['precio_real']:,.2f} c/u)")
+                        
                     else:
                         st.info("💡 *Consejo:* Configure `TAVILY_API_KEY` en sus secretos de Streamlit Cloud para habilitar el buscador web automático.")
                 else:
