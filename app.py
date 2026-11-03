@@ -640,57 +640,84 @@ def renderizar_pestana_salvavidas(productos, config):
                     
                     if has_tavily:
                         if st.button(f"🆘 Buscar Proveedores Reales para: {prod.get('nombre')}", key=f"btn_sup_{i}", type="primary"):
-                            with st.status("Rastreando mercado nacional y mayoristas…", expanded=True) as status:
-                                st.write("Generando consultas de búsqueda estratégicas…")
-                                st.write("Consultando fuentes web en tiempo real…")
+                            with st.spinner("Rastreando proveedores en la web..."):
                                 try:
-                                    res = buscar_con_cache(
+                                    resultados = find_suppliers(
                                         producto=prod.get('nombre'),
                                         cantidad=comparacion.get('cantidad_puente', 0),
                                         ciudad=config.get('ubicacion_empresa', 'Caracas'),
-                                        _tavily=st.secrets["TAVILY_API_KEY"],
-                                        _openai=st.secrets.get("OPENAI_API_KEY")
+                                        tavily_key=st.secrets["TAVILY_API_KEY"],
+                                        openai_key=st.secrets.get("OPENAI_API_KEY")
                                     )
+                                    
+                                    if len(resultados) == 0:
+                                        st.warning("El buscador no devolvió resultados directos. Verifique su conexión o intente nuevamente.")
+                                    else:
+                                        st.success(f"¡Se encontraron {len(resultados)} candidatos mayoristas!")
+                                        
+                                        # Generamos URLs crudas y limpias para LinkColumn
+                                        df = pd.DataFrame(resultados)
+                                        df["telefono_val"] = df["telefono"].fillna("").apply(lambda t: t if t else "")
+                                        df["Teléfono"] = df["telefono_val"].apply(lambda t: f"tel:{t}" if t else None)
+                                        df["WhatsApp"] = df["telefono_val"].apply(lambda t: wa_link(t) if t else None)
+                                        df["Teléfono_texto"] = df["telefono_val"].apply(lambda t: t if t else "Sin Nro de TLF disponible")
+    
+                                        df_display = df[[
+                                            "nombre", "localidad", "Teléfono_texto", "Teléfono", "WhatsApp", "fuente"
+                                        ]].rename(columns={
+                                            "nombre": "Empresa", 
+                                            "localidad": "Localidad", 
+                                            "Teléfono_texto": "Nro. Contacto",
+                                            "fuente": "Fuente web",
+                                        })
+    
+                                        st.dataframe(
+                                            df_display, use_container_width=True, hide_index=True,
+                                            column_config={
+                                                "Teléfono": st.column_config.LinkColumn("📞 Llamar", display_text="📞 Llamar al móvil"),
+                                                "WhatsApp": st.column_config.LinkColumn("💬 WhatsApp", display_text="💬 Abrir WhatsApp"),
+                                                "Fuente web": st.column_config.LinkColumn("🔗 Enlace", display_text="🔗 Ver fuente"),
+                                            },
+                                        )
+                                        
                                 except Exception as e:
-                                    status.update(label="Error en la búsqueda", state="error")
-                                    st.error(f"No se pudo completar el rastreo: {e}")
-                                    res = []
+                                    st.error(f"Error crítico en el buscador web: {e}")
     
-                                st.write(f"Extracción y validación completada: {len(res)} candidatos encontrados.")
-                                status.update(label="¡Búsqueda finalizada!", state="complete")
-    
-                            if res:
-                                df = pd.DataFrame(res)
-                                df["telefono"] = df["telefono"].fillna("").apply(lambda t: t if t else "Sin Nro de TLF disponible")
-                                df["WhatsApp"] = df["telefono"].apply(lambda t: wa_link(t) if t and t != "Sin Nro de TLF disponible" else "")
-                                df["Teléfono"] = df.apply(
-                                    lambda r: f"[{r['telefono']}](tel:{r['telefono']})" if r['telefono'] != "Sin Nro de TLF disponible" else r['telefono'],
-                                    axis=1,
-                                )
-                                df_display = df[[
-                                    "nombre", "localidad", "Teléfono", "WhatsApp", "fuente", "score"
-                                ]].rename(columns={
-                                    "nombre": "Empresa", "localidad": "Localidad",
-                                    "fuente": "Fuente web", "score": "Puntuación",
-                                })
-    
-                                st.dataframe(
-                                    df_display, use_container_width=True, hide_index=True,
-                                    column_config={
-                                        "Teléfono": st.column_config.LinkColumn(display_text="📞 Llamar"),
-                                        "WhatsApp": st.column_config.LinkColumn(display_text="💬 WhatsApp"),
-                                        "Fuente web": st.column_config.LinkColumn(display_text="🔗 Ver enlace"),
-                                    },
-                                )
-                                st.caption("⚠️ Se muestran empresas y fuentes web detectadas del sector. Verifique existencias y condiciones directamente.")
-                            else:
-                                st.info("🔎 No se hallaron registros directos en la web para este término exacto. Intente con un término más genérico (ej. 'herramientas' o 'ferretería') para listar mayoristas de la zona.")
+                        # Persistencia del cálculo de cotización real en st.session_state
+                        state_key = f"resultado_cot_{i}"
+                        cant_puente = comparacion.get('cantidad_puente', 0)
+                        
+                        st.divider()
+                        st.markdown("### 📝 Ingreso Manual de Cotización Real")
+                        
+                        with st.form(key=f"form_cot_{i}"):
+                            col_f1, col_f2 = st.columns(2)
+                            precio_real = col_f1.number_input("Precio Unitario Cotizado ($)", min_value=0.0, step=0.5, value=0.0, key=f"p_real_{i}")
+                            dias_entrega = col_f2.number_input("Días de Entrega Reales", min_value=1, step=1, value=5, key=f"d_ent_{i}")
+                            submit_cot = st.form_submit_button("Recalcular Operación con Cotización Real")
+                            
+                            if submit_cot:
+                                inversion_total = precio_real * cant_puente
+                                st.session_state[state_key] = {
+                                    "precio_real": precio_real,
+                                    "dias_entrega": dias_entrega,
+                                    "inversion_total": inversion_total,
+                                    "cant_puente": cant_puente
+                                }
+                        
+                        if state_key in st.session_state:
+                            cot = st.session_state[state_key]
+                            st.success(f"✅ **Operación Recalculada (Guardada en Sesión)**\n\n"
+                                       f"- **Inversión Real Total:** ${cot['inversion_total']:,.2f}\n"
+                                       f"- **Plazo de Recepción:** {cot['dias_entrega']} días\n"
+                                       f"- **Cantidad Cubierta:** {cot['cant_puente']} unidades "
+                                       f"(a ${cot['precio_real']:,.2f} c/u)")
                     else:
                         st.info("💡 *Consejo:* Configure `TAVILY_API_KEY` en sus secretos de Streamlit Cloud para habilitar el buscador web automático.")
                 else:
                     st.markdown("##### Estado de Ruta")
                     st.write("No se requiere activar la ruta de salvavidas local en este momento.")
-                           
+                
             
             st.markdown("---")
 
