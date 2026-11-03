@@ -1,4 +1,4 @@
-# ═══════════════════════════════════════════════════════════════════════
+l# ═══════════════════════════════════════════════════════════════════════
 #  SISTEMA DE ANÁLISIS DE IMPORTACIÓN INTELIGENTE 🐉✨ (BLOQUE 1 / 3)
 #  Motor original y metodología: Prof. Jesús Pulido V. (New 30/10/26)
 # ═══════════════════════════════════════════════════════════════════════
@@ -656,14 +656,12 @@ def renderizar_pestana_salvavidas(productos, config):
                                     if len(resultados) == 0:
                                         st.warning("El buscador no devolvió resultados directos. Verifique su conexión o intente nuevamente.")
                                     else:
-                                        # --- GUARDAR RESULTADOS EN SESIÓN PARA EL FORMULARIO ---
+                                        # Guardamos en sesión para alimentar el selectbox del formulario
                                         st.session_state[f"lista_prov_{i}"] = resultados
-                                        
                                         st.success(f"¡Se encontraron {len(resultados)} candidatos mayoristas!")
                                         
                                         # Generamos URLs crudas y limpias para LinkColumn
                                         df = pd.DataFrame(resultados)
-                                        # ... (resto de su código de la tabla y st.caption)
                                         df["telefono_val"] = df["telefono"].fillna("").apply(lambda t: t if t else "")
                                         df["Teléfono"] = df["telefono_val"].apply(lambda t: f"tel:{t}" if t else None)
                                         df["WhatsApp"] = df["telefono_val"].apply(lambda t: wa_link(t) if t else None)
@@ -687,67 +685,17 @@ def renderizar_pestana_salvavidas(productos, config):
                                             },
                                         )
                                         st.caption("ℹ️ *Mostrando directorio de proveedores nacionales pre-verificado (Modo de contingencia sin conexión web).*")
-
+                                        
                                 except Exception as e:
                                     st.error(f"Error crítico en el buscador web: {e}")
-                    # --- FORMULARIO DE COTIZACIÓN CON SELECCIÓN DE PROVEEDOR ---
-                    state_key = f"resultado_cot_{i}"
-                    cant_puente = comparacion.get('cantidad_puente', 0)
-                    
-                    st.divider()
-                    st.markdown("### 📝 Ingreso Manual de Cotización Real")
-                    
-                    # 1. Recuperamos los proveedores de la sesión (si existen)
-                    opciones_proveedores = ["Otro / Proveedor Externo (Escribir abajo)"]
-                    if f"lista_prov_{i}" in st.session_state:
-                        nombres_encontrados = [p["nombre"] for p in st.session_state[f"lista_prov_{i}"]]
-                        opciones_proveedores.extend(nombres_encontrados)
-                    
-                    with st.form(key=f"form_cot_{i}"):
-                        # 2. Agregamos el Selectbox para el Proveedor
-                        proveedor_elegido = st.selectbox(
-                            "Proveedor Seleccionado", 
-                            options=opciones_proveedores,
-                            key=f"select_prov_{i}"
-                        )
-                        
-                        # 3. Campo de texto por si eligió "Otro"
-                        proveedor_custom = ""
-                        if proveedor_elegido == "Otro / Proveedor Externo (Escribir abajo)":
-                            proveedor_custom = st.text_input("Nombre del Proveedor Externo:")
-                        
-                        col_f1, col_f2 = st.columns(2)
-                        precio_real = col_f1.number_input("Precio Unitario Cotizado ($)", min_value=0.0, step=0.5, value=0.0, key=f"p_real_{i}")
-                        dias_entrega = col_f2.number_input("Días de Entrega Reales", min_value=1, step=1, value=5, key=f"d_ent_{i}")
-                        submit_cot = st.form_submit_button("Recalcular Operación con Cotización Real")
-                        
-                        if submit_cot:
-                            nombre_final = proveedor_custom if proveedor_custom else proveedor_elegido
-                            inversion_total = precio_real * cant_puente
-                            
-                            st.session_state[state_key] = {
-                                "proveedor": nombre_final,
-                                "precio_real": precio_real,
-                                "dias_entrega": dias_entrega,
-                                "inversion_total": inversion_total,
-                                "cant_puente": cant_puente
-                            }
-                    
-                    # 4. Renderizamos el resultado con el nombre del proveedor seleccionado
-                    if state_key in st.session_state:
-                        cot = st.session_state[state_key]
-                        st.success(f"✅ **Operación Recalculada (Guardada en Sesión)**\n\n"
-                                   f"- **Proveedor Seleccionado:** {cot['proveedor']}\n"
-                                   f"- **Inversión Real Total:** ${cot['inversion_total']:,.2f}\n"
-                                   f"- **Plazo de Recepción:** {cot['dias_entrega']} días\n"
-                                   f"- **Cantidad Cubierta:** {cot['cant_puente']} unidades "
-                                   f"(a ${cot['precio_real']:,.2f} c/u)")
-                        
-                        
-                        # Persistencia del cálculo de cotización real en st.session_state
-                        # --- FORMULARIO DE COTIZACIÓN CON SELECCIÓN DE PROVEEDOR ---
+    
+                        # --- FORMULARIO DE COTIZACIÓN ÚNICO Y BLINDADO ---
                         state_key = f"resultado_cot_{i}"
+                        
+                        # Recuperamos la cantidad puente con respaldo seguro de llaves
                         cant_puente = comparacion.get('cantidad_puente', 0)
+                        if not cant_puente or cant_puente == 0:
+                            cant_puente = comparacion.get('unidades_necesarias', comparacion.get('faltante', 50))
                         
                         st.divider()
                         st.markdown("### 📝 Ingreso Manual de Cotización Real")
@@ -759,14 +707,14 @@ def renderizar_pestana_salvavidas(productos, config):
                             opciones_proveedores.extend(nombres_encontrados)
                         
                         with st.form(key=f"form_cot_{i}"):
-                            # 2. Agregamos el Selectbox para el Proveedor
+                            # 2. Selector de Proveedor
                             proveedor_elegido = st.selectbox(
                                 "Proveedor Seleccionado", 
                                 options=opciones_proveedores,
                                 key=f"select_prov_{i}"
                             )
                             
-                            # 3. Campo de texto por si eligió "Otro"
+                            # 3. Campo condicional si elige "Otro"
                             proveedor_custom = ""
                             if proveedor_elegido == "Otro / Proveedor Externo (Escribir abajo)":
                                 proveedor_custom = st.text_input("Nombre del Proveedor Externo:", key=f"p_custom_{i}")
@@ -788,7 +736,7 @@ def renderizar_pestana_salvavidas(productos, config):
                                     "cant_puente": cant_puente
                                 }
                         
-                        # 4. Renderizamos el resultado con el nombre del proveedor seleccionado
+                        # 4. Renderizado persistente del cálculo en sesión
                         if state_key in st.session_state:
                             cot = st.session_state[state_key]
                             st.success(f"✅ **Operación Recalculada (Guardada en Sesión)**\n\n"
@@ -797,13 +745,11 @@ def renderizar_pestana_salvavidas(productos, config):
                                        f"- **Plazo de Recepción:** {cot['dias_entrega']} días\n"
                                        f"- **Cantidad Cubierta:** {cot['cant_puente']} unidades "
                                        f"(a ${cot['precio_real']:,.2f} c/u)")
-                        
                     else:
                         st.info("💡 *Consejo:* Configure `TAVILY_API_KEY` en sus secretos de Streamlit Cloud para habilitar el buscador web automático.")
                 else:
                     st.markdown("##### Estado de Ruta")
                     st.write("No se requiere activar la ruta de salvavidas local en este momento.")
-                
             
             st.markdown("---")
 
