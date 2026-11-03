@@ -656,10 +656,14 @@ def renderizar_pestana_salvavidas(productos, config):
                                     if len(resultados) == 0:
                                         st.warning("El buscador no devolvió resultados directos. Verifique su conexión o intente nuevamente.")
                                     else:
+                                        # --- GUARDAR RESULTADOS EN SESIÓN PARA EL FORMULARIO ---
+                                        st.session_state[f"lista_prov_{i}"] = resultados
+                                        
                                         st.success(f"¡Se encontraron {len(resultados)} candidatos mayoristas!")
                                         
                                         # Generamos URLs crudas y limpias para LinkColumn
                                         df = pd.DataFrame(resultados)
+                                        # ... (resto de su código de la tabla y st.caption)
                                         df["telefono_val"] = df["telefono"].fillna("").apply(lambda t: t if t else "")
                                         df["Teléfono"] = df["telefono_val"].apply(lambda t: f"tel:{t}" if t else None)
                                         df["WhatsApp"] = df["telefono_val"].apply(lambda t: wa_link(t) if t else None)
