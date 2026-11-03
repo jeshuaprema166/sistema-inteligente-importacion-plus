@@ -1,6 +1,6 @@
 """
 Buscador universal con consultas flexibles, modo basic económico 
-y red de seguridad con respaldos manuales garantizados para Venezuela.
+y red de seguridad con respaldos manuales dinámicos por rubro para Venezuela.
 """
 import json
 import re
@@ -24,6 +24,104 @@ RUBRO_QUERIES = {
     "Textil / Calzado": ["textil al mayor Venezuela", "distribuidor telas mayorista", "fábrica calzado mayorista"],
     "Salud / Farmacia": ["distribuidor farmacéutico mayorista Venezuela", "droguería Venezuela", "equipos médicos mayorista"],
     "Otro (especificar)": ["distribuidor mayorista Venezuela", "proveedor al mayor comercial", "mayorista"]
+}
+
+# Base de datos de respaldo (Fallback) por rubro para contingencia sin conexión web
+RESPALDOS_POR_RUBRO = {
+    "Repuestos para motos": [
+        {
+            "nombre": "Venemistico",
+            "localidad": "Caracas (Nacional)",
+            "direccion": "Distrito Capital",
+            "telefono": "",
+            "fuente": "https://venemistico.com/contacto/",
+            "senales_mayorista": True,
+            "menciona_producto": True,
+            "score": 5
+        },
+        {
+            "nombre": "Moto Repuestos Buchito Racing",
+            "localidad": "Caracas",
+            "direccion": "Av. Lecuna Oeste 10, Parroquia Santa Teresa",
+            "telefono": "0212-5459379",
+            "fuente": "https://venezuela.kawasaki-la.com/es-la/distribuidores-concesionarios",
+            "senales_mayorista": True,
+            "menciona_producto": True,
+            "score": 5
+        },
+        {
+            "nombre": "Moto Repuestos Olivares Import",
+            "localidad": "Barquisimeto (Nacional)",
+            "direccion": "Estado Lara",
+            "telefono": "0424-5388134",
+            "fuente": "https://www.venezuelae.com/venta-de-repuestos-y-cauchos-de-motos-al-mayor-ubicados-en-barquisimeto-F1206C90319",
+            "senales_mayorista": True,
+            "menciona_producto": True,
+            "score": 5
+        },
+        {
+            "nombre": "Moto Racing Guacara C.A.",
+            "localidad": "Valencia",
+            "direccion": "Estado Carabobo",
+            "telefono": "0245-5640655",
+            "fuente": "https://www.venezuelae.com/",
+            "senales_mayorista": True,
+            "menciona_producto": True,
+            "score": 5
+        },
+        {
+            "nombre": "Repuestos Los Briceños",
+            "localidad": "Valencia (Nacional)",
+            "direccion": "Estado Carabobo",
+            "telefono": "0414-4061285",
+            "fuente": "https://www.venezuelae.com/",
+            "senales_mayorista": True,
+            "menciona_producto": True,
+            "score": 5
+        }
+    ],
+    "Ferretería / Herramientas": [
+        {
+            "nombre": "TuMayorFerretero",
+            "localidad": "Caracas",
+            "direccion": "Distrito Capital",
+            "telefono": "0212-7201236",
+            "fuente": "https://tumayorferretero.net",
+            "senales_mayorista": True,
+            "menciona_producto": True,
+            "score": 5
+        },
+        {
+            "nombre": "Ferretería Loyal",
+            "localidad": "San Cristóbal",
+            "direccion": "Estado Táchira",
+            "telefono": "",
+            "fuente": "https://infoguia.com",
+            "senales_mayorista": True,
+            "menciona_producto": True,
+            "score": 4
+        },
+        {
+            "nombre": "Ferreguri",
+            "localidad": "San Cristóbal",
+            "direccion": "Estado Táchira",
+            "telefono": "0414-7114810",
+            "fuente": "https://infoguia.com",
+            "senales_mayorista": True,
+            "menciona_producto": True,
+            "score": 5
+        },
+        {
+            "nombre": "Perfiles de Occidente",
+            "localidad": "San Cristóbal",
+            "direccion": "Estado Táchira",
+            "telefono": "0414-7061076",
+            "fuente": "https://infoguia.com",
+            "senales_mayorista": True,
+            "menciona_producto": True,
+            "score": 5
+        }
+    ]
 }
 
 def normalize_phone(raw: str) -> Optional[str]:
@@ -86,7 +184,6 @@ def search_all(queries: list[str], api_key: str, per_query: int = 4) -> list[dic
     seen, hits = set(), []
     for q in queries:
         try:
-            # Usamos "search_depth='basic'" para ahorrar créditos y evitar bloqueos de cuota
             res = client.search(query=q, max_results=per_query, search_depth="basic", include_raw_content=False)
             for r in res.get("results", []):
                 url = r.get("url", "")
@@ -201,7 +298,6 @@ def find_suppliers(producto: str, cantidad: int | None, ciudad: str | None,
     queries = build_queries(producto, ciudad)
     hits = search_all(queries, tavily_key)
     
-    # Respaldo automático por rubro si la búsqueda específica no trae resultados
     if not hits:
         client = TavilyClient(api_key=tavily_key)
         rubro_empresa = "Ferretería / Herramientas"
@@ -231,16 +327,16 @@ def find_suppliers(producto: str, cantidad: int | None, ciudad: str | None,
     else:
         mejores = []
 
-    # RED DE SEGURIDAD ABSOLUTA (PLAN DE RESCATE DE FÁBRICA)
-    # Si por límites de cuota, API Key o falta de red la lista sigue vacía, inyectamos contactos reales verificados
+    # RED DE SEGURIDAD ABSOLUTA (DINÁMICA POR RUBRO)
     if not mejores:
-        respaldos_manuales = [
-            Candidate(nombre="TuMayorFerretero", localidad="Caracas", telefono="0212-7201236", fuente="https://tumayorferretero.net", senales_mayorista=True, menciona_producto=True, score=5),
-            Candidate(nombre="Ferretería Loyal", localidad="San Cristóbal", telefono="", fuente="https://infoguia.com", senales_mayorista=True, menciona_producto=True, score=4),
-            Candidate(nombre="Ferreguri", localidad="San Cristóbal", telefono="0414-7114810", fuente="https://infoguia.com", senales_mayorista=True, menciona_producto=True, score=5),
-            Candidate(nombre="Perfiles de Occidente", localidad="San Cristóbal", telefono="0414-7061076", fuente="https://infoguia.com", senales_mayorista=True, menciona_producto=True, score=5)
-        ]
-        mejores = respaldos_manuales[:top_n]
+        rubro_empresa = "Otro (especificar)"
+        if "config_empresa" in st.session_state:
+            rubro_empresa = st.session_state["config_empresa"].get("rubro", "Otro (especificar)")
+        elif "temp_config" in st.session_state:
+            rubro_empresa = st.session_state["temp_config"].get("rubro", "Otro (especificar)")
+            
+        lista_respaldos = RESPALDOS_POR_RUBRO.get(rubro_empresa, RESPALDOS_POR_RUBRO.get("Ferretería / Herramientas", []))
+        mejores = [Candidate(**r) for r in lista_respaldos][:top_n]
         
     return [asdict(c) for c in mejores]
-        
+            
