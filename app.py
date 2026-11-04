@@ -337,11 +337,11 @@ def verificar_acceso():
             except Exception:
                 st.markdown("<h3 style='text-align: center;'>🚢 Sistema de Gestión Inteligente Premium</h3>", unsafe_allow_html=True)
 
-        st.markdown("<h2 style='text-align: center;'>¡Bienvenido al Panel de Control Ejecutivo!</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align: center;'>¡Bienvenido al Panel de Control Ejecutivo Premium!</h2>", unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
         
         # 2. Indicación al menú de la izquierda
-        st.info("👈 **Primer paso:** Despliegue el menú de la barra lateral izquierda para configurar o verificar los **Datos de su Empresa** y los parámetros avanzados antes de cargar su archivo Excel.")
+        st.info("👈 **Primer paso:** Despliegue el menú de la barra lateral izquierda >> para configurar o verificar los **Datos de su Empresa** y los **parámetros avanzados** antes de cargar su archivo Excel.")
 
         # 3. Pestaña desplegable informativa con lenguaje comercial optimizado
         with st.expander("📖 Conozca cómo el Sistema Premium protege y hace crecer su negocio"):
@@ -350,14 +350,14 @@ def verificar_acceso():
             
             Este software ha sido diseñado específicamente para la realidad comercial y aduanera de Venezuela, dotándole de herramientas corporativas que garantizan:
             
-            * **Protección Total de su Inversión:** Cada dólar invertido en mercancía es analizado al detalle. El sistema prorratea con precisión quirúrgica los costos por peso (kg) y volumen ($m^3$), revelando el costo real unitario en su depósito para fijar precios competitivos que aseguren un retorno seguro.
+            * **Protección Total de su Inversión:** Cada dólar invertido en mercancía es analizado al detalle. El sistema *prorratea* con precisión matemática los costos por peso (kg) y volumen ($m^3$), revelando el costo real unitario en su depósito para fijar precios competitivos que aseguren un retorno seguro.
             * **Cero Gastos Sorpresa por Multas y Retrasos:** Gracias al módulo de **Auditoría de Partidas Arancelarias**, usted verifica de antemano el cumplimiento normativo, calculando los aranceles (`Ad-valorem`) y tributos estimados antes de nacionalizar, evitando costosas retenciones o sanciones en aduana.
             * **Blindaje contra Fallas de Inventario:** Mediante las **Alarmas Inteligentes por IA (🟢🟡🔴)** y la **Proyección de Flujo de Caja a 13 Semanas**, el sistema anticipa cuándo se agotarán sus existencias y vigila que su capital de trabajo nunca caiga por debajo del límite seguro.
             * **Búsqueda de Proveedores Locales (Módulo "Salvavidas"):** Si la cadena internacional sufre demoras, el sistema activa al instante un motor de búsqueda web y directorios locales especializados (Ferretería y Repuestos de Motos) para cotizar con mayoristas nacionales, calcular rutas puente de auxilio y mantener su negocio abierto y facturando.
             * **Historial Persistente en la Nube:** Respaldado de forma automática, permitiéndole tener acceso al **Historial de Compras desde cualquier sitio en su celular personal**, facilitando la auditoría de cada importación pasada y la toma de decisiones gerenciales en tiempo real.
             
             ---
-            *(Puede cerrar esta sección haciendo clic nuevamente en la parte superior del desplegable).*
+            *(Puede cerrar esta sección haciendo clic > nuevamente en la parte superior del desplegable).*
             """)
 
         return True
@@ -386,7 +386,7 @@ def verificar_acceso():
     * **Definir fácilmente y con certeza** a qué proveedor del exterior debe comprar, o si es mejor hacerlo localmente.
     """)
 
-    st.info("✨ *Todo eso y más, con la ayuda de nuestro Sistema de Importación con IA* 🤖")
+    st.info("✨ **Todo eso y más, con la ayuda de nuestro Sistema de Importación con IA** 🤖")
 
     st.markdown("""
     <div style="background-color: #e8f4f8; color: #0b2545; padding: 15px; border-radius: 8px; text-align: center;">
