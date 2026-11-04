@@ -353,13 +353,21 @@ def verificar_acceso():
         # 3. Estilo personalizado para agrandar y poner en negrita los títulos de los expanders
         st.markdown("""
             <style>
+            /* Estilo general para el contenedor del expander */
+            div[data-testid="stExpander"] {
+                background-color: #fdf2f2 !important;
+                border: 1px solid #f5c6cb !important;
+                border-radius: 0.5rem !important;
+            }
+            /* Color, tamaño y negrita para el título del expander */
             div[data-testid="stExpander"] summary p {
-                font-size: 1.1rem !important;
+                font-size: 1.15rem !important;
                 font-weight: 700 !important;
-                color: #0b2545 !important;
+                color: #8A1C14 !important; /* Rojo elegante / Vinotinto corporativo */
             }
             </style>
         """, unsafe_allow_html=True)
+    
     
         # 3. Pestaña desplegable informativa con lenguaje comercial optimizado
         with st.expander("📖 Conozca cómo el Sistema Premium protege y hace crecer su negocio. (TOQUE AQUÍ) 👇🏼✨"):
