@@ -467,38 +467,40 @@ def prorratear_gasto(monto, productos, campo_base):
     for indice in orden_por_resto[:centavos_sobrantes]: partes_en_centavos[indice] += 1
     return [Decimal(parte) / 100 for parte in partes_en_centavos]
 
-def evaluar_semaforo(stock_actual, ventas_semanales, dias_entrega, fecha_proximo_pedido=None):
+def evaluar_semaforo(stock_actual, ventas_semanales, dias_entrega=0, fecha_proximo_pedido=None):
     stock_actual = float(stock_actual) if stock_actual is not None else 0.0
     ventas_semanales = float(ventas_semanales) if ventas_semanales is not None else 0.0
-    dias_entrega = float(dias_entrega) if dias_entrega is not None else 0.0
-
+    
     if ventas_semanales <= 0:
         return "⚪", "Sin ventas registradas", 0, 0, False
 
-    semanas_stock   = stock_actual / ventas_semanales
-    semanas_entrega = dias_entrega / 7.0
-    margen = semanas_stock - semanas_entrega
-    sugerido_ahora = int((semanas_entrega * ventas_semanales) + (4 * ventas_semanales) - stock_actual)
-    if sugerido_ahora < 0:
-        sugerido_ahora = 0
+    # Cálculo exacto de semanas de inventario disponible
+    semanas_stock = stock_actual / ventas_semanales
+    
+    # Criterio unificado de semáforo por semanas de cobertura (Coherente con Reposición)
+    if semanas_stock <= 4:
+        color, mensaje = "🔴", "¡ALERTA ROJA! Pedir YA (Crítico)"
+    elif semanas_stock <= 8:
+        color, mensaje = "🟡", "Precaución: Pedir pronto (Preventivo)"
+    else:
+        color, mensaje = "🟢", "Todo bien: Stock suficiente (Óptimo)"
+        
+    sugerido_ahora = int(max(0, (8 * ventas_semanales) - stock_actual))
+    
+    # Proyección futura y riesgo de quiebre intactos para los reportes avanzados
     sugerido_futuro, riesgo_quiebre = 0, False
     if fecha_proximo_pedido and isinstance(fecha_proximo_pedido, date) and fecha_proximo_pedido > date.today():
         dias_hasta = (fecha_proximo_pedido - date.today()).days
         semanas_hasta = dias_hasta / 7.0
+        dias_entrega_flotante = float(dias_entrega) if dias_entrega is not None else 0.0
+        semanas_entrega = dias_entrega_flotante / 7.0
         demanda_futura = (semanas_hasta * ventas_semanales) + (semanas_entrega * ventas_semanales) + (4 * ventas_semanales)
-        sugerido_futuro = int(demanda_futura - stock_actual)
-        if sugerido_futuro < 0:
-            sugerido_futuro = 0
+        sugerido_futuro = int(max(0, demanda_futura - stock_actual))
         if semanas_stock < semanas_hasta:
             riesgo_quiebre = True
-    if margen <= 0:
-        color, mensaje = "🔴", "¡ALERTA ROJA! Pedir YA"
-    elif margen <= 2:
-        color, mensaje = "🟡", "Precaución: Pedir pronto"
-    else:
-        color, mensaje = "🟢", "Todo bien: Stock suficiente"
+            
     return color, mensaje, sugerido_ahora, sugerido_futuro, riesgo_quiebre
-
+    
 def evaluar_carga_pesada(p):
     precio_fob = float(p.get("precio_fob", 0))
     cantidad = float(p.get("cantidad", 1) or 1)
