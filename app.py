@@ -642,18 +642,25 @@ def generar_alertas_reposicion(productos, config, umbral_rojo=4, umbral_amarillo
     for p in productos:
         ventas = float(p.get("ventas_semanales", 0))
         stock = float(p.get("stock_actual", 0))
-        if ventas <= 0: continue
+        if ventas <= 0: 
+            continue
         semanas = stock / ventas
-        if semanas <= umbral_rojo: nivel, accion = "🔴 CRÍTICO", "Emitir orden de compra HOY"
-        elif semanas <= umbral_amarillo: nivel, accion = "🟡 PREVENTIVO", "Preparar orden esta semana"
-        else: continue
+        
+        # Asignamos nivel y acción incluyendo los productos óptimos (Verdes)
+        if semanas <= umbral_rojo:
+            nivel, accion = "🔴 CRÍTICO", "Emitir orden de compra HOY"
+        elif semanas <= umbral_amarillo:
+            nivel, accion = "🟡 PREVENTIVO", "Preparar orden esta semana"
+        else:
+            nivel, accion = "🟢 ÓPTIMO", "Stock suficiente - Sin acción requerida"
+            
         alertas.append({
             "producto": p["nombre"], "stock": stock, "ventas_semanales": ventas,
             "semanas_cobertura": round(semanas, 1), "nivel": nivel, "accion": accion,
             "proveedor": config.get("proveedor", "N/D"),
         })
     return sorted(alertas, key=lambda x: x["semanas_cobertura"])
-
+    
 def mostrar_alertas_en_panel(alertas):
     if not alertas:
         st.success("✅ Sin alertas. Inventario saludable."); return
