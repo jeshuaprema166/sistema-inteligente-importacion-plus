@@ -327,16 +327,8 @@ def verificar_acceso():
     if "PASSWORD_ADMIN" not in st.secrets: return True
     if st.session_state.get("autenticado", False): return True
 
-    # --- CARGA DE PORTADA LOCAL DESDE EL REPOSITORIO DE GITHUB ---
-    try:
-        st.image("portada_sistema_premium.jpg", use_container_width=True)
-    except Exception:
-        # Si por alguna razón el nombre exacto tuviera alguna extensión distinta (ej. .png o .jpeg)
-        try:
-            st.image("portada_sistema_premium.png", use_container_width=True)
-        except Exception:
-            st.markdown("<h3 style='text-align: center;'>🚢 Sistema de Gestión Inteligente Premium</h3>", unsafe_allow_html=True)
-            
+    # --- CARGA DE PORTADA LOCAL DESDE GITHUB ---
+    st.image("portada_sistema_premium.jpg", use_container_width=True)
         
     # --- 2. BIENVENIDA Y TÍTULOS CENTRADOS ---
     st.markdown("<h1 style='text-align: center;'>Bienvenidos 🚢</h1>", unsafe_allow_html=True)
