@@ -349,36 +349,66 @@ def verificar_acceso():
         
             
     st.markdown("<h1 style='text-align:center;'>Bienvenidos 🛳️</h1>", unsafe_allow_html=True)
-    st.markdown("<h3 style='text-align:center;'>¿Sabe cuánto le cuesta realmente traer los productos desde el exterior hasta su depósito?<br>Este Sistema Inteligente le revela:</h3>", unsafe_allow_html=True)
+def verificar_acceso():
+    if "PASSWORD_ADMIN" not in st.secrets: return True
+    if st.session_state.get("autenticado", False): return True
+
+    # --- NUEVA INTRODUCCIÓN Y BENEFICIOS CLAVE ---
+    st.markdown("### ¿Sabe cuánto le cuesta realmente traer los productos desde el exterior hasta su depósito?")
+    st.markdown("#### Este Sistema Inteligente le revela:")
+
     st.markdown("""
-    - **La verdad** sobre sus costos de importación, márgenes y precios óptimos.
-    - **Identificar** los márgenes reales de ganancia antes de nacionalizar.
-    - **Optimizar** el espacio de su contenedor.
-    - **Alarmas** 🟢🟡🔴 de reposición por IA.
-    - **Ingresar** datos desde Excel automáticamente.
-    - **Definir** el mejor proveedor del exterior.
+    * **La verdad sobre sus costos de importación**, márgenes de utilidad y precios óptimos de venta.
+    * **Identificar los márgenes reales de ganancia** antes de nacionalizar, analizando la rentabilidad neta por producto prorrateando con precisión los costos según peso (kg) y volumen ($m^3$). Así sabrá qué productos le dejan ganancia real y cuáles no.
+    * **Optimizar el espacio de su contenedor** y evite pérdidas por costos ocultos.
+    * **Alarmas de reposición de inventario 🟢🟡🔴 por IA**, que permiten monitorear el comportamiento de las existencias, previniendo el desabastecimiento o sobrecompra, que redunda en estancamiento del Capital económico.
+    * **Ingresar de forma automática de TODOS los datos** y detalles del Excel de sus artículos del inventario al Sistema de Análisis Inteligente de Importación.
+    * **Definir fácilmente y con certeza** a qué proveedor del exterior debe comprar, o si es mejor hacerlo localmente.
     """)
-    
+
+    st.info("✨ *Todo eso y más, con la ayuda de nuestro Sistema de Importación con IA* 🤖")
+
     st.markdown("""
-    <div style="background-color: #e8f4f8; color: #0b2545; padding: 15px; border-radius: 5px; text-align: center; border-left: 5px solid #2196F3; margin-top: 20px; margin-bottom: 20px;">
+    <div style="background-color: #e8f4f8; color: #0b2545; padding: 15px; border-radius: 8px; text-align: center;">
     <strong>"UN SISTEMA DE COMERCIALIZACIÓN DISEÑADO PARA PROTEGER SU CAPITAL Y ASEGURAR QUE EL NEGOCIO SIEMPRE CREZCA"</strong>
     </div>
     """, unsafe_allow_html=True)
 
+    st.markdown("---")
+    
+    # --- INSTRUCCIONES RÁPIDAS ---
+    st.markdown("### 📋 Instrucciones:")
+    st.markdown("""
+    1. Una vez dentro, vaya al **menú desplegable de la izquierda** (⬅️) para configurar los **Datos de su empresa**: Razón Social, RIF, Propietario, márgenes de utilidad (%) y descuentos previstos, así como los datos del país y proveedor de origen.
+    2. Y además, le recomendamos conocer más a fondo todas las virtudes, capacidades técnicas y módulos avanzados que incorpora esta versión, **explore la pestaña desplegable (Expander)** que encontrará una vez dentro.
+    3. Para ingresar al Sistema, escriba más abajo la **contraseña** suministrada por su Asesor de Importación para comenzar el análisis.
+    """)
+
+    st.markdown("---")
+
+    # --- SECCIÓN DE AUTORÍA Y FOTOGRAFÍA (¡INTACTA Y PROTEGIDA!) ---
     col_i, col_c, col_d = st.columns([1, 1, 1])
     with col_c:
-        st.markdown("<h4 style='text-align:center;'>Diseñado y elaborado por<br>su Asesor de Importación Inteligente<br>Prof. Jesús Pulido V.</h4>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align:center;'>0424-728.3199 / 0416-291.6426</p>", unsafe_allow_html=True)
+        st.markdown("<h4 style='text-align: center;'>Diseñado y elaborado por<br>su Asesor de Importación Inteligente<br>Prof. Jesús Pulido V.</h4>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center;'>0424-728.3199 / 0416-291.6426</p>", unsafe_allow_html=True)
         for nombre in ("profesor.jpg", "asesor.jpg"):
             if os.path.exists(nombre):
-                st.image(nombre, width=180); break
+                st.image(nombre, width=180)
+                break
+
     st.divider()
+
+    # --- CAMPO DE CONTRASEÑA Y VALIDACIÓN ---
     password = st.text_input("Contraseña de acceso", type="password")
     if st.button("Ingresar", type="primary"):
         if password == st.secrets["PASSWORD_ADMIN"]:
-            st.session_state["autenticado"] = True; st.rerun()
-        else: st.error("❌ Contraseña incorrecta.")
+            st.session_state["autenticado"] = True
+            st.rerun()
+        else:
+            st.error("❌ Contraseña incorrecta.")
+            
     return False
+    
     
 def prorratear_gasto(monto, productos, campo_base):
     total_centavos = int(monto.quantize(CENTAVO, rounding=ROUND_HALF_UP) * 100)
