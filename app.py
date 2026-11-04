@@ -341,7 +341,10 @@ def verificar_acceso():
         st.markdown("<br>", unsafe_allow_html=True)
         
         # 2. Indicación al menú de la izquierda
-        st.info("👈 **Primer paso:** Despliegue el menú de la barra lateral izquierda >> para configurar o verificar los **Datos de su Empresa** y los **parámetros avanzados** antes de cargar su archivo Excel.")
+        # Se muestra solo si aún no se ha configurado la empresa
+        if not config.get("empresa"):
+            st.info("👈 **Primer paso:** Despliegue el menú de la barra lateral izquierda para configurar o verificar los **Datos de su Empresa** y los parámetros avanzados antes de cargar su archivo Excel.")
+            
 
         # 3. Estilo personalizado para agrandar y poner en negrita los títulos de los expanders
         st.markdown("""
