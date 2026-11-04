@@ -1311,7 +1311,6 @@ def main():
         <div style="padding: 1rem; border-radius: 0.5rem; background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; margin-bottom: 1rem;">
             👉 <strong>ADELANTE ‼️</strong><br>
             Disfrute de las bondades del Sistema Premium para Proteger su Capital y Maximizar sus Ganancias.<br><br>
-            ⚠️ <em>Por favor, cree o seleccione su perfil de empresa en el menú lateral izquierdo para habilitar el módulo de análisis.</em>
         </div>
         """, unsafe_allow_html=True)
         return  # <--- ¡Este 'return' frena en seco el despliegue del Excel hasta que haya empresa activa!
