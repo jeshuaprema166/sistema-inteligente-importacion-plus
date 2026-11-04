@@ -342,10 +342,14 @@ def verificar_acceso():
         
         # 2. Indicación al menú de la izquierda
         # Se muestra solo si aún no se ha configurado la empresa
-        if not config.get("empresa"):
+        # Verificación segura del estado de la empresa
+        empresa_registrada = False
+        if "config_empresa" in st.session_state:
+            empresa_registrada = st.session_state.config_empresa.get("empresa")
+    
+        if not empresa_registrada:
             st.info("👈 **Primer paso:** Despliegue el menú de la barra lateral izquierda para configurar o verificar los **Datos de su Empresa** y los parámetros avanzados antes de cargar su archivo Excel.")
-            
-
+        
         # 3. Estilo personalizado para agrandar y poner en negrita los títulos de los expanders
         st.markdown("""
             <style>
