@@ -320,43 +320,40 @@ def a_decimal(valor, defecto="0"):
     except Exception:
         return Decimal(str(defecto))
 
-def redondear_entero(valor): return valor.quantize(UNO, rounding=ROUND_HALF_UP)
+def redondear_entero(valor): 
+    return valor.quantize(UNO, rounding=ROUND_HALF_UP)
 
 def verificar_acceso():
     if "PASSWORD_ADMIN" not in st.secrets: return True
     if st.session_state.get("autenticado", False): return True
-    
-    # --- CARGA DE PORTADA PREMIUM DESDE GOOGLE DRIVE ---
+
+    # --- 1. CARGA DE PORTADA PREMIUM DESDE GOOGLE DRIVE ---
     try:
         import requests
         from io import BytesIO
         from PIL import Image
         
-        # Inserte aquí el ID alfanumérico real de su archivo 'portada_premium.jpg' en Google Drive
-        FILE_ID_SEGURO = "1--i8o30cFjHwtvYmcf3p4518KWy5Opgj" 
+        FILE_ID_SEGURO = "1--i8o30cFjHwtvYmcf3p4518KWy50pgj"
         url = f"https://drive.google.com/uc?export=download&id={FILE_ID_SEGURO}"
         
-        response = requests.get(url)
+        response = requests.get(url, timeout=5)
         if response.status_code == 200:
             image = Image.open(BytesIO(response.content))
             st.image(image, use_container_width=True)
         else:
-            # Respaldo visual si la red no responde de inmediato
-            st.markdown("### 🚢 Sistema de Gestión Inteligente de Importación Marítima Premium")
+            st.markdown("<h3 style='text-align: center;'>🚢 Sistema de Gestión Inteligente Premium</h3>", unsafe_allow_html=True)
     except Exception as e:
-        # Respaldo general por seguridad
-        st.markdown("## 🌍 Sistema de Gestión Inteligente de Importación Marítima Premium")
-        
-            
-    st.markdown("<h1 style='text-align:center;'>Bienvenidos 🛳️</h1>", unsafe_allow_html=True)
-def verificar_acceso():
-    if "PASSWORD_ADMIN" not in st.secrets: return True
-    if st.session_state.get("autenticado", False): return True
+        st.markdown("<h3 style='text-align: center;'>🚢 Sistema de Gestión Inteligente Premium</h3>", unsafe_allow_html=True)
 
-    # --- NUEVA INTRODUCCIÓN Y BENEFICIOS CLAVE ---
-    st.markdown("### ¿Sabe cuánto le cuesta realmente traer los productos desde el exterior hasta su depósito?")
-    st.markdown("#### Este Sistema Inteligente le revela:")
+    # --- 2. BIENVENIDA Y TÍTULOS CENTRADOS ---
+    st.markdown("<h1 style='text-align: center;'>Bienvenidos 🚢</h1>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
 
+    st.markdown("<h3 style='text-align: center;'>¿Sabe cuánto le cuesta realmente traer los productos desde el exterior hasta su depósito?</h3>", unsafe_allow_html=True)
+    st.markdown("<h4 style='text-align: center;'>Este Sistema Inteligente le revela:</h4>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # --- 3. LISTADO DE BENEFICIOS ---
     st.markdown("""
     * **La verdad sobre sus costos de importación**, márgenes de utilidad y precios óptimos de venta.
     * **Identificar los márgenes reales de ganancia** antes de nacionalizar, analizando la rentabilidad neta por producto prorrateando con precisión los costos según peso (kg) y volumen ($m^3$). Así sabrá qué productos le dejan ganancia real y cuáles no.
@@ -376,7 +373,7 @@ def verificar_acceso():
 
     st.markdown("---")
     
-    # --- INSTRUCCIONES RÁPIDAS ---
+    # --- 4. INSTRUCCIONES RÁPIDAS ---
     st.markdown("### 📋 Instrucciones:")
     st.markdown("""
     1. Una vez dentro, vaya al **menú desplegable de la izquierda** (⬅️) para configurar los **Datos de su empresa**: Razón Social, RIF, Propietario, márgenes de utilidad (%) y descuentos previstos, así como los datos del país y proveedor de origen.
@@ -386,7 +383,7 @@ def verificar_acceso():
 
     st.markdown("---")
 
-    # --- SECCIÓN DE AUTORÍA Y FOTOGRAFÍA (¡INTACTA Y PROTEGIDA!) ---
+    # --- 5. SECCIÓN DE AUTORÍA Y FOTOGRAFÍA ---
     col_i, col_c, col_d = st.columns([1, 1, 1])
     with col_c:
         st.markdown("<h4 style='text-align: center;'>Diseñado y elaborado por<br>su Asesor de Importación Inteligente<br>Prof. Jesús Pulido V.</h4>", unsafe_allow_html=True)
@@ -398,7 +395,7 @@ def verificar_acceso():
 
     st.divider()
 
-    # --- CAMPO DE CONTRASEÑA Y VALIDACIÓN ---
+    # --- 6. CAMPO DE CONTRASEÑA ---
     password = st.text_input("Contraseña de acceso", type="password")
     if st.button("Ingresar", type="primary"):
         if password == st.secrets["PASSWORD_ADMIN"]:
@@ -408,8 +405,7 @@ def verificar_acceso():
             st.error("❌ Contraseña incorrecta.")
             
     return False
-    
-    
+        
 def prorratear_gasto(monto, productos, campo_base):
     total_centavos = int(monto.quantize(CENTAVO, rounding=ROUND_HALF_UP) * 100)
     bases = [producto[campo_base] for producto in productos]
