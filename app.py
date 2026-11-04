@@ -326,9 +326,27 @@ def verificar_acceso():
     if "PASSWORD_ADMIN" not in st.secrets: return True
     if st.session_state.get("autenticado", False): return True
     
-    for nombre in ("IMG-20261021-WA0005.jpg", "portada.jpg", "portada.png"):
-        if os.path.exists(nombre):
-            st.image(nombre, use_container_width=True); break
+    # --- CARGA DE PORTADA PREMIUM DESDE GOOGLE DRIVE ---
+    try:
+        import requests
+        from io import BytesIO
+        from PIL import Image
+        
+        # Inserte aquí el ID alfanumérico real de su archivo 'portada_premium.jpg' en Google Drive
+        FILE_ID_SEGURO = "1--i8o30cFjHwtvYmcf3p4518KWy5Opgj" 
+        url = f"https://drive.google.com/uc?export=download&id={FILE_ID_SEGURO}"
+        
+        response = requests.get(url)
+        if response.status_code == 200:
+            image = Image.open(BytesIO(response.content))
+            st.image(image, use_container_width=True)
+        else:
+            # Respaldo visual si la red no responde de inmediato
+            st.markdown("### 🚢 Sistema de Gestión Inteligente de Importación Marítima Premium")
+    except Exception as e:
+        # Respaldo general por seguridad
+        st.markdown("## 🌍 Sistema de Gestión Inteligente de Importación Marítima Premium")
+        
             
     st.markdown("<h1 style='text-align:center;'>Bienvenidos 🛳️</h1>", unsafe_allow_html=True)
     st.markdown("<h3 style='text-align:center;'>¿Sabe cuánto le cuesta realmente traer los productos desde el exterior hasta su depósito?<br>Este Sistema Inteligente le revela:</h3>", unsafe_allow_html=True)
