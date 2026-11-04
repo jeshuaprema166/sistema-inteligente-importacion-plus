@@ -327,11 +327,9 @@ def verificar_acceso():
     if "PASSWORD_ADMIN" not in st.secrets: return True
     if st.session_state.get("autenticado", False):
         
-        # ==========================================
         # --- RECIBIMIENTO PREMIUM POST-LOGIN ---
-        # ==========================================
         
-        # 1. Portada reducida a la mitad y centrada usando columnas
+        # 1. Portada reducida y perfectamente centrada con columnas
         col_espacio1, col_img, col_espacio2 = st.columns([1, 2, 1])
         with col_img:
             try:
@@ -345,7 +343,7 @@ def verificar_acceso():
         # 2. Indicación al menú de la izquierda
         st.info("👈 **Primer paso:** Despliegue el menú de la barra lateral izquierda para configurar o verificar los **Datos de su Empresa** y los parámetros avanzados antes de cargar su archivo Excel.")
 
-        # 3. Pestaña desplegable informativa con lenguaje comercial optimizado y botón de cierre
+        # 3. Pestaña desplegable informativa con lenguaje comercial optimizado
         with st.expander("📖 Conozca cómo el Sistema Premium protege y hace crecer su negocio"):
             st.markdown("""
             ### 🛡️ ¿Cómo este Sistema Premium 🐉 protege su inversión y maximiza sus ganancias?
@@ -359,14 +357,11 @@ def verificar_acceso():
             * **Historial Persistente en la Nube:** Respaldado de forma automática, permitiéndole tener acceso al **Historial de Compras desde cualquier sitio en su celular personal**, facilitando la auditoría de cada importación pasada y la toma de decisiones gerenciales en tiempo real.
             
             ---
-            *(Puede cerrar esta sección haciendo clic nuevamente en la parte superior del desplegable o utilizando el botón inferior).*
+            *(Puede cerrar esta sección haciendo clic nuevamente en la parte superior del desplegable).*
             """)
-            
-            if st.button("Cerrar sección de información", key="btn_cerrar_info_post"):
-                st.rerun()
 
         return True
-
+            
     # --- CARGA DE PORTADA LOCAL DESDE GITHUB (PANTALLA DE ACCESO) ---
     try:
         st.image("portada_sistema_premium.jpg", use_container_width=True)
