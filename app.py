@@ -708,26 +708,47 @@ def renderizar_pestana_salvavidas(productos, config):
                 st.markdown(f"🚢 **Tránsito Origen ({config.get('origen', 'China')}):** `{dias_t} días ({sems_t} Sem)`")
                        
                 if comparacion["en_riesgo_quiebre"]:
+                    # Determinamos si es crítico (rojo) o preventivo (amarillo) según sus semanas de cobertura
+                    cobertura_sem = comparacion.get('cobertura_semanas', 0)
+                    es_critico = cobertura_sem <= 4
+                    
+                    bg_color = "#FFD2D2" if es_critico else "#FFF3CD"
+                    border_color = "#FF4D4D" if es_critico else "#FFEEBA"
+                    text_color = "#8A1C14" if es_critico else "#856404"
+                    icono = "🔴" if es_critico else "🟡"
+                    
                     fecha_pedido_str = config.get("fecha_proximo_pedido")
+                    fecha_llegada_texto = "fecha estimada"
                     if fecha_pedido_str:
                         try:
-                            fecha_pedido_dt = datetime.strptime(str(fecha_pedido_str), "%Y-%m-%d").date()
+                            fecha_pedido_dt = datetime.strptime(str(fecha_pedido_str), "%Y-%m-%d")
                             dias_t = int(comparacion['dias_tránsito_internacional'])
                             fecha_llegada_dt = fecha_pedido_dt + timedelta(days=dias_t)
-                            
-                            msg_alerta = (
-                                f"🔴 **ALERTA DE INVENTARIO:** El stock se agotará en {comparacion['cobertura_semanas']} semanas, "
-                                f"antes de que llegue el pedido programado a realizar el **{fecha_pedido_dt.strftime('%d/%m/%Y')}**, "
-                                f"cuyo arribo estimado será el **{fecha_llegada_dt.strftime('%d/%m/%Y')}**."
-                            )
-                            st.error(msg_alerta)
+                            fecha_llegada_texto = fecha_llegada_dt.strftime('%d/%m/%Y')
                         except Exception:
-                            st.error("🔴 **ALERTA DE INVENTARIO:** El stock se agotará antes de que llegue el pedido internacional.")
-                    else:
-                        st.error("🔴 **ALERTA DE INVENTARIO:** El stock se agotará antes de que llegue el pedido internacional.")
-
+                            pass
+                    
+                    # Formateamos la fecha del próximo pedido para que se lea limpia
+                    try:
+                        fecha_pedido_fmt = datetime.strptime(str(fecha_pedido_str), "%Y-%m-%d").strftime('%d/%m/%Y') if fecha_pedido_str else "X/X/X"
+                    except Exception:
+                        fecha_pedido_fmt = str(fecha_pedido_str)
+        
+                    texto_aviso = (
+                        f"**ALERTA DE INVENTARIO:** El stock se agotará en {cobertura_sem} semanas, "
+                        f"antes de que llegue el pedido programado a realizar el {fecha_pedido_fmt}, cuyo arribo estimado será el **{fecha_llegada_texto}**."
+                    )
+                    
+                    # Renderizamos la caja con el color dinámico correspondiente
+                    st.markdown(f"""
+                        <div style="background-color: {bg_color}; border: 1px solid {border_color}; color: {text_color}; padding: 12px; border-radius: 8px; margin-bottom: 10px;">
+                            {icono} {texto_aviso}
+                        </div>
+                    """, unsafe_allow_html=True)
+                    
                 else:
-                    st.success("🟢 **Abastecimiento Seguro:** Cobertura suficiente hasta el próximo arribo.")
+                    st.success("🟢 **Abastecimiento Seguro:** Cobertura suficiente hasta el próximo pedido.")
+
 
             with col2:
                 if comparacion["en_riesgo_quiebre"]:
