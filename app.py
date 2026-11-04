@@ -343,6 +343,17 @@ def verificar_acceso():
         # 2. Indicación al menú de la izquierda
         st.info("👈 **Primer paso:** Despliegue el menú de la barra lateral izquierda >> para configurar o verificar los **Datos de su Empresa** y los **parámetros avanzados** antes de cargar su archivo Excel.")
 
+        # 3. Estilo personalizado para agrandar y poner en negrita los títulos de los expanders
+        st.markdown("""
+            <style>
+            div[data-testid="stExpander"] summary p {
+                font-size: 1.1rem !important;
+                font-weight: 700 !important;
+                color: #0b2545 !important;
+            }
+            </style>
+        """, unsafe_allow_html=True)
+    
         # 3. Pestaña desplegable informativa con lenguaje comercial optimizado
         with st.expander("📖 Conozca cómo el Sistema Premium protege y hace crecer su negocio"):
             st.markdown("""
