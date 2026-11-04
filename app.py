@@ -325,12 +325,55 @@ def redondear_entero(valor):
 
 def verificar_acceso():
     if "PASSWORD_ADMIN" not in st.secrets: return True
-    if st.session_state.get("autenticado", False): return True
-
-    # --- CARGA DE PORTADA LOCAL DESDE GITHUB ---
-    st.image("portada_sistema_premium.jpg", use_container_width=True)
+    if st.session_state.get("autenticado", False):
         
-    # --- 2. BIENVENIDA Y TÍTULOS CENTRADOS ---
+        # ==========================================
+        # --- RECIBIMIENTO PREMIUM POST-LOGIN ---
+        # ==========================================
+        
+        # 1. Portada reducida a la mitad y centrada usando columnas
+        col_espacio1, col_img, col_espacio2 = st.columns([1, 2, 1])
+        with col_img:
+            try:
+                st.image("portada_sistema_premium.jpg", use_container_width=True)
+            except Exception:
+                st.markdown("<h3 style='text-align: center;'>🚢 Sistema de Gestión Inteligente Premium</h3>", unsafe_allow_html=True)
+
+        st.markdown("<h2 style='text-align: center;'>¡Bienvenido al Panel de Control Ejecutivo!</h2>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        # 2. Indicación al menú de la izquierda
+        st.info("👈 **Primer paso:** Despliegue el menú de la barra lateral izquierda para configurar o verificar los **Datos de su Empresa** y los parámetros avanzados antes de cargar su archivo Excel.")
+
+        # 3. Pestaña desplegable informativa con lenguaje comercial optimizado y botón de cierre
+        with st.expander("📖 Conozca cómo el Sistema Premium protege y hace crecer su negocio"):
+            st.markdown("""
+            ### 🛡️ ¿Cómo este Sistema Premium 🐉 protege su inversión y maximiza sus ganancias?
+            
+            Este software ha sido diseñado específicamente para la realidad comercial y aduanera de Venezuela, dotándole de herramientas corporativas que garantizan:
+            
+            * **Protección Total de su Inversión:** Cada dólar invertido en mercancía es analizado al detalle. El sistema prorratea con precisión quirúrgica los costos por peso (kg) y volumen ($m^3$), revelando el costo real unitario en su depósito para fijar precios competitivos que aseguren un retorno seguro.
+            * **Cero Gastos Sorpresa por Multas y Retrasos:** Gracias al módulo de **Auditoría de Partidas Arancelarias**, usted verifica de antemano el cumplimiento normativo, calculando los aranceles (`Ad-valorem`) y tributos estimados antes de nacionalizar, evitando costosas retenciones o sanciones en aduana.
+            * **Blindaje contra Fallas de Inventario:** Mediante las **Alarmas Inteligentes por IA (🟢🟡🔴)** y la **Proyección de Flujo de Caja a 13 Semanas**, el sistema anticipa cuándo se agotarán sus existencias y vigila que su capital de trabajo nunca caiga por debajo del límite seguro.
+            * **Búsqueda de Proveedores Locales (Módulo "Salvavidas"):** Si la cadena internacional sufre demoras, el sistema activa al instante un motor de búsqueda web y directorios locales especializados (Ferretería y Repuestos de Motos) para cotizar con mayoristas nacionales, calcular rutas puente de auxilio y mantener su negocio abierto y facturando.
+            * **Historial Persistente en la Nube:** Respaldado de forma automática, permitiéndole tener acceso al **Historial de Compras desde cualquier sitio en su celular personal**, facilitando la auditoría de cada importación pasada y la toma de decisiones gerenciales en tiempo real.
+            
+            ---
+            *(Puede cerrar esta sección haciendo clic nuevamente en la parte superior del desplegable o utilizando el botón inferior).*
+            """)
+            
+            if st.button("Cerrar sección de información", key="btn_cerrar_info_post"):
+                st.rerun()
+
+        return True
+
+    # --- CARGA DE PORTADA LOCAL DESDE GITHUB (PANTALLA DE ACCESO) ---
+    try:
+        st.image("portada_sistema_premium.jpg", use_container_width=True)
+    except Exception:
+        st.markdown("<h3 style='text-align: center;'>🚢 Sistema de Gestión Inteligente Premium</h3>", unsafe_allow_html=True)
+
+    # --- BIENVENIDA Y TÍTULOS CENTRADOS ---
     st.markdown("<h1 style='text-align: center;'>Bienvenidos 🚢</h1>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -338,7 +381,7 @@ def verificar_acceso():
     st.markdown("<h4 style='text-align: center;'>Este Sistema Inteligente le revela:</h4>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # --- 3. LISTADO DE BENEFICIOS ---
+    # --- LISTADO DE BENEFICIOS ---
     st.markdown("""
     * **La verdad sobre sus costos de importación**, márgenes de utilidad y precios óptimos de venta.
     * **Identificar los márgenes reales de ganancia** antes de nacionalizar, analizando la rentabilidad neta por producto prorrateando con precisión los costos según peso (kg) y volumen ($m^3$). Así sabrá qué productos le dejan ganancia real y cuáles no.
@@ -352,13 +395,13 @@ def verificar_acceso():
 
     st.markdown("""
     <div style="background-color: #e8f4f8; color: #0b2545; padding: 15px; border-radius: 8px; text-align: center;">
-    <strong>"UN SISTEMA DE COMERCIALIZACIÓN DISEÑADO PARA PROTEGER SU CAPITAL Y ASEGURAR QUE EL NEGOCIO SIEMPRE CREZCA"</strong>
+    <strong>"UN SISTEMA DE COMERCIALIZACIÓN DISEÑADO PARA PROTEGER SUR CAPITAL Y ASEGURAR QUE EL NEGOCIO SIEMPRE CREZCA"</strong>
     </div>
     """, unsafe_allow_html=True)
 
     st.markdown("---")
     
-    # --- 4. INSTRUCCIONES RÁPIDAS ---
+    # --- INSTRUCCIONES RÁPIDAS ---
     st.markdown("### 📋 Instrucciones:")
     st.markdown("""
     1. Una vez dentro, vaya al **menú desplegable de la izquierda** (⬅️) para configurar los **Datos de su empresa**: Razón Social, RIF, Propietario, márgenes de utilidad (%) y descuentos previstos, así como los datos del país y proveedor de origen.
@@ -368,7 +411,7 @@ def verificar_acceso():
 
     st.markdown("---")
 
-    # --- 5. SECCIÓN DE AUTORÍA Y FOTOGRAFÍA ---
+    # --- SECCIÓN DE AUTORÍA Y FOTOGRAFÍA ---
     col_i, col_c, col_d = st.columns([1, 1, 1])
     with col_c:
         st.markdown("<h4 style='text-align: center;'>Diseñado y elaborado por<br>su Asesor de Importación Inteligente<br>Prof. Jesús Pulido V.</h4>", unsafe_allow_html=True)
@@ -380,7 +423,7 @@ def verificar_acceso():
 
     st.divider()
 
-    # --- 6. CAMPO DE CONTRASEÑA ---
+    # --- CAMPO DE CONTRASEÑA ---
     password = st.text_input("Contraseña de acceso", type="password")
     if st.button("Ingresar", type="primary"):
         if password == st.secrets["PASSWORD_ADMIN"]:
@@ -390,7 +433,7 @@ def verificar_acceso():
             st.error("❌ Contraseña incorrecta.")
             
     return False
-        
+          
 def prorratear_gasto(monto, productos, campo_base):
     total_centavos = int(monto.quantize(CENTAVO, rounding=ROUND_HALF_UP) * 100)
     bases = [producto[campo_base] for producto in productos]
