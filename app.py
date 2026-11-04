@@ -361,7 +361,7 @@ def verificar_acceso():
             }
             /* Color, tamaño y negrita para el título del expander */
             div[data-testid="stExpander"] summary p {
-                font-size: 1.15rem !important;
+                font-size: 1.05rem !important;
                 font-weight: 700 !important;
                 color: #8A1C14 !important; /* Rojo elegante / Vinotinto corporativo */
             }
