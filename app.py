@@ -1305,15 +1305,17 @@ def main():
     modo_demo = st.sidebar.toggle("🛠️ Modo Demostración (Generador de Datos)", value=False)
     if modo_demo:
         vista_generador_sintetico()
-
+    
     if not config.get("empresa"):
         st.markdown("""
         <div style="padding: 1rem; border-radius: 0.5rem; background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; margin-bottom: 1rem;">
             👉 <strong>ADELANTE ‼️</strong><br>
-            Disfrute de las bondades del Sistema Premium para Proteger su Capital y Maximizar sus Ganancias.
+            Disfrute de las bondades del Sistema Premium para Proteger su Capital y Maximizar sus Ganancias.<br><br>
+            ⚠️ <em>Por favor, cree o seleccione su perfil de empresa en el menú lateral izquierdo para habilitar el módulo de análisis.</em>
         </div>
         """, unsafe_allow_html=True)
-        
+        return  # <--- ¡Este 'return' frena en seco el despliegue del Excel hasta que haya empresa activa!
+           
     panel_configuracion_avanzada(config); panel_monedas_sidebar(config)
     st.title("🛳️ Sistema de Análisis de Importación Inteligente Premium 🐉")
     # Definimos de forma segura la función auxiliar localmente si no existe
