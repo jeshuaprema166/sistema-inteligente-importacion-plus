@@ -1306,7 +1306,8 @@ def main():
     if modo_demo:
         vista_generador_sintetico()
 
-    if not config.get("empresa"): st.warning("👈 **ADELANTE ‼️ Disfrute de la bondades del Sistema Premium para Proteger su Capital y Maximizar sus Ganancias.**"); return
+    if not config.get("empresa"): st.warning("👉 **ADELANTE ‼️** <br> Disfrute de las bondades del Sistema Premium para Proteger su Capital y Maximizar sus Ganancias.", unsafe_allow_html=True)
+
     panel_configuracion_avanzada(config); panel_monedas_sidebar(config)
     st.title("🛳️ Sistema de Análisis de Importación Inteligente Premium 🐉")
     # Definimos de forma segura la función auxiliar localmente si no existe
