@@ -327,24 +327,26 @@ def verificar_acceso():
     if "PASSWORD_ADMIN" not in st.secrets: return True
     if st.session_state.get("autenticado", False): return True
 
-    # --- 1. CARGA DE PORTADA PREMIUM DESDE GOOGLE DRIVE ---
+    # --- 1. CARGA DE PORTADA PREMIUM DESDE GOOGLE DRIVE (MÉTODO THUMBNAIL SEGURO) ---
     try:
         import requests
         from io import BytesIO
         from PIL import Image
         
         FILE_ID_SEGURO = "1--i8o30cFjHwtvYmcf3p4518KWy50pgj"
-        url = f"https://drive.google.com/uc?export=download&id={FILE_ID_SEGURO}"
+        # Usamos el endpoint de miniaturas de Google Drive para evitar advertencias de virus
+        url = f"https://drive.google.com/thumbnail?id={FILE_ID_SEGURO}&sz=w1000"
         
         response = requests.get(url, timeout=5)
-        if response.status_code == 200:
+        if response.status_code == 200 and len(response.content) > 1000:
             image = Image.open(BytesIO(response.content))
             st.image(image, use_container_width=True)
         else:
             st.markdown("<h3 style='text-align: center;'>🚢 Sistema de Gestión Inteligente Premium</h3>", unsafe_allow_html=True)
     except Exception as e:
         st.markdown("<h3 style='text-align: center;'>🚢 Sistema de Gestión Inteligente Premium</h3>", unsafe_allow_html=True)
-
+        
+    
     # --- 2. BIENVENIDA Y TÍTULOS CENTRADOS ---
     st.markdown("<h1 style='text-align: center;'>Bienvenidos 🚢</h1>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
