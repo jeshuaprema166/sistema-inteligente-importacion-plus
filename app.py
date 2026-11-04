@@ -359,13 +359,7 @@ def verificar_acceso():
             ---
             *(Puede cerrar esta sección haciendo clic > nuevamente en la parte superior del desplegable).*
             """)
-        # --- LLAMADA A LA ACCIÓN SUPERIOR ---
-        st.markdown("---")
-        col_cta1, col_cta2, col_cta3 = st.columns([1, 3, 1])
-        with col_cta2:
-            st.info("💾 **Siguiente paso:** Cree su perfil de Empresa y ajuste los parámetros avanzados en la barra lateral izquierda (⬅️) para Iniciar el Módulo de Análisis.")
-        st.markdown("---")
-        
+
         return True
             
     # --- CARGA DE PORTADA LOCAL DESDE GITHUB (PANTALLA DE ACCESO) ---
