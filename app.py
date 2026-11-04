@@ -327,23 +327,16 @@ def verificar_acceso():
     if "PASSWORD_ADMIN" not in st.secrets: return True
     if st.session_state.get("autenticado", False): return True
 
-    # --- CARGA DE PORTADA PREMIUM (FÓRMULA ORIGINAL) ---
+    # --- CARGA DE PORTADA LOCAL DESDE EL REPOSITORIO DE GITHUB ---
     try:
-        import requests
-        from io import BytesIO
-        from PIL import Image
-        
-        FILE_ID_SEGURO = "1--i8o30cFjHwtvYmcf3p4518KWy50pgj"
-        url = f"https://drive.google.com/uc?export=view&id={FILE_ID_SEGURO}"
-        
-        response = requests.get(url, timeout=5)
-        if response.status_code == 200:
-            image = Image.open(BytesIO(response.content))
-            st.image(image, use_container_width=True)
-        else:
-            st.markdown("<h3 style='text-align: center;'>🚢 Sistema de Gestión Inteligente Premium</h3>", unsafe_allow_html=True)
+        st.image("portada_sistema_premium.jpg", use_container_width=True)
     except Exception:
-        st.markdown("<h3 style='text-align: center;'>🚢 Sistema de Gestión Inteligente Premium</h3>", unsafe_allow_html=True)
+        # Si por alguna razón el nombre exacto tuviera alguna extensión distinta (ej. .png o .jpeg)
+        try:
+            st.image("portada_sistema_premium.png", use_container_width=True)
+        except Exception:
+            st.markdown("<h3 style='text-align: center;'>🚢 Sistema de Gestión Inteligente Premium</h3>", unsafe_allow_html=True)
+            
         
     # --- 2. BIENVENIDA Y TÍTULOS CENTRADOS ---
     st.markdown("<h1 style='text-align: center;'>Bienvenidos 🚢</h1>", unsafe_allow_html=True)
