@@ -1306,8 +1306,14 @@ def main():
     if modo_demo:
         vista_generador_sintetico()
 
-    if not config.get("empresa"): st.warning("👉 **ADELANTE ‼️** <br> Disfrute de las bondades del Sistema Premium para Proteger su Capital y Maximizar sus Ganancias.", unsafe_allow_html=True)
-
+    if not config.get("empresa"):
+        st.markdown("""
+        <div style="padding: 1rem; border-radius: 0.5rem; background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; margin-bottom: 1rem;">
+            👉 <strong>ADELANTE ‼️</strong><br>
+            Disfrute de las bondades del Sistema Premium para Proteger su Capital y Maximizar sus Ganancias.
+        </div>
+        """, unsafe_allow_html=True)
+        
     panel_configuracion_avanzada(config); panel_monedas_sidebar(config)
     st.title("🛳️ Sistema de Análisis de Importación Inteligente Premium 🐉")
     # Definimos de forma segura la función auxiliar localmente si no existe
