@@ -787,8 +787,8 @@ def renderizar_pestana_salvavidas(productos, config):
                         fecha_pedido_fmt = str(fecha_pedido_str)
         
                     texto_aviso = (
-                        f"**ALERTA DE INVENTARIO:** El stock se agotará en {cobertura_sem} semanas, "
-                        f"antes de que llegue el pedido programado a realizar el {fecha_pedido_fmt}, cuyo arribo estimado será el **{fecha_llegada_texto}**."
+                        f"<b>ALERTA DE INVENTARIO:<b/> El stock se agotará en {cobertura_sem} semanas, "
+                        f"antes de que llegue el pedido programado a realizar el {fecha_pedido_fmt}, cuyo arribo estimado será el <b>{fecha_llegada_texto}<b/>."
                     )
                     
                     # Renderizamos la caja con el color dinámico correspondiente
