@@ -489,6 +489,15 @@ def evaluar_semaforo(stock_actual, ventas_semanales, dias_entrega=0, fecha_proxi
     
     # Proyección futura y riesgo de quiebre intactos para los reportes avanzados
     sugerido_futuro, riesgo_quiebre = 0, False
+    
+    # Aseguramos compatibilidad si la fecha viene como texto (string) o como objeto date
+    if fecha_proximo_pedido:
+        if isinstance(fecha_proximo_pedido, str):
+            try:
+                fecha_proximo_pedido = datetime.strptime(fecha_proximo_pedido, "%Y-%m-%d").date()
+            except Exception:
+                pass
+                
     if fecha_proximo_pedido and isinstance(fecha_proximo_pedido, date) and fecha_proximo_pedido > date.today():
         dias_hasta = (fecha_proximo_pedido - date.today()).days
         semanas_hasta = dias_hasta / 7.0
@@ -498,7 +507,7 @@ def evaluar_semaforo(stock_actual, ventas_semanales, dias_entrega=0, fecha_proxi
         sugerido_futuro = int(max(0, demanda_futura - stock_actual))
         if semanas_stock < semanas_hasta:
             riesgo_quiebre = True
-            
+       
     return color, mensaje, sugerido_ahora, sugerido_futuro, riesgo_quiebre
     
 def evaluar_carga_pesada(p):
