@@ -683,13 +683,13 @@ def generar_alertas_reposicion(productos, config, umbral_rojo=4, umbral_amarillo
         
         if semanas <= umbral_rojo:
             nivel = "🔴 CRÍTICO"
-            accion = f"Emitir orden HOY — Sugerido inmediato: {sug_ahora} unds. Futuro pedido planificado para el {f_ped_fmt} ({sug_futuro} Unds), arribo aprox.: {fecha_llegada_fmt}."
+            accion = f"Emitir orden HOY — Sugerido inmediato: {sug_ahora} unds.<br>Futuro pedido planificado para el {f_ped_fmt} ({sug_futuro} Unds), arribo aprox.: {fecha_llegada_fmt}."
         elif semanas <= umbral_amarillo:
             nivel = "🟡 PREVENTIVO"
-            accion = f"Preparar orden esta semana — Sugerido: {sug_ahora} unds. Futuro pedido planificado para el {f_ped_fmt} ({sug_futuro} Unds), arribo aprox.: {fecha_llegada_fmt}."
+            accion = f"Preparar orden esta semana — Sugerido: {sug_ahora} unds.<br>Futuro pedido planificado para el {f_ped_fmt} ({sug_futuro} Unds), arribo aprox.: {fecha_llegada_fmt}."
         else:
             nivel = "🟢 ÓPTIMO"
-            accion = f"Stock suficiente - Sin acción requerida. Planificado para el {f_ped_fmt} ({sug_futuro} Unds), arribo aprox.: {fecha_llegada_fmt}."
+            accion = f"Stock suficiente - Sin acción requerida.<br>Planificado para el {f_ped_fmt} ({sug_futuro} Unds), arribo aprox.: {fecha_llegada_fmt}."
             
         alertas.append({
             "producto": p["nombre"], "stock": stock, "ventas_semanales": ventas,
