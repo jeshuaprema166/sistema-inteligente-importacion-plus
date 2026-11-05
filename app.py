@@ -1645,7 +1645,8 @@ def main():
             )
 
     with tab_flujo:
-        mostrar_flujo_caja(proyectar_flujo_caja(productos, config, semanas=13, crecimiento_semanal=0.02, costo_fijo=...))
+        costo_fijo_val = float(config.get("costo_fijo", 250.0))
+        mostrar_flujo_caja(proyectar_flujo_caja(productos, config, semanas=13, crecimiento_semanal=0.02, costo_fijo=costo_fijo_val))
 
     with tab_auditoria:
         vista_auditoria_aduanera(productos)
