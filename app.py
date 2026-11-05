@@ -663,19 +663,26 @@ def generar_alertas_reposicion(productos, config, umbral_rojo=4, umbral_amarillo
     
 def mostrar_alertas_en_panel(alertas):
     if not alertas:
-        st.success("✅ Sin alertas. Inventario saludable."); return
+        st.success("✅ Sin alertas. Inventario saludable.")
+        return
+        
     for a in alertas:
-        bg = "#FFC7CE" if "CRÍTICO" in a["nivel"] else "#FFEB9C"
-        borde = "#C00000" if "CRÍTICO" in a["nivel"] else "#BF8F00"
+        # Definimos colores dinámicos según el nivel del semáforo
+        if "CRÍTICO" in a["nivel"]:
+            bg, borde = "#FFC7CE", "#C00000"
+        elif "PREVENTIVO" in a["nivel"]:
+            bg, borde = "#FFF3CD", "#FFEEBA"
+        else:
+            bg, borde = "#D4EDDA", "#C3E6CB" # Verde claro corporativo para stock óptimo
+            
         st.markdown(f"""
-        <div style="background-color:{bg}; color: #000; padding:12px; border-radius:8px; margin-bottom:8px; border-left:6px solid {borde};">
-            <b>{a['nivel']} — {a['producto']}</b><br>
-            Stock: <b>{a['stock']:,.0f} unds</b> · Ventas: <b>{a['ventas_semanales']:,.0f}/sem</b>
-            · Cobertura: <b>{a['semanas_cobertura']} semanas</b><br>
-            Acción: <i>{a['accion']}</i> — Proveedor: {a['proveedor']}
-        </div>
+            <div style="background-color: {bg}; color: #000; padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 6px solid {borde};">
+                <b>{a['nivel']} — {a['producto']}</b><br>
+                Stock: <b>{a['stock']:.0f} unds</b> · Ventas: <b>{a['ventas_semanales']:.0f}/sem</b> · Cobertura: <b>{a['semanas_cobertura']} semanas</b><br>
+                Acción: <i>{a['accion']}</i> — Proveedor: {a['proveedor']}
+            </div>
         """, unsafe_allow_html=True)
-
+        
 # --- MÓDULO VISUAL: PESTAÑA SALVAVIDAS Y RUTAS ÓPTIMAS ---
 def renderizar_pestana_salvavidas(productos, config):
     st.subheader("🛟 Módulo 'Salvavidas': Rutas Paralelas y Proveedores Óptimos")
