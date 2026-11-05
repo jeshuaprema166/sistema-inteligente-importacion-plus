@@ -1295,6 +1295,32 @@ def vista_analisis_costos(productos, config):
     c2.metric("Gasto arribo / mercancía", f"{(arr_total / mer_total * 100) if mer_total > CERO else 0:.1f}%")
     c3.metric("Productos en rojo", f"{en_rojo} / {len(productos)}")
     c4.metric("Margen promedio", f"{sum(float(p['rentabilidad_pct']) for p in productos)/len(productos):.1f}%")
+
+    # Cálculo del Impacto Flete / FOB Global para Carga Pesada
+    fob_total_val = float(mer_total) if 'mer_total' in locals() and mer_total else sum(float(p.get("precio_fob", 0)) * float(p.get("cantidad", 1)) for p in productos)
+    flete_val = float(config.get("flete", 2500.0)) if 'config' in locals() else 2500.0
+    impacto_flete_global = (flete_val / fob_total_val * 100) if fob_total_val > 0 else 0
+
+    if impacto_flete_global > 60:
+        estado_carga_glob = "ROJO"
+        color_alerta_glob = "🔴 ALERTA ROJA (Global): Flete crítico (>60% del FOB)"
+    elif impacto_flete_global >= 30:
+        estado_carga_glob = "AMARILLO"
+        color_alerta_glob = "🟡 ALERTA AMARILLA (Global): Flete moderadamente pesado (30%-60% del FOB)"
+    else:
+        estado_carga_glob = "VERDE"
+        color_alerta_glob = "🟢 VERDE (Global): Flete óptimo (<30% del FOB)"
+
+    # Mostrar Alerta en el Sidebar
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("🚨 Alerta Global de Carga")
+    if estado_carga_glob == "ROJO":
+        st.sidebar.error(color_alerta_glob)
+    elif estado_carga_glob == "AMARILLO":
+        st.sidebar.warning(color_alerta_glob)
+    else:
+        st.sidebar.success(color_alerta_glob)
+        
     
     fig, ax = plt.subplots(figsize=(10, 4))
     nombres = [p["nombre"][:20] for p in productos]; costos = [float(p["costo_unitario"]) for p in productos]; sugeridos = [float(p["pvp_sugerido"]) for p in productos]
