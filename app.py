@@ -1561,25 +1561,34 @@ def main():
             (st.success if ok else st.warning)(msg)
             sheets_db.guardar_alertas(generar_alertas_reposicion(prods_guardar, conf_guardar))
             
-    tab1, tab2, tab3, tab4, tab5, tab6, tab_salvavidas = st.tabs([
+    # 1. Definición de las pestañas en el orden lógico y ejecutivo deseado
+    tab_costos, tab_carga, tab_reposicion, tab_salvavidas, tab_reporte, tab_flujo, tab_auditoria, tab_historial = st.tabs([
         "📊 Análisis de costos",
+        "⚖️ Carga Pesada",
         "📦 Reposición",
-        "📈 Flujo de caja",
-        "🛃 Auditoría aduanera",
+        "🛟 Salvavidas",
         "📄 Reporte completo",
+        "📈 Flujo de caja",
+        "🛃 Auditoría aduanera",    
         "📜 Historial",
-        "🛟 Salvavidas"
     ])
 
-    
-    with tab1: vista_analisis_costos(productos, config)
-    with tab2: mostrar_alertas_en_panel(generar_alertas_reposicion(productos, config))
-    with tab3: mostrar_flujo_caja(proyectar_flujo_caja(productos, config, semanas=13, crecimiento_semanal=0.02, costo_fijo_semanal=config.get("costo_fijo_semanal", 0), pago_importacion={"fecha": config.get("fecha_proximo_pedido"), "monto_usd": config.get("monto_proximo_pedido", 0)}))
-    with tab4: vista_auditoria_aduanera(productos)
-    with tab5:
+    # 2. Vínculo de cada vista con su respectiva pestaña
+    with tab_costos:
+        vista_analisis_costos(productos, config)
+
+    with tab_carga:
+        vista_carga_pesada(productos, config)  # Nuestro nuevo módulo de Carga Pesada
+
+    with tab_reposicion:
+        mostrar_alertas_en_panel(generar_alertas_reposicion(productos, config))
+
+    with tab_salvavidas:
+        renderizar_pestana_salvavidas(productos, config)
+
+    with tab_reporte:
         st.subheader("📄 Reporte Ejecutivo")
         reporte_html = crear_reporte_html(productos, gastos_contenedor, config)
-        
         components.html(reporte_html, height=1500, scrolling=True)
         
         st.info("💡 Para guardar este reporte como PDF, presione el botón de 'Compartir' de su navegador y seleccione 'Imprimir' o 'Guardar como PDF'.")
@@ -1596,9 +1605,16 @@ def main():
                 mime="application/pdf",
                 type="primary"
             )
-    with tab6: vista_historial(config)
-    with tab_salvavidas:
-        renderizar_pestana_salvavidas(productos, config)
+
+    with tab_flujo:
+        mostrar_flujo_caja(proyectar_flujo_caja(productos, config, semanas=13, crecimiento_semanal=0.02, costo_fijo=...))
+
+    with tab_auditoria:
+        vista_auditoria_aduanera(productos)
+
+    with tab_historial:
+        vista_historial(config)
+        
         
 if __name__ == "__main__":
     main()
