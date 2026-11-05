@@ -1023,7 +1023,15 @@ def crear_reporte_html(productos, gastos_contenedor, config):
             estado_txt = "VERDE"
             simbolo_html = '<span style="color: #27ae60; font-size: 14px;">●</span>'
             
-        _, _, sug_ahora, sug_futuro, _ = evaluar_semaforo(p.get("stock_actual", 0), p.get("ventas_semanales", 0))
+        dias_tr = config.get("dias_transito", 60)
+        f_ped = config.get("fecha_proximo_pedido")
+        
+        _, _, sug_ahora, sug_futuro, _ = evaluar_semaforo(
+            p.get("stock_actual", 0), 
+            p.get("ventas_semanales", 0), 
+            dias_entrega=dias_tr, 
+            fecha_proximo_pedido=f_ped
+        )
         
         # 1. Procesamos la fecha AQUÍ AFUERA del HTML de forma limpia y segura
         fecha_ped_raw = config.get("fecha_proximo_pedido", "")
