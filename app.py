@@ -646,11 +646,28 @@ def auditar_partidas(productos):
         })
     return filas
 
+from datetime import datetime, timedelta
+
 def generar_alertas_reposicion(productos, config, umbral_rojo=4, umbral_amarillo=8):
     alertas = []
-    dias_tr = config.get("dias_transito", 60)
-    f_ped = config.get("fecha_proximo_pedido")
+    dias_tr = int(config.get("dias_transito", 60))
+    f_ped_str = config.get("fecha_proximo_pedido")
     
+    # Calculamos la fecha de arribo estimada sumando los días de tránsito
+    fecha_llegada_fmt = "fecha estimada"
+    f_ped_fmt = str(f_ped_str) if f_ped_str else "X/X/X"
+    try:
+        if f_ped_str:
+            if isinstance(f_ped_str, str):
+                f_ped_dt = datetime.strptime(f_ped_str, "%Y-%m-%d")
+            else:
+                f_ped_dt = datetime(f_ped_str.year, f_ped_str.month, f_ped_str.day)
+            f_ped_fmt = f_ped_dt.strftime('%d/%m/%Y')
+            f_llegada_dt = f_ped_dt + timedelta(days=dias_tr)
+            fecha_llegada_fmt = f_llegada_dt.strftime('%d/%m/%Y')
+    except Exception:
+        pass
+
     for p in productos:
         ventas = float(p.get("ventas_semanales", 0))
         stock = float(p.get("stock_actual", 0))
@@ -659,17 +676,20 @@ def generar_alertas_reposicion(productos, config, umbral_rojo=4, umbral_amarillo
             
         # Evaluamos el semáforo con los parámetros completos
         _, _, sug_ahora, sug_futuro, _ = evaluar_semaforo(
-            stock, ventas, dias_entrega=dias_tr, fecha_proximo_pedido=f_ped
+            stock, ventas, dias_entrega=dias_tr, fecha_proximo_pedido=f_ped_str
         )
         
         semanas = stock / ventas
         
         if semanas <= umbral_rojo:
-            nivel, accion = "🔴 CRÍTICO", f"Emitir orden HOY — Sugerido inmediato: {sug_ahora} unds (Futuro: {sug_futuro})"
+            nivel = "🔴 CRÍTICO"
+            accion = f"Emitir orden HOY — Sugerido inmediato: {sug_ahora} unds. Futuro pedido planificado para el {f_ped_fmt} ({sug_futuro} Unds), arribo aprox.: {fecha_llegada_fmt}."
         elif semanas <= umbral_amarillo:
-            nivel, accion = "🟡 PREVENTIVO", f"Preparar orden esta semana — Sugerido: {sug_ahora} unds"
+            nivel = "🟡 PREVENTIVO"
+            accion = f"Preparar orden esta semana — Sugerido: {sug_ahora} unds. Futuro pedido planificado para el {f_ped_fmt} ({sug_futuro} Unds), arribo aprox.: {fecha_llegada_fmt}."
         else:
-            nivel, accion = "🟢 ÓPTIMO", "Stock suficiente - Sin acción requerida"
+            nivel = "🟢 ÓPTIMO"
+            accion = f"Stock suficiente - Sin acción requerida. Planificado para el {f_ped_fmt} ({sug_futuro} Unds), arribo aprox.: {fecha_llegada_fmt}."
             
         alertas.append({
             "producto": p["nombre"], "stock": stock, "ventas_semanales": ventas,
@@ -677,7 +697,7 @@ def generar_alertas_reposicion(productos, config, umbral_rojo=4, umbral_amarillo
             "proveedor": config.get("proveedor", "N/D"), "sug_futuro": sug_futuro
         })
     return sorted(alertas, key=lambda x: x["semanas_cobertura"])
-    
+  
 def mostrar_alertas_en_panel(alertas):
     if not alertas:
         st.success("✅ Sin alertas. Inventario saludable.")
