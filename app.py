@@ -1000,11 +1000,22 @@ def crear_reporte_html(productos, gastos_contenedor, config):
 
     html += """<h3 style="color: #1f4e78; margin-bottom: 10px;">Desglose Individual y Prorrateo de Gastos</h3>"""
     for p in productos:
-        color_txt = "#c00000" if "🔴" in p.get("semaforo_color", "") else ("bf8f00" if "🟡" in p.get("semaforo_color", "") else "#006100")
-        estado_txt = "ROJO" if "🔴" in p.get("semaforo_color", "") else ("AMARILLO" if "🟡" in p.get("semaforo_color", "") else "VERDE")
+        # Asignamos color hexadecimal y símbolo HTML seguro para el PDF
+        if "🔴" in p.get("semaforo_color", ""):
+            color_txt = "#c00000"
+            estado_txt = "ROJO"
+            simbolo_html = '<span style="color: #c00000; font-size: 14px;">●</span>'
+        elif "🟡" in p.get("semaforo_color", ""):
+            color_txt = "#d4ac0d"
+            estado_txt = "AMARILLO"
+            simbolo_html = '<span style="color: #d4ac0d; font-size: 14px;">●</span>'
+        else:
+            color_txt = "#27ae60"
+            estado_txt = "VERDE"
+            simbolo_html = '<span style="color: #27ae60; font-size: 14px;">●</span>'
+            
+        _, _, sug_ahora, sug_futuro, _ = evaluar_semaforo(p.get("stock_actual", 0), p.get("ventas_semanales", 0))
         
-        _, _, sug_ahora, sug_futuro, _ = evaluar_semaforo(p.get("stock_actual", 0), p.get("ventas_semanales", 0), p.get("dias_entrega", 0), config.get("fecha_proximo_pedido"))
-
         # 1. Procesamos la fecha AQUÍ AFUERA del HTML de forma limpia y segura
         fecha_ped_raw = config.get("fecha_proximo_pedido", "")
         try:
@@ -1023,9 +1034,9 @@ def crear_reporte_html(productos, gastos_contenedor, config):
                 Producto: {p['nombre']}
             </div>
             <div style="padding: 12px; font-size: 12px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                    <div><b style="color: {color_txt};">Estado: {estado_txt}</b> - {p['semaforo']}</div>
-                    <div style="text-align: right;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <div><b>Estado: <span style="color: {color_txt};">{estado_txt}</span> - {simbolo_html}</b></div>
+                    <div style="text-align: right;">        
                         <b>======> Pedir {sug_ahora} unds</b><br>
                         <span style="color: #666; font-style: italic;">Según Pedido Planificado para el {fecha_ped_fmt} Pedir {sug_futuro} Unds</span>
                     </div>
