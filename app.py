@@ -653,7 +653,7 @@ def generar_alertas_reposicion(productos, config, umbral_rojo=4, umbral_amarillo
     dias_tr = int(config.get("dias_transito", 60))
     f_ped_str = config.get("fecha_proximo_pedido")
     
-    # Calculamos la fecha de arribo estimada sumando los días de tránsito
+    # Procesamos las fechas de forma segura
     fecha_llegada_fmt = "fecha estimada"
     f_ped_fmt = str(f_ped_str) if f_ped_str else "X/X/X"
     try:
@@ -697,6 +697,7 @@ def generar_alertas_reposicion(productos, config, umbral_rojo=4, umbral_amarillo
             "proveedor": config.get("proveedor", "N/D"), "sug_futuro": sug_futuro
         })
     return sorted(alertas, key=lambda x: x["semanas_cobertura"])
+    
   
 def mostrar_alertas_en_panel(alertas):
     if not alertas:
