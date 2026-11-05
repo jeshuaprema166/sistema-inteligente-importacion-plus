@@ -522,7 +522,7 @@ def calcular_pvp_sugerido(precio_fob_usd, costo_nacionalizado_usd, factor_markup
     pvp_sugerido = pvp_sugerido.quantize(CENTAVO, ROUND_HALF_UP)
     utilidad = (pvp_sugerido - costo).quantize(CENTAVO)
     rentabilidad = (utilidad / costo) if costo > 0 else Decimal("0")
-    alerta = ("🔴 Rentabilidad < 30%" if rentabilidad < Decimal("0.30") else "🟡 Rentabilidad ajustada" if rentabilidad < Decimal("0.50") else "🟢 Rentabilidad saludable")
+    alerta = ("⛔ Rentabilidad < 30%" if rentabilidad < Decimal("0.30") else "⚠️ Rentabilidad ajustada" if rentabilidad < Decimal("0.50") else "✅ Rentabilidad saludable")
     return {"fob_usd": fob, "costo_nacionalizado_usd": costo, "pvp_sugerido": pvp_sugerido, "utilidad_unitaria": utilidad, "rentabilidad_pct": (rentabilidad * 100).quantize(CENTAVO), "alerta": alerta}
 
 def calcular_costos(productos, gastos_ingresados, config):
