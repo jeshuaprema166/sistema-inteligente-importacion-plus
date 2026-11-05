@@ -648,25 +648,33 @@ def auditar_partidas(productos):
 
 def generar_alertas_reposicion(productos, config, umbral_rojo=4, umbral_amarillo=8):
     alertas = []
+    dias_tr = config.get("dias_transito", 60)
+    f_ped = config.get("fecha_proximo_pedido")
+    
     for p in productos:
         ventas = float(p.get("ventas_semanales", 0))
         stock = float(p.get("stock_actual", 0))
         if ventas <= 0: 
             continue
+            
+        # Evaluamos el semáforo con los parámetros completos
+        _, _, sug_ahora, sug_futuro, _ = evaluar_semaforo(
+            stock, ventas, dias_entrega=dias_tr, fecha_proximo_pedido=f_ped
+        )
+        
         semanas = stock / ventas
         
-        # Asignamos nivel y acción incluyendo los productos óptimos (Verdes)
         if semanas <= umbral_rojo:
-            nivel, accion = "🔴 CRÍTICO", "Emitir orden de compra HOY"
+            nivel, accion = "🔴 CRÍTICO", f"Emitir orden HOY — Sugerido inmediato: {sug_ahora} unds (Futuro: {sug_futuro})"
         elif semanas <= umbral_amarillo:
-            nivel, accion = "🟡 PREVENTIVO", "Preparar orden esta semana"
+            nivel, accion = "🟡 PREVENTIVO", f"Preparar orden esta semana — Sugerido: {sug_ahora} unds"
         else:
             nivel, accion = "🟢 ÓPTIMO", "Stock suficiente - Sin acción requerida"
             
         alertas.append({
             "producto": p["nombre"], "stock": stock, "ventas_semanales": ventas,
             "semanas_cobertura": round(semanas, 1), "nivel": nivel, "accion": accion,
-            "proveedor": config.get("proveedor", "N/D"),
+            "proveedor": config.get("proveedor", "N/D"), "sug_futuro": sug_futuro
         })
     return sorted(alertas, key=lambda x: x["semanas_cobertura"])
     
