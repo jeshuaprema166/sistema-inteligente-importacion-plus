@@ -479,11 +479,11 @@ def evaluar_semaforo(stock_actual, ventas_semanales, dias_entrega=0, fecha_proxi
     
     # Criterio unificado de semáforo por semanas de cobertura (Coherente con Reposición)
     if semanas_stock <= 4:
-        color, mensaje = "🔴", "¡ALERTA ROJA! Pedir YA (Crítico)"
+        color, mensaje = "🔴", "🔴 ¡ALERTA ROJA! Pedir YA (Crítico)"
     elif semanas_stock <= 8:
-        color, mensaje = "🟡", "Precaución: Pedir pronto (Preventivo)"
+        color, mensaje = "🟡", "🟡 Precaución: Pedir pronto (Preventivo)"
     else:
-        color, mensaje = "🟢", "Todo bien: Stock suficiente (Óptimo)"
+        color, mensaje = "🟢", "🟢 Todo bien: Stock suficiente (Óptimo)"
         
     sugerido_ahora = int(max(0, (8 * ventas_semanales) - stock_actual))
     
