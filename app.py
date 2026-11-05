@@ -981,7 +981,17 @@ def crear_reporte_html(productos, gastos_contenedor, config):
     total_mercancia = sum((p["precio_fob"] * Decimal(str(p["cantidad"])) for p in productos), CERO)
     total_gastos = sum((p["gastos_totales"] for p in productos), CERO)
     origen_efectivo = texto_efectivo(config.get("origen"), config.get("origen_otro"))
+    fob_total_val = float(total_mercancia)
+    flete_val = float(config.get("flete", 2500.0))
+    impacto_flete_global = (flete_val / fob_total_val * 100) if fob_total_val > 0 else 0
 
+    if impacto_flete_global > 60:
+        estado_carga_glob = "ROJO (Crítico >60% del FOB)"
+    elif impacto_flete_global >= 30:
+        estado_carga_glob = "AMARILLO (Moderado 30%-60% del FOB)"
+    else:
+        estado_carga_glob = "VERDE (Óptimo <30% del FOB)"
+          
     html = f"""
     <div style="font-family: Arial, sans-serif; color: #333; max-width: 1000px; margin: auto;">
         <div style="text-align: center; margin-bottom: 20px;">
@@ -1007,8 +1017,11 @@ def crear_reporte_html(productos, gastos_contenedor, config):
                 <div style="font-size: 11px; color: #666; font-weight: bold;">GASTOS ARRIBO</div>
                 <div style="font-size: 18px; font-weight: bold; color: #1f4e78;">$ {float(total_gastos):,.2f}</div>
             </div>
+        
+            <div style="background-color: #f8f9fa; border: 1px solid #ddd; padding: 10px; margin: 15px 0; border-radius: 4px; font-size: 12px; color: #333;">
+                <b>Evaluación Global de Carga Pesada (Embarque):</b> {estado_carga_glob} — Impacto del Flete: <b>{impacto_flete_global:.1f}% del FOB</b>
+            </div>
         </div>
-
         <h3 style="color: #1f4e78; margin-bottom: 5px;">Resumen General de Costos y Precios de Venta</h3>
         <table style="page-break-inside: avoid; width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 30px;">
             <tr style="background-color: #1f4e78; color: white;">
@@ -1115,6 +1128,18 @@ def crear_reporte_html(productos, gastos_contenedor, config):
         </div>
     </div>
     """
+
+    html += """
+        <div style="margin-top: 25px; page-break-inside: avoid; border-top: 1px solid #ccc; padding-top: 10px;">
+            <h3 style="color: #1f4e78; margin-bottom: 6px; font-size: 14px;">3. Apéndice: Glosario Técnico de Comercio Internacional</h3>
+            <p style="font-size: 10px; color: #555; margin: 3px 0;"><b>Valor FOB:</b> Costo neto de la mercancía en origen (fábrica o puerto de embarque).</p>
+            <p style="font-size: 10px; color: #555; margin: 3px 0;"><b>Factor Multiplicador:</b> Coeficiente global para determinar el costo real puesto en bodega por cada dólar invertido.</p>
+            <p style="font-size: 10px; color: #555; margin: 3px 0;"><b>Impacto Flete/FOB:</b> Relación porcentual entre el costo del flete y el FOB; mide si la carga es ligera o pesada.</p>
+            <p style="font-size: 10px; color: #555; margin: 3px 0;"><b>Costo Final Unitario:</b> Costo real de cada unidad ya nacionalizada (incluye flete, seguro, aranceles y gastos locales).</p>
+            <p style="font-size: 10px; color: #555; margin: 3px 0;"><b>Rentabilidad:</b> Porcentaje de ganancia neta estimada respecto al costo final unitario del producto.</p>
+         </div>
+    """
+
     return html.replace('\n', '').strip()
 
 def generar_pdf_desde_html(html_content):
