@@ -1088,22 +1088,48 @@ def crear_reporte_html(productos, gastos_contenedor, config):
     for p in productos:
         g1 = p.get('gastos_parte1', {})
         g2 = p.get('gastos_parte2', {})
+        
+        # Determinar el color y el emoji de alerta para el producto
+        semaforo_str = str(p.get('semaforo_color', ''))
+        if "🔴" in semaforo_str or "ROJO" in semaforo_str.upper():
+            txt_estado = "ROJO - 🔴"
+            color_txt = "#dc3545"
+        elif "🟡" in semaforo_str or "AMARILLO" in semaforo_str.upper():
+            txt_estado = "AMARILLO - 🟡"
+            color_txt = "#ffc107"
+        else:
+            txt_estado = "VERDE - 🟢"
+            color_txt = "#28a745"
+
         html += f"""
         <div style="border: 1px solid #bcd; background-color: #f4f8fb; padding: 10px; margin-bottom: 15px; border-radius: 5px; page-break-inside: avoid;">
-            <div style="font-weight: bold; color: #1f4e78; font-size: 14px; margin-bottom: 5px;">Producto: {p.get('nombre', '')}</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                <div style="font-weight: bold; color: #1f4e78; font-size: 14px;">Producto: {p.get('nombre', '')}</div>
+                <div style="text-align: right; font-size: 11px;">
+                    <b>=======> Pedir {p.get('pedido_inmediato', 0):,.0f} unds</b><br>
+                    <span style="color: #555; font-style: italic; font-size: 10px;">Según Pedido Planificado para el {config.get('fecha_proximo_pedido', '15/12/2026')} Pedir {p.get('pedido_planificado', 0):,.0f} Unds</span>
+                </div>
+            </div>
+            
+            <div style="font-size: 11px; color: #444; margin-bottom: 5px;">
+                <b>Estado:</b> <span style="color: {color_txt}; font-weight: bold;">{txt_estado}</span>
+            </div>
+
             <div style="font-size: 11px; color: #444; margin-bottom: 5px;">
                 <b>Cant.:</b> {p.get('cantidad', 0)} unds | <b>FOB U.:</b> $ {float(p.get('precio_fob', 0)):,.2f} | <b>Peso T.:</b> {p.get('peso_total', 0):,.2f} kg | <b>Vol. T.:</b> {p.get('volumen_total', 0):,.4f} m³
             </div>
+            
             <div style="background-color: #fff; border: 1px solid #ddd; padding: 6px; margin-bottom: 5px; font-size: 11px;">
                 <b>Gastos Arribo U.:</b> $ {float(p.get('gasto_unitario', 0)):,.2f} | <b>COSTO FINAL UNITARIO:</b> <span style="color: #1f4e78; font-weight: bold;">$ {float(p.get('costo_final_unitario', 0)):,.2f}</span>
             </div>
+            
             <div style="font-size: 10px; color: #555; display: flex; justify-content: space-between;">
                 <div><b>Gastos (Parte 1):</b> Manejo: ${g1.get('manejo', 0):,.2f} | Flete Nac.: ${g1.get('flete_nacional', 0):,.2f} | Log. Int.: ${g1.get('logistica_internacional', 0):,.2f}</div>
                 <div><b>Gastos (Parte 2):</b> Aduana: ${g2.get('aduana', 0):,.2f} | Gestión: ${g2.get('gestion', 0):,.2f} | Admin: ${g2.get('administrativos', 0):,.2f}</div>
             </div>
         </div>
         """
-
+        
     # Pie de página corporativo (Autoría de JPV)
     html += f"""
         <div style="margin-top: 30px; page-break-inside: avoid; border: 1px solid #1f4e78; padding: 15px; border-radius: 6px; background-color: #fafafa; text-align: center;">
