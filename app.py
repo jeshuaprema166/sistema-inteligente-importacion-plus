@@ -1375,10 +1375,12 @@ def vista_carga_pesada(productos, config):
     # Fila 1: Costo FOB y Gastos de Arribo
     col1, col2 = st.columns(2)
     with col1:
-        st.metric("Costo FOB Total", f"${fob_total_val:,.2f}")
+        st.markdown("**Costo FOB Total**")
+        st.markdown(f"### ${fob_total_val:,.2f}")
         st.caption("Costo neto total de la mercancía en origen (fábrica o puerto de embarque).")
     with col2:
-        st.metric("Gastos de Arribo Total", f"${gastos_arribo_val:,.2f}")
+        st.markdown("**Gastos de Arribo Total**")
+        st.markdown(f"### ${gastos_arribo_val:,.2f}")
         st.caption("Suma global de flete, seguro, aranceles y gastos locales necesarios para la nacionalización y puesta en bodega.")
 
     st.markdown("---")
@@ -1386,10 +1388,12 @@ def vista_carga_pesada(productos, config):
     # Fila 2: Factor Multiplicador, Impacto Flete y Alerta con color
     col3, col4, col5 = st.columns(3)
     with col3:
-        st.metric("Factor Multiplicador", f"{factor_mult:.3f}")
+        st.markdown("**Factor Multiplicador**")
+        st.markdown(f"### {factor_mult:.3f}")
         st.caption("Coeficiente de costo real: Multiplique cada dólar FOB en origen por este factor para hallar su costo nacionalizado.")
     with col4:
-        st.metric("Impacto Flete / FOB", f"{impacto_flete:.1f}%")
+        st.markdown("**Impacto Flete / FOB**")
+        st.markdown(f"### {impacto_flete:.1f}%")
         st.caption("Relación porcentual del flete frente al FOB. Mide la eficiencia y el peso estructural del transporte.")
     with col5:
         st.markdown("**Estado / Alerta Global**")
@@ -1403,7 +1407,7 @@ def vista_carga_pesada(productos, config):
         
     st.markdown("---")
     st.info("💡 **Nota de Consultoría:** Un análisis integral de carga pesada permite identificar con precisión si los sobrecostos radican en el tramo internacional o en la aduana local antes de fijar los precios de venta.")
-
+    
 def vista_auditoria_aduanera(productos):
     st.subheader("🏷️ Auditoría de Partidas Arancelarias")
     auditoria = auditar_partidas(productos)
