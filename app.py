@@ -554,7 +554,7 @@ def calcular_costos(productos, gastos_ingresados, config):
     for producto in productos:
         cantidad = producto["cantidad"]
         gastos_totales = sum(producto["gastos"].values(), CERO)
-        gasto_unitario = gastos_totales / Decimal(str(cantidad))
+        gasto_unitario = (gastos_totales / Decimal(str(cant))).quantize(Decimal('0.01'))
         costo_real = (producto["precio_fob"] + gasto_unitario).quantize(CENTAVO, ROUND_HALF_UP)
         producto.update({"gastos_totales": gastos_totales, "gasto_unitario": gasto_unitario, "costo_unitario": costo_real})
         
