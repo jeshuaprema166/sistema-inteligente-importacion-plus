@@ -1167,10 +1167,10 @@ def crear_reporte_html(productos, gastos_contenedor, config):
             <div style="background-color: #fff; border: 1px solid #ddd; padding: 6px; margin-bottom: 5px; font-size: 11px;">
                 <b>Gastos Arribo U.:</b> $ {gasto_u:,.2f} | <b>COSTO FINAL UNITARIO:</b> <span style="color: #1f4e78; font-weight: bold;">$ {costo_final_u:,.2f}</span>
             </div>
-            
+
             <div style="font-size: 10px; color: #555; display: flex; justify-content: space-between;">
-                <div><b>Gastos (Parte 1):</b> Manejo: ${g1.get('manejo', 0):,.2f} | Flete Nac.: ${g1.get('flete_nacional', 0):,.2f} | Log. Int.: ${g1.get('logistica_internacional', 0):,.2f}</div>
-                <div><b>Gastos (Parte 2):</b> Aduana: ${g2.get('aduana', 0):,.2f} | Gestión: ${g2.get('gestion', 0):,.2f} | Admin: ${g2.get('administrativos', 0):,.2f}</div>
+                <div><b>Gastos (Parte 1):</b> Manejo: ${val_manejo:,.2f} | Flete Nac.: ${val_flete_nac:,.2f} | Log. Int.: ${val_log_int:,.2f}</div>
+                <div><b>Gastos (Parte 2):</b> Aduana: ${val_aduana:,.2f} | Gestión: ${val_gestion:,.2f} | Admin: ${val_admin:,.2f}</div>
             </div>
         </div>
         """
