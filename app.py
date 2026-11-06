@@ -375,17 +375,19 @@ def verificar_acceso():
             ### 🛡️ ¿Cómo este Sistema Premium 🐉 protege su inversión y maximiza sus ganancias?
             
             Este software ha sido diseñado específicamente para la realidad comercial y aduanera de Venezuela, dotándole de herramientas corporativas que garantizan:
-            
-            * **Protección Total de su Inversión:** Cada dólar invertido en mercancía es analizado al detalle. El sistema *prorratea* con precisión matemática los costos por peso (kg) y volumen ($m^3$), revelando el costo real unitario en su depósito para fijar precios competitivos que aseguren un retorno seguro.
-            * **Cero Gastos Sorpresa por Multas y Retrasos:** Gracias al módulo de **Auditoría de Partidas Arancelarias**, usted verifica de antemano el cumplimiento normativo, calculando los aranceles (`Ad-valorem`) y tributos estimados antes de nacionalizar, evitando costosas retenciones o sanciones en aduana.
-            * **Blindaje contra Fallas de Inventario:** Mediante las **Alarmas Inteligentes por IA (🟢🟡🔴)** y la **Proyección de Flujo de Caja a 13 Semanas**, el sistema anticipa cuándo se agotarán sus existencias y vigila que su capital de trabajo nunca caiga por debajo del límite seguro.
+
+            * **Protección Total de su Inversión:** Cada dólar invertido en mercancía es analizado al detalle. El sistema prorratea con precisión matemática los costos por peso ($kg$) y volumen ($m^3$), revelando el costo real unitario en su depósito para fijar precios competitivos que aseguren un retorno seguro.
+            * **Control Estructural de Carga Pesada:** Evalúa la eficiencia del transporte marítimo calculando el impacto porcentual del flete frente al valor FOB en origen (clasificándolo en semáforos óptimos, moderados o críticos). Permite detectar sobrecostos logísticos a tiempo para decidir si se consolida carga o se ajustan rutas antes de nacionalizar.
+            * **Cero Gastos Sorpresa por Multas y Retrasos:** Gracias al módulo de Auditoría de Partidas Arancelarias, usted verifica de antemano el cumplimiento normativo, calculando los aranceles (*Ad-valorem*) y tributos estimados antes de nacionalizar, evitando costosas retenciones o sanciones en aduana.
+            * **Fijación Inteligente del PVP Sugerido:** Implementa un modelo matemático basado en el costo real nacionalizado (FOB más gastos de arribo prorrateados) y el margen comercial deseado. Esto garantiza una comercialización sana, fungiendo como garantía de rentabilidad real, referencia técnica para negociaciones y escudo frente al riesgo inflacionario y cambiario.
+            * **Blindaje contra Fallas de Inventario:** Mediante las Alarmas Inteligentes por IA (🟢🟡🔴) y la Proyección de Flujo de Caja a 13 Semanas, el sistema anticipa cuándo se agotarán sus existencias y vigila que su capital de trabajo nunca caiga por debajo del límite seguro.
             * **Búsqueda de Proveedores Locales (Módulo "Salvavidas"):** Si la cadena internacional sufre demoras, el sistema activa al instante un motor de búsqueda web y directorios locales especializados (Ferretería y Repuestos de Motos) para cotizar con mayoristas nacionales, calcular rutas puente de auxilio y mantener su negocio abierto y facturando.
-            * **Historial Persistente en la Nube:** Respaldado de forma automática, permitiéndole tener acceso al **Historial de Compras desde cualquier sitio en su celular personal**, facilitando la auditoría de cada importación pasada y la toma de decisiones gerenciales en tiempo real.
+            * **Historial Persistente en la Nube:** Respaldado de forma automática, permitiéndole tener acceso al Historial de Compras desde cualquier sitio en su celular personal, facilitando la auditoría de cada importación pasada y la toma de decisiones gerenciales en tiempo real.
             
             ---
             *(Puede cerrar esta sección haciendo clic > nuevamente en la parte superior del desplegable).*
             """)
-
+           
         return True
             
     # --- CARGA DE PORTADA LOCAL DESDE GITHUB (PANTALLA DE ACCESO) ---
