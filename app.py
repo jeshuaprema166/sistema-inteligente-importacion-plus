@@ -1144,7 +1144,7 @@ def crear_reporte_html(productos, gastos_contenedor, config):
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                 <div style="font-weight: bold; color: #1f4e78; font-size: 14px;">Producto: {nombre_prod}</div>
                 <div style="text-align: right; font-size: 11px;">
-                    <b>=======> Pedir {float(ped_inmediato):,.0f} unds</b><br>
+                    <b>URGENTE Pedir YA al Proveedor Ext. ===> {float(ped_inmediato):,.0f} unds</b><br>
                     <span style="color: #555; font-style: italic; font-size: 10px;">Según Pedido Planificado para el {f_ped_fmt} Pedir {float(ped_planificado):,.0f} Unds</span>
                 </div>
             </div>
