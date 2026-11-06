@@ -1092,16 +1092,31 @@ def crear_reporte_html(productos, gastos_contenedor, config):
 
     # Bucle para el Desglose Individual de cada producto
     for p in productos:
-        g1 = p.get('gastos_parte1', {})
-        g2 = p.get('gastos_parte2', {})
         nombre_prod = p.get('nombre', '')
         
+        # Extracción inteligente, flexible y segura para convertir Decimales o Nulos a float
+        gastos_p = p.get('gastos', {})
+        
+        def obtener_gasto_seguro(keyword):
+            for k, v in gastos_p.items():
+                if keyword in k.lower():
+                    try:
+                        return float(v or 0)
+                    except Exception:
+                        return 0.0
+            return 0.0
+
+        val_manejo = obtener_gasto_seguro('manejo')
+        val_flete_nac = obtener_gasto_seguro('nacional')
+        val_log_int = obtener_gasto_seguro('logística') or obtener_gasto_seguro('internacional')
+        
+        val_aduana = obtener_gasto_seguro('aduana')
+        val_gestion = obtener_gasto_seguro('gestión')
+        val_admin = obtener_gasto_seguro('admin') or obtener_gasto_seguro('administrativo')
+
         # Extraer los valores exactos calculados por el motor de reposición
         info_repo = mapa_reposicion.get(nombre_prod, {})
-        
-        # Si ya tenemos los valores calculados en el mapa, los usamos; si no, los calculamos al vuelo igual que en reposición
         if info_repo:
-            # Reutilizamos el stock y ventas para recalcular o extraemos si el diccionario los trae
             stock = float(p.get("stock_actual", 0))
             ventas = float(p.get("ventas_semanales", 0))
             dias_tr = int(config.get("dias_transito", 60))
@@ -1128,12 +1143,12 @@ def crear_reporte_html(productos, gastos_contenedor, config):
             txt_estado = "VERDE - 🟢"
             color_txt = "#28a745"
 
-        # Extracción robusta del costo final unitario sumando FOB + Gastos de Arribo
+        # Extracción robusta y matemática del Costo Final Unitario (FOB + Arribo)
         fob_u = float(p.get('precio_fob', 0))
         gasto_u = float(p.get('gasto_unitario', 0))
         costo_final_u = float(p.get('costo_final_unitario', 0) or p.get('costo_real', 0) or p.get('costo_unitario', 0) or (fob_u + gasto_u))
-        
-        # Obtener la fecha planificada desde config formateada de forma segura
+
+        # Obtener la fecha planificada formateada de forma segura
         f_ped_str = config.get('fecha_proximo_pedido')
         f_ped_fmt = "15/12/2026"
         try:
@@ -1151,7 +1166,7 @@ def crear_reporte_html(productos, gastos_contenedor, config):
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                 <div style="font-weight: bold; color: #1f4e78; font-size: 14px;">Producto: {nombre_prod}</div>
                 <div style="text-align: right; font-size: 11px;">
-                    <b>URGENTE Pedir YA al Proveedor Ext. ===> {float(ped_inmediato):,.0f} unds</b><br>
+                    <b>=======> Pedir {float(ped_inmediato):,.0f} unds</b><br>
                     <span style="color: #555; font-style: italic; font-size: 10px;">Según Pedido Planificado para el {f_ped_fmt} Pedir {float(ped_planificado):,.0f} Unds</span>
                 </div>
             </div>
@@ -1161,13 +1176,13 @@ def crear_reporte_html(productos, gastos_contenedor, config):
             </div>
 
             <div style="font-size: 11px; color: #444; margin-bottom: 5px;">
-                <b>Cant.:</b> {p.get('cantidad', 0)} unds | <b>FOB U.:</b> $ {float(p.get('precio_fob', 0)):,.2f} | <b>Peso T.:</b> {p.get('peso_total', 0):,.2f} kg | <b>Vol. T.:</b> {p.get('volumen_total', 0):,.4f} m³
+                <b>Cant.:</b> {p.get('cantidad', 0)} unds | <b>FOB U.:</b> $ {fob_u:,.2f} | <b>Peso T.:</b> {p.get('peso_total', 0):,.2f} kg | <b>Vol. T.:</b> {p.get('volumen_total', 0):,.4f} m³
             </div>
             
             <div style="background-color: #fff; border: 1px solid #ddd; padding: 6px; margin-bottom: 5px; font-size: 11px;">
                 <b>Gastos Arribo U.:</b> $ {gasto_u:,.2f} | <b>COSTO FINAL UNITARIO:</b> <span style="color: #1f4e78; font-weight: bold;">$ {costo_final_u:,.2f}</span>
             </div>
-
+            
             <div style="font-size: 10px; color: #555; display: flex; justify-content: space-between;">
                 <div><b>Gastos (Parte 1):</b> Manejo: ${val_manejo:,.2f} | Flete Nac.: ${val_flete_nac:,.2f} | Log. Int.: ${val_log_int:,.2f}</div>
                 <div><b>Gastos (Parte 2):</b> Aduana: ${val_aduana:,.2f} | Gestión: ${val_gestion:,.2f} | Admin: ${val_admin:,.2f}</div>
