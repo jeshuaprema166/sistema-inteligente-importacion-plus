@@ -1084,9 +1084,8 @@ def crear_reporte_html(productos, gastos_contenedor, config):
         <h3 style="color: #1f4e78; margin-bottom: 10px;">Desglose Individual y Prorrateo de Gastos por Ítem</h3>
     """
 
-    # Generar las alertas de reposición exactas para sincronizar con la pestaña de Reposición
+    # Generar las alertas de reposición sincronizadas con el motor de la pestaña Reposición
     alertas_reposicion = generar_alertas_reposicion(productos, config)
-    # Crear un diccionario para buscar rápidamente los datos de reposición por nombre de producto
     mapa_reposicion = {item.get('nombre'): item for item in alertas_reposicion}
 
     # Bucle para el Desglose Individual de cada producto
@@ -1095,12 +1094,12 @@ def crear_reporte_html(productos, gastos_contenedor, config):
         g2 = p.get('gastos_parte2', {})
         nombre_prod = p.get('nombre', '')
         
-        # Obtener los datos exactos del motor de reposición
+        # Extraer los valores reales calculados por el motor de reposición
         info_repo = mapa_reposicion.get(nombre_prod, {})
         ped_inmediato = info_repo.get('sugerido_inmediato', info_repo.get('cantidad_pedir', 0))
-        ped_planificado = info_repo.get('pedido_futuro', info_repo.get('planificado', p.get('cantidad', 0) * 1.5))
+        ped_planificado = info_repo.get('pedido_futuro', info_repo.get('planificado', 0))
         
-        # Determinar el color y el emoji de alerta para el producto
+        # Determinar el color y estado de alerta visual
         semaforo_str = str(p.get('semaforo_color', ''))
         if "🔴" in semaforo_str or "ROJO" in semaforo_str.upper():
             txt_estado = "ROJO - 🔴"
@@ -1112,7 +1111,7 @@ def crear_reporte_html(productos, gastos_contenedor, config):
             txt_estado = "VERDE - 🟢"
             color_txt = "#28a745"
 
-        # Obtener la fecha del próximo pedido desde config de forma segura
+        # Obtener la fecha planificada desde config de forma segura
         fecha_pedido = config.get('fecha_proximo_pedido', '15/12/2026')
         if hasattr(fecha_pedido, 'strftime'):
             fecha_str = fecha_pedido.strftime('%d/%m/%Y')
