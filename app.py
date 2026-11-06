@@ -1165,7 +1165,7 @@ def crear_reporte_html(productos, gastos_contenedor, config):
             </div>
             
             <div style="background-color: #fff; border: 1px solid #ddd; padding: 6px; margin-bottom: 5px; font-size: 11px;">
-                <b>Gastos Arribo U.:</b> $ {float(p.get('gasto_unitario', 0)):,.2f} | <b>COSTO FINAL UNITARIO:</b> <span style="color: #1f4e78; font-weight: bold;">$ {float(p.get('costo_final_unitario', 0)):,.2f}</span>
+                <b>Gastos Arribo U.:</b> $ {gasto_u:,.2f} | <b>COSTO FINAL UNITARIO:</b> <span style="color: #1f4e78; font-weight: bold;">$ {costo_final_u:,.2f}</span>
             </div>
             
             <div style="font-size: 10px; color: #555; display: flex; justify-content: space-between;">
