@@ -1101,13 +1101,24 @@ def crear_reporte_html(productos, gastos_contenedor, config):
             txt_estado = "VERDE - 🟢"
             color_txt = "#28a745"
 
+        # Extraer o calcular pedido inmediato y planificado de forma segura
+        ped_inmediato = p.get('pedido_inmediato', p.get('cantidad_pedir', 0))
+        ped_planificado = p.get('pedido_planificado', p.get('cantidad', 0) * 1.5)
+        
+        # Obtener la fecha del próximo pedido desde config de forma segura
+        fecha_pedido = config.get('fecha_proximo_pedido', '15/12/2026')
+        if hasattr(fecha_pedido, 'strftime'):
+            fecha_str = fecha_pedido.strftime('%d/%m/%Y')
+        else:
+            fecha_str = str(fecha_pedido)
+
         html += f"""
         <div style="border: 1px solid #bcd; background-color: #f4f8fb; padding: 10px; margin-bottom: 15px; border-radius: 5px; page-break-inside: avoid;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                 <div style="font-weight: bold; color: #1f4e78; font-size: 14px;">Producto: {p.get('nombre', '')}</div>
                 <div style="text-align: right; font-size: 11px;">
-                    <b>=======> Pedir {p.get('pedido_inmediato', 0):,.0f} unds</b><br>
-                    <span style="color: #555; font-style: italic; font-size: 10px;">Según Pedido Planificado para el {config.get('fecha_proximo_pedido', '15/12/2026')} Pedir {p.get('pedido_planificado', 0):,.0f} Unds</span>
+                    <b>=======> Pedir {float(ped_inmediato):,.0f} unds</b><br>
+                    <span style="color: #555; font-style: italic; font-size: 10px;">Según Pedido Planificado para el {fecha_str} Pedir {float(ped_planificado):,.0f} Unds</span>
                 </div>
             </div>
             
