@@ -1417,7 +1417,17 @@ def vista_analisis_costos(productos, config):
     ax.bar([i + 0.2 for i in x], sugeridos, width=0.4, label="PVP sugerido", color="#4C72B0")
     ax.set_xticks(x); ax.set_xticklabels(nombres, rotation=20, ha="right"); ax.set_title("Costo real vs PVP Sugerido"); ax.legend(); ax.grid(alpha=0.3, axis="y")
     st.pyplot(fig)
-
+    
+    st.markdown("---")
+    st.info(
+        """
+        **Precio Sugerido:** dentro de una comercialización sana, es un modelo matemático que parte del Costo Real Unitario (Costo FOB + Gastos de Arribo prorrateados) y aplica la fórmula de fijación de precios basada en el margen deseado sobre el costo o precio de venta, frecuentemente alineado con el precio de referencia óptimo o de equilibrio del mercado) cumple tres funciones vitales:
+        * **Garantía de Rentabilidad Real**
+        * **Punto de Referencia Técnico para Negociaciones**
+        * **Mitigación del Riesgo Inflacionario y Cambiario**
+        """
+    )
+    
 def vista_carga_pesada(productos, config):
     st.subheader("⚖️ Evaluación Global de Carga Pesada y Eficiencia Logística")
     st.markdown("Análisis estructural completo del embarque, evaluando costos en origen, gastos de arribo y la eficiencia del transporte marítimo.")
