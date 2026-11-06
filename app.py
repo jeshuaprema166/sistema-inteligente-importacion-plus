@@ -1084,10 +1084,21 @@ def crear_reporte_html(productos, gastos_contenedor, config):
         <h3 style="color: #1f4e78; margin-bottom: 10px;">Desglose Individual y Prorrateo de Gastos por Ítem</h3>
     """
 
+    # Generar las alertas de reposición exactas para sincronizar con la pestaña de Reposición
+    alertas_reposicion = generar_alertas_reposicion(productos, config)
+    # Crear un diccionario para buscar rápidamente los datos de reposición por nombre de producto
+    mapa_reposicion = {item.get('nombre'): item for item in alertas_reposicion}
+
     # Bucle para el Desglose Individual de cada producto
     for p in productos:
         g1 = p.get('gastos_parte1', {})
         g2 = p.get('gastos_parte2', {})
+        nombre_prod = p.get('nombre', '')
+        
+        # Obtener los datos exactos del motor de reposición
+        info_repo = mapa_reposicion.get(nombre_prod, {})
+        ped_inmediato = info_repo.get('sugerido_inmediato', info_repo.get('cantidad_pedir', 0))
+        ped_planificado = info_repo.get('pedido_futuro', info_repo.get('planificado', p.get('cantidad', 0) * 1.5))
         
         # Determinar el color y el emoji de alerta para el producto
         semaforo_str = str(p.get('semaforo_color', ''))
@@ -1101,10 +1112,6 @@ def crear_reporte_html(productos, gastos_contenedor, config):
             txt_estado = "VERDE - 🟢"
             color_txt = "#28a745"
 
-        # Extraer o calcular pedido inmediato y planificado de forma segura
-        ped_inmediato = p.get('pedido_inmediato', p.get('cantidad_pedir', 0))
-        ped_planificado = p.get('pedido_planificado', p.get('cantidad', 0) * 1.5)
-        
         # Obtener la fecha del próximo pedido desde config de forma segura
         fecha_pedido = config.get('fecha_proximo_pedido', '15/12/2026')
         if hasattr(fecha_pedido, 'strftime'):
@@ -1115,7 +1122,7 @@ def crear_reporte_html(productos, gastos_contenedor, config):
         html += f"""
         <div style="border: 1px solid #bcd; background-color: #f4f8fb; padding: 10px; margin-bottom: 15px; border-radius: 5px; page-break-inside: avoid;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                <div style="font-weight: bold; color: #1f4e78; font-size: 14px;">Producto: {p.get('nombre', '')}</div>
+                <div style="font-weight: bold; color: #1f4e78; font-size: 14px;">Producto: {nombre_prod}</div>
                 <div style="text-align: right; font-size: 11px;">
                     <b>=======> Pedir {float(ped_inmediato):,.0f} unds</b><br>
                     <span style="color: #555; font-style: italic; font-size: 10px;">Según Pedido Planificado para el {fecha_str} Pedir {float(ped_planificado):,.0f} Unds</span>
@@ -1140,7 +1147,7 @@ def crear_reporte_html(productos, gastos_contenedor, config):
             </div>
         </div>
         """
-        
+           
     # Pie de página corporativo (Autoría de JPV)
     html += f"""
         <div style="margin-top: 30px; page-break-inside: avoid; border: 1px solid #1f4e78; padding: 15px; border-radius: 6px; background-color: #fafafa; text-align: center;">
