@@ -1370,11 +1370,20 @@ def vista_analisis_costos(productos, config):
     mer_total = sum((p["precio_fob"] * Decimal(str(p["cantidad"])) for p in productos), CERO)
     en_rojo = sum(1 for p in productos if "🔴" in p.get("semaforo_color", ""))
     
-    c1.metric("Inversión total", formato_dinero(inv_total))
-    c2.metric("Gasto arribo / mercancía", f"{(arr_total / mer_total * 100) if mer_total > CERO else 0:.1f}%")
-    c3.metric("Productos en rojo", f"{en_rojo} / {len(productos)}")
-    c4.metric("Margen promedio", f"{sum(float(p['rentabilidad_pct']) for p in productos)/len(productos):.1f}%")
-
+    with c1:
+        st.markdown("**Inversión total**")
+        st.markdown(f"### **{formato_dinero(inv_total)}**")
+    with c2:
+        st.markdown("**Gasto arribo / mercancía**")
+        st.markdown(f"### **{(arr_total / mer_total * 100):.1f}%**")
+    with c3:
+        st.markdown("**Productos en rojo**")
+        st.markdown(f"### **{en_rojo} / {len(productos)}**")
+    with c4:
+        st.markdown("**Margen promedio**")
+        margen_prom = (sum(float(p.get('rentabilidad_pct', 0)) for p in productos) / len(productos)) if len(productos) > 0 else 0
+        st.markdown(f"### **{margen_prom:.1f}%**")
+        
     # Cálculo del Impacto Flete / FOB Global para Carga Pesada
     fob_total_val = float(mer_total) if 'mer_total' in locals() and mer_total else sum(float(p.get("precio_fob", 0)) * float(p.get("cantidad", 1)) for p in productos)
     flete_val = float(config.get("flete", 2500.0)) if 'config' in locals() else 2500.0
