@@ -1084,9 +1084,9 @@ def crear_reporte_html(productos, gastos_contenedor, config):
         <h3 style="color: #1f4e78; margin-bottom: 10px;">Desglose Individual y Prorrateo de Gastos por Ítem</h3>
     """
 
-    # Generar las alertas de reposición sincronizadas con el motor de la pestaña Reposición
+    # Generar las alertas de reposición sincronizadas con el motor exacto
     alertas_reposicion = generar_alertas_reposicion(productos, config)
-    mapa_reposicion = {item.get('nombre'): item for item in alertas_reposicion}
+    mapa_reposicion = {item.get('producto'): item for item in alertas_reposicion}
 
     # Bucle para el Desglose Individual de cada producto
     for p in productos:
@@ -1094,11 +1094,26 @@ def crear_reporte_html(productos, gastos_contenedor, config):
         g2 = p.get('gastos_parte2', {})
         nombre_prod = p.get('nombre', '')
         
-        # Extraer los valores reales calculados por el motor de reposición
+        # Extraer los valores exactos calculados por el motor de reposición
         info_repo = mapa_reposicion.get(nombre_prod, {})
-        ped_inmediato = info_repo.get('sugerido_inmediato', info_repo.get('cantidad_pedir', 0))
-        ped_planificado = info_repo.get('pedido_futuro', info_repo.get('planificado', 0))
         
+        # Si ya tenemos los valores calculados en el mapa, los usamos; si no, los calculamos al vuelo igual que en reposición
+        if info_repo:
+            # Reutilizamos el stock y ventas para recalcular o extraemos si el diccionario los trae
+            stock = float(p.get("stock_actual", 0))
+            ventas = float(p.get("ventas_semanales", 0))
+            dias_tr = int(config.get("dias_transito", 60))
+            f_ped_str = config.get("fecha_proximo_pedido")
+            
+            _, _, sug_ahora, sug_futuro, _ = evaluar_semaforo(
+                stock, ventas, dias_entrega=dias_tr, fecha_proximo_pedido=f_ped_str
+            )
+            ped_inmediato = sug_ahora
+            ped_planificado = sug_futuro
+        else:
+            ped_inmediato = 0
+            ped_planificado = 0
+
         # Determinar el color y estado de alerta visual
         semaforo_str = str(p.get('semaforo_color', ''))
         if "🔴" in semaforo_str or "ROJO" in semaforo_str.upper():
@@ -1111,12 +1126,18 @@ def crear_reporte_html(productos, gastos_contenedor, config):
             txt_estado = "VERDE - 🟢"
             color_txt = "#28a745"
 
-        # Obtener la fecha planificada desde config de forma segura
-        fecha_pedido = config.get('fecha_proximo_pedido', '15/12/2026')
-        if hasattr(fecha_pedido, 'strftime'):
-            fecha_str = fecha_pedido.strftime('%d/%m/%Y')
-        else:
-            fecha_str = str(fecha_pedido)
+        # Obtener la fecha planificada desde config formateada de forma segura
+        f_ped_str = config.get('fecha_proximo_pedido')
+        f_ped_fmt = "15/12/2026"
+        try:
+            if f_ped_str:
+                if isinstance(f_ped_str, str):
+                    f_ped_dt = datetime.strptime(f_ped_str, "%Y-%m-%d")
+                else:
+                    f_ped_dt = datetime(f_ped_str.year, f_ped_str.month, f_ped_str.day)
+                f_ped_fmt = f_ped_dt.strftime('%d/%m/%Y')
+        except Exception:
+            pass
 
         html += f"""
         <div style="border: 1px solid #bcd; background-color: #f4f8fb; padding: 10px; margin-bottom: 15px; border-radius: 5px; page-break-inside: avoid;">
@@ -1124,7 +1145,7 @@ def crear_reporte_html(productos, gastos_contenedor, config):
                 <div style="font-weight: bold; color: #1f4e78; font-size: 14px;">Producto: {nombre_prod}</div>
                 <div style="text-align: right; font-size: 11px;">
                     <b>=======> Pedir {float(ped_inmediato):,.0f} unds</b><br>
-                    <span style="color: #555; font-style: italic; font-size: 10px;">Según Pedido Planificado para el {fecha_str} Pedir {float(ped_planificado):,.0f} Unds</span>
+                    <span style="color: #555; font-style: italic; font-size: 10px;">Según Pedido Planificado para el {f_ped_fmt} Pedir {float(ped_planificado):,.0f} Unds</span>
                 </div>
             </div>
             
@@ -1146,7 +1167,7 @@ def crear_reporte_html(productos, gastos_contenedor, config):
             </div>
         </div>
         """
-           
+                 
     # Pie de página corporativo (Autoría de JPV)
     html += f"""
         <div style="margin-top: 30px; page-break-inside: avoid; border: 1px solid #1f4e78; padding: 15px; border-radius: 6px; background-color: #fafafa; text-align: center;">
