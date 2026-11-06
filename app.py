@@ -1357,7 +1357,7 @@ def vista_analisis_costos(productos, config):
 
 def vista_carga_pesada(productos, config):
     st.subheader("⚖️ Evaluación Global de Carga Pesada y Eficiencia Logística")
-    st.markdown("Análisis estructural del impacto del transporte marítimo frente al valor FOB de la mercancía.")
+    st.markdown("Análisis estructural completo del embarque, evaluando costos en origen, gastos de arribo y la eficiencia del transporte marítimo.")
     
     # Cálculos globales
     fob_total_val = sum(float(p.get("precio_fob", 0)) * float(p.get("cantidad", 1)) for p in productos)
@@ -1366,32 +1366,43 @@ def vista_carga_pesada(productos, config):
     aranceles_val = float(config.get("aranceles", 1500.0))
     gastos_loc_val = float(config.get("gastos_locales", 1000.0))
     
+    gastos_arribo_val = flete_val + seguro_val + aranceles_val + gastos_loc_val
     cif_total = fob_total_val + flete_val + seguro_val
     costo_total_imp = cif_total + aranceles_val + gastos_loc_val
     factor_mult = costo_total_imp / fob_total_val if fob_total_val > 0 else 1.0
     impacto_flete = (flete_val / fob_total_val * 100) if fob_total_val > 0 else 0
 
-    col1, col2, col3 = st.columns(3)
+    # Fila 1: Costo FOB y Gastos de Arribo
+    col1, col2 = st.columns(2)
     with col1:
+        st.metric("Costo FOB Total", f"${fob_total_val:,.2f}")
+        st.caption("Costo neto total de la mercancía en origen (fábrica o puerto de embarque).")
+    with col2:
+        st.metric("Gastos de Arribo Total", f"${gastos_arribo_val:,.2f}")
+        st.caption("Suma global de flete, seguro, aranceles y gastos locales necesarios para la nacionalización y puesta en bodega.")
+
+    st.markdown("---")
+
+    # Fila 2: Factor Multiplicador, Impacto Flete y Alerta con color
+    col3, col4, col5 = st.columns(3)
+    with col3:
         st.metric("Factor Multiplicador", f"{factor_mult:.3f}")
         st.caption("Coeficiente de costo real: Multiplique cada dólar FOB en origen por este factor para hallar su costo nacionalizado.")
-    with col2:
-        st.metric("Impacto Flete / FOB Global", f"{impacto_flete:.1f}%")
-        st.caption("Relación porcentual del flete frente al FOB. Evalúa la eficiencia y peso del transporte marítimo.")
-    with col3:
+    with col4:
+        st.metric("Impacto Flete / FOB", f"{impacto_flete:.1f}%")
+        st.caption("Relación porcentual del flete frente al FOB. Mide la eficiencia y el peso estructural del transporte.")
+    with col5:
+        st.markdown("**Estado / Alerta Global**")
         if impacto_flete > 60:
-            estado_c = "ROJO (Crítico)"
-            st.error("🔴 ALERTA ROJA: Flete crítico (>60% del FOB)")
+            st.error("🔴 **ROJO (Crítico >60%)**\n\nFlete excesivamente pesado que compromete seriamente los márgenes.")
         elif impacto_flete >= 30:
-            estado_c = "AMARILLO (Moderado)"
-            st.warning("🟡 ALERTA AMARILLA: Flete moderadamente pesado (30%-60%)")
+            st.warning("🟡 **AMARILLO (Moderado 30%-60%)**\n\nFlete moderado; requiere control en ítems de menor valor.")
         else:
-            estado_c = "VERDE (Óptimo)"
-            st.success("🟢 VERDE: Flete óptimo (<30% del FOB)")
+            st.success("🟢 **VERDE (Óptimo <30%)**\n\nEstructura de transporte altamente eficiente y competitiva.")
         st.caption("Semáforo logístico del embarque según el impacto porcentual del flete.")
         
     st.markdown("---")
-    st.info("💡 **Nota de Consultoría:** Un impacto de flete superior al 60% compromete seriamente los márgenes comerciales de los ítems de bajo valor unitario, sugiriendo consolidar carga o evaluar rutas alternativas.")
+    st.info("💡 **Nota de Consultoría:** Un análisis integral de carga pesada permite identificar con precisión si los sobrecostos radican en el tramo internacional o en la aduana local antes de fijar los precios de venta.")
 
 def vista_auditoria_aduanera(productos):
     st.subheader("🏷️ Auditoría de Partidas Arancelarias")
