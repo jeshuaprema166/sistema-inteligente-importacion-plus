@@ -1128,6 +1128,11 @@ def crear_reporte_html(productos, gastos_contenedor, config):
             txt_estado = "VERDE - 🟢"
             color_txt = "#28a745"
 
+        # Extracción robusta del costo final unitario sumando FOB + Gastos de Arribo
+        fob_u = float(p.get('precio_fob', 0))
+        gasto_u = float(p.get('gasto_unitario', 0))
+        costo_final_u = float(p.get('costo_final_unitario', 0) or p.get('costo_real', 0) or p.get('costo_unitario', 0) or (fob_u + gasto_u))
+        
         # Obtener la fecha planificada desde config formateada de forma segura
         f_ped_str = config.get('fecha_proximo_pedido')
         f_ped_fmt = "15/12/2026"
