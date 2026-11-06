@@ -981,17 +981,37 @@ def crear_reporte_html(productos, gastos_contenedor, config):
     total_mercancia = sum((p["precio_fob"] * Decimal(str(p["cantidad"])) for p in productos), CERO)
     total_gastos = sum((p["gastos_totales"] for p in productos), CERO)
     origen_efectivo = texto_efectivo(config.get("origen"), config.get("origen_otro"))
+    
     fob_total_val = float(total_mercancia)
     flete_val = float(config.get("flete", 2500.0))
+    seguro_val = float(config.get("seguro", 300.0))
+    aranceles_val = float(config.get("aranceles", 1500.0))
+    gastos_loc_val = float(config.get("gastos_locales", 1000.0))
+    
+    gastos_arribo_val = flete_val + seguro_val + aranceles_val + gastos_loc_val
+    cif_total = fob_total_val + flete_val + seguro_val
+    costo_total_imp = cif_total + aranceles_val + gastos_loc_val
+    factor_mult = costo_total_imp / fob_total_val if fob_total_val > 0 else 1.0
     impacto_flete_global = (flete_val / fob_total_val * 100) if fob_total_val > 0 else 0
 
+    # Lógica de colores institucionales para la alerta de carga pesada
     if impacto_flete_global > 60:
-        estado_carga_glob = "ROJO (Crítico >60% del FOB)"
+        bg_alerta = "#f8d7da"
+        border_alerta = "#f5c6cb"
+        color_alerta = "#721c24"
+        texto_alerta = f"ROJO (Crítico >60%) — Impacto: {impacto_flete_global:.1f}% del FOB"
     elif impacto_flete_global >= 30:
-        estado_carga_glob = "AMARILLO (Moderado 30%-60% del FOB)"
+        bg_alerta = "#fff3cd"
+        border_alerta = "#ffeeba"
+        color_alerta = "#856404"
+        texto_alerta = f"AMARILLO (Moderado 30%-60%) — Impacto: {impacto_flete_global:.1f}% del FOB"
     else:
-        estado_carga_glob = "VERDE (Óptimo <30% del FOB)"
-          
+        bg_alerta = "#d4edda"
+        border_alerta = "#c3e6cb"
+        color_alerta = "#155724"
+        texto_alerta = f"VERDE (Óptimo <30%) — Impacto: {impacto_flete_global:.1f}% del FOB"
+
+    # Inicio de la estructura HTML principal
     html = f"""
     <div style="font-family: Arial, sans-serif; color: #333; max-width: 1000px; margin: auto;">
         <div style="text-align: center; margin-bottom: 20px;">
@@ -1000,28 +1020,35 @@ def crear_reporte_html(productos, gastos_contenedor, config):
             <p style="margin: 5px 0; font-size: 12px; color: #666;">Origen: {origen_efectivo} | Proveedor: {config.get('proveedor', '')} | Factura: {config.get('factura', '')}</p>
         </div>
 
-        <div style="display: flex; justify-content: space-between; margin-bottom: 20px; gap: 10px;">
-            <div style="flex: 1; border: 1px solid #ddd; padding: 10px; text-align: center; border-radius: 5px;">
-                <div style="font-size: 11px; color: #666; font-weight: bold;">PRODUCTOS</div>
-                <div style="font-size: 18px; font-weight: bold; color: #1f4e78;">{total_items} ítems</div>
+        <!-- 4 Tarjetas de Métricas Principales -->
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px; gap: 10px;">
+            <div style="flex: 1; border: 1px solid #ddd; padding: 10px; text-align: center; background-color: #fafafa; border-radius: 5px;">
+                <div style="font-size: 10px; color: #666; font-weight: bold;">VALOR FOB TOTAL</div>
+                <div style="font-size: 15px; font-weight: bold; color: #1f4e78;">$ {fob_total_val:,.2f}</div>
             </div>
-            <div style="flex: 1; border: 1px solid #ddd; padding: 10px; text-align: center; border-radius: 5px;">
-                <div style="font-size: 11px; color: #666; font-weight: bold;">CANT. UNIDADES</div>
-                <div style="font-size: 18px; font-weight: bold; color: #1f4e78;">{total_unds:,.0f} unds</div>
+            <div style="flex: 1; border: 1px solid #ddd; padding: 10px; text-align: center; background-color: #fafafa; border-radius: 5px;">
+                <div style="font-size: 10px; color: #666; font-weight: bold;">GASTOS ARRIBO</div>
+                <div style="font-size: 15px; font-weight: bold; color: #1f4e78;">$ {gastos_arribo_val:,.2f}</div>
             </div>
-            <div style="flex: 1; border: 1px solid #ddd; padding: 10px; text-align: center; border-radius: 5px;">
-                <div style="font-size: 11px; color: #666; font-weight: bold;">COSTO MERCANCÍA</div>
-                <div style="font-size: 18px; font-weight: bold; color: #1f4e78;">$ {float(total_mercancia):,.2f}</div>
+            <div style="flex: 1; border: 1px solid #ddd; padding: 10px; text-align: center; background-color: #fafafa; border-radius: 5px;">
+                <div style="font-size: 10px; color: #666; font-weight: bold;">FACTOR MULT.</div>
+                <div style="font-size: 15px; font-weight: bold; color: #1f4e78;">{factor_mult:.3f}</div>
             </div>
-            <div style="flex: 1; border: 1px solid #ddd; padding: 10px; text-align: center; border-radius: 5px;">
-                <div style="font-size: 11px; color: #666; font-weight: bold;">GASTOS ARRIBO</div>
-                <div style="font-size: 18px; font-weight: bold; color: #1f4e78;">$ {float(total_gastos):,.2f}</div>
-            </div>
-        
-            <div style="background-color: #f8f9fa; border: 1px solid #ddd; padding: 10px; margin: 15px 0; border-radius: 4px; font-size: 12px; color: #333;">
-                <b>Evaluación Global de Carga Pesada (Embarque):</b> {estado_carga_glob} — Impacto del Flete: <b>{impacto_flete_global:.1f}% del FOB</b>
+            <div style="flex: 1; border: 1px solid #ddd; padding: 10px; text-align: center; background-color: #fafafa; border-radius: 5px;">
+                <div style="font-size: 10px; color: #666; font-weight: bold;">IMPACTO FLETE</div>
+                <div style="font-size: 15px; font-weight: bold; color: #1f4e78;">{impacto_flete_global:.1f}%</div>
             </div>
         </div>
+
+        <!-- Contenedor de Alerta de Carga Pesada con Color Institucional -->
+        <div style="background-color: {bg_alerta}; border: 1px solid {border_alerta}; color: {color_alerta}; padding: 10px; margin-bottom: 20px; border-radius: 4px; font-size: 11px;">
+            <b>Evaluación Global de Carga Pesada (Embarque):</b> <b>{texto_alerta}</b>
+            <div style="font-size: 9.5px; margin-top: 3px; opacity: 0.85;">
+                Relación porcentual del flete frente al valor FOB. Evalúa la eficiencia estructural del transporte marítimo y su incidencia en la rentabilidad.
+            </div>
+        </div>
+
+        <!-- Resumen General de Costos y Precios de Venta -->
         <h3 style="color: #1f4e78; margin-bottom: 5px;">Resumen General de Costos y Precios de Venta</h3>
         <table style="page-break-inside: avoid; width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 30px;">
             <tr style="background-color: #1f4e78; color: white;">
@@ -1034,102 +1061,64 @@ def crear_reporte_html(productos, gastos_contenedor, config):
                 <th style="padding: 8px; border: 1px solid #ddd;">Semáforo</th>
             </tr>
     """
-    
+
+    # Bucle para llenar la tabla de Resumen General
     for p in productos:
         color_txt = "red" if "🔴" in p.get("semaforo_color", "") else ("orange" if "🟡" in p.get("semaforo_color", "") else "green")
         estado_txt = "ROJO" if "🔴" in p.get("semaforo_color", "") else ("AMARILLO" if "🟡" in p.get("semaforo_color", "") else "VERDE")
         html += f"""
             <tr>
-                <td style="padding: 8px; border: 1px solid #ddd; text-align: left;">{p['nombre']}</td>
-                <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">{p['cantidad']}</td>
-                <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">$ {float(p['costo_unitario']):,.2f}</td>
-                <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">$ {float(p['pvp_normal']):,.2f}</td>
-                <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">$ {float(p['pvp_mayorista']):,.2f}</td>
-                <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">$ {float(p['pvp_especial']):,.2f}</td>
-                <td style="padding: 8px; border: 1px solid #ddd; text-align: center; font-weight: bold; color: {color_txt};">{estado_txt}</td>
+                <td style="padding: 8px; border: 1px solid #ddd;">{p.get('nombre', '')}</td>
+                <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">{p.get('cantidad', 0)}</td>
+                <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${float(p.get('costo_final_unitario', 0)):,.2f}</td>
+                <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${float(p.get('pvp_normal', 0)):,.2f}</td>
+                <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${float(p.get('pvp_mayorista', 0)):,.2f}</td>
+                <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${float(p.get('pvp_especial', 0)):,.2f}</td>
+                <td style="padding: 8px; border: 1px solid #ddd; text-align: center; color: {color_txt}; font-weight: bold;">{estado_txt}</td>
             </tr>
         """
-    html += "</table>"
 
-    html += """<h3 style="color: #1f4e78; margin-bottom: 10px;">Desglose Individual y Prorrateo de Gastos</h3>"""
+    html += """
+        </table>
+        
+        <h3 style="color: #1f4e78; margin-bottom: 10px;">Desglose Individual y Prorrateo de Gastos por Ítem</h3>
+    """
+
+    # Bucle para el Desglose Individual de cada producto
     for p in productos:
-        # Asignamos color hexadecimal y símbolo HTML seguro para el PDF
-        if "🔴" in p.get("semaforo_color", ""):
-            color_txt = "#c00000"
-            estado_txt = "ROJO"
-            simbolo_html = '<span style="color: #c00000; font-size: 14px;">●</span>'
-        elif "🟡" in p.get("semaforo_color", ""):
-            color_txt = "#d4ac0d"
-            estado_txt = "AMARILLO"
-            simbolo_html = '<span style="color: #d4ac0d; font-size: 14px;">●</span>'
-        else:
-            color_txt = "#27ae60"
-            estado_txt = "VERDE"
-            simbolo_html = '<span style="color: #27ae60; font-size: 14px;">●</span>'
-            
-        dias_tr = config.get("dias_transito", 60)
-        f_ped = config.get("fecha_proximo_pedido")
-        
-        _, _, sug_ahora, sug_futuro, _ = evaluar_semaforo(
-            p.get("stock_actual", 0), 
-            p.get("ventas_semanales", 0), 
-            dias_entrega=dias_tr, 
-            fecha_proximo_pedido=f_ped
-        )
-        
-        # 1. Procesamos la fecha AQUÍ AFUERA del HTML de forma limpia y segura
-        fecha_ped_raw = config.get("fecha_proximo_pedido", "")
-        try:
-            if fecha_ped_raw:
-                dt_ped = datetime.strptime(str(fecha_ped_raw), "%Y-%m-%d")
-                fecha_ped_fmt = dt_ped.strftime("%d/%m/%Y")
-            else:
-                fecha_ped_fmt = "X/X/X"
-        except Exception:
-            fecha_ped_fmt = str(fecha_ped_raw)
-
-        # 2. Luego construimos el HTML usando la variable {fecha_ped_fmt} ya lista
+        g1 = p.get('gastos_parte1', {})
+        g2 = p.get('gastos_parte2', {})
         html += f"""
-        <div style="page-break-inside: avoid; border: 1px solid #b3d4fc; border-radius: 5px; margin-bottom: 15px; overflow: hidden;">
-            <div style="background-color: #e6f2ff; padding: 8px 12px; border-bottom: 1px solid #b3d4fc; font-weight: bold; color: #1f4e78;">
-                Producto: {p['nombre']}
+        <div style="border: 1px solid #bcd; background-color: #f4f8fb; padding: 10px; margin-bottom: 15px; border-radius: 5px; page-break-inside: avoid;">
+            <div style="font-weight: bold; color: #1f4e78; font-size: 14px; margin-bottom: 5px;">Producto: {p.get('nombre', '')}</div>
+            <div style="font-size: 11px; color: #444; margin-bottom: 5px;">
+                <b>Cant.:</b> {p.get('cantidad', 0)} unds | <b>FOB U.:</b> $ {float(p.get('precio_fob', 0)):,.2f} | <b>Peso T.:</b> {p.get('peso_total', 0):,.2f} kg | <b>Vol. T.:</b> {p.get('volumen_total', 0):,.4f} m³
             </div>
-            <div style="padding: 12px; font-size: 12px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <div><b>Estado: <span style="color: {color_txt};">{estado_txt}</span> - {simbolo_html}</b></div>
-                    <div style="text-align: right;">        
-                        <b>======> Pedir {sug_ahora} unds</b><br>
-                        <span style="color: #666; font-style: italic;">Según Pedido Planificado para el {fecha_ped_fmt} Pedir {sug_futuro} Unds</span>
-                    </div>
-                </div>
-                <div style="margin-bottom: 10px; color: #444;">
-                    <b>Cant.:</b> {p['cantidad']} unds | <b>FOB U.:</b> $ {float(p['precio_fob']):,.2f} | <b>Peso T.:</b> {float(p['peso_total']):,.2f} kg | <b>Vol. T.:</b> {float(p['volumen_total']):,.4f} m3
-                </div>
-                <div style="background-color: #f8f9fa; padding: 8px; border-radius: 3px;">
-                    <b>Gastos Arribo U.:</b> $ {float(p['gasto_unitario']):,.2f} | <b>COSTO REAL EN ESTANTE:</b> $ {float(p['costo_unitario']):,.2f}
-                </div>
-                <div style="margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; color: #555;">
-                    <div><b>Gastos (Parte 1):</b> Manejo: ${float(p['gastos']['Manejo de Puerto']):,.2f} | Flete Nac.: ${float(p['gastos']['Flete Terrestre Nacional']):,.2f} | Log. Int.: ${float(p['gastos']['Logística Internacional']):,.2f}</div>
-                    <div><b>Gastos (Parte 2):</b> Aduana: ${float(p['gastos']['Derechos de Aduana']):,.2f} | Gestión: ${float(p['gastos']['Gestión Aduanera']):,.2f} | Admin: ${float(p['gastos']['Gastos Administrativos']):,.2f}</div>
-                </div>
+            <div style="background-color: #fff; border: 1px solid #ddd; padding: 6px; margin-bottom: 5px; font-size: 11px;">
+                <b>Gastos Arribo U.:</b> $ {float(p.get('gasto_unitario', 0)):,.2f} | <b>COSTO FINAL UNITARIO:</b> <span style="color: #1f4e78; font-weight: bold;">$ {float(p.get('costo_final_unitario', 0)):,.2f}</span>
+            </div>
+            <div style="font-size: 10px; color: #555; display: flex; justify-content: space-between;">
+                <div><b>Gastos (Parte 1):</b> Manejo: ${g1.get('manejo', 0):,.2f} | Flete Nac.: ${g1.get('flete_nacional', 0):,.2f} | Log. Int.: ${g1.get('logistica_internacional', 0):,.2f}</div>
+                <div><b>Gastos (Parte 2):</b> Aduana: ${g2.get('aduana', 0):,.2f} | Gestión: ${g2.get('gestion', 0):,.2f} | Admin: ${g2.get('administrativos', 0):,.2f}</div>
             </div>
         </div>
         """
-    
-    html += """
-        <div style="page-break-inside: avoid; text-align: center; margin-top: 40px; padding: 25px; border-top: 2px solid #1f4e78; background-color: #f8f9fa; border-radius: 8px;">
-            <p style="margin: 0 0 10px 0; color: #1f4e78; font-weight: bold; font-size: 14px;">Diseñado y elaborado por su Asesor de Importación Inteligente:</p>
-            <h2 style="margin: 0 0 5px 0; color: #1f4e78; font-size: 20px;">Prof. Jesús Pulido V.</h2>
-            <p style="margin: 0 0 15px 0; font-size: 12px; color: #444; line-height: 1.5;">
+
+    # Pie de página corporativo (Autoría de JPV)
+    html += f"""
+        <div style="margin-top: 30px; page-break-inside: avoid; border: 1px solid #1f4e78; padding: 15px; border-radius: 6px; background-color: #fafafa; text-align: center;">
+            <p style="margin: 0 0 5px 0; font-size: 11px; color: #666; font-weight: bold;">Diseñado y elaborado por su Asesor de Importación Inteligente:</p>
+            <h3 style="margin: 0; color: #1f4e78; font-size: 16px;">Prof. Jesús Pulido V.</h3>
+            <p style="margin: 5px 0; font-size: 11px; color: #444;">
                 Teléfonos de contacto: 0424-728.3199 / 0416-291.6426<br>
                 Correo: jeshua166@gmail.com
             </p>
-            <img src="https://i.postimg.cc/Hxhd38gS/JPV-Asesor-Importacion.jpg" style="width: 140px; border-radius: 8px; border: 2px solid #1f4e78;" />
+            <div style="margin-top: 10px;">
+                <img src="https://i.postimg.cc/Hxhd38gS/JPV-Asesor-Importacion.jpg" style="max-height: 120px; border-radius: 4px;">
+            </div>
         </div>
-    </div>
-    """
 
-    html += """
+        <!-- 3. Apéndice: Glosario Técnico -->
         <div style="margin-top: 25px; page-break-inside: avoid; border-top: 1px solid #ccc; padding-top: 10px;">
             <h3 style="color: #1f4e78; margin-bottom: 6px; font-size: 14px;">3. Apéndice: Glosario Técnico de Comercio Internacional</h3>
             <p style="font-size: 10px; color: #555; margin: 3px 0;"><b>Valor FOB:</b> Costo neto de la mercancía en origen (fábrica o puerto de embarque).</p>
@@ -1137,11 +1126,12 @@ def crear_reporte_html(productos, gastos_contenedor, config):
             <p style="font-size: 10px; color: #555; margin: 3px 0;"><b>Impacto Flete/FOB:</b> Relación porcentual entre el costo del flete y el FOB; mide si la carga es ligera o pesada.</p>
             <p style="font-size: 10px; color: #555; margin: 3px 0;"><b>Costo Final Unitario:</b> Costo real de cada unidad ya nacionalizada (incluye flete, seguro, aranceles y gastos locales).</p>
             <p style="font-size: 10px; color: #555; margin: 3px 0;"><b>Rentabilidad:</b> Porcentaje de ganancia neta estimada respecto al costo final unitario del producto.</p>
-         </div>
+        </div>
+    </div>
     """
 
     return html.replace('\n', '').strip()
-
+    
 def generar_pdf_desde_html(html_content):
     try:
         result = io.BytesIO()
