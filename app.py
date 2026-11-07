@@ -337,7 +337,7 @@ def verificar_acceso():
             except Exception:
                 st.markdown("<h3 style='text-align: center;'>🚢 Sistema de Gestión Inteligente Premium</h3>", unsafe_allow_html=True)
 
-        st.markdown("<h2 style='text-align: center;'>¡Bienvenido al Panel de Control Ejecutivo Premium!</h2>", unsafe_allow_html=True)
+        st.markdown("<h4 style='text-align: center;'>¡Bienvenido al Panel de Control Ejecutivo Premium!</h2>", unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
         
         # 2. Indicación al menú de la izquierda
