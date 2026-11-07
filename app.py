@@ -443,7 +443,7 @@ def verificar_acceso():
                 Diseñado y elaborado por<br>
                 su Asesor de Importación Inteligente<br>
                 <b>Prof. Jesús Pulido V.</b><br><br>
-                <span style="font-size: 13px; color: #555;">0424-728.3199 / 0416-291.6426</span>
+                <span style="font-size: 15px; color: #555;">0424-728.3199 / 0416-291.6426</span>
             </div>
             """, 
             unsafe_allow_html=True
@@ -1669,7 +1669,7 @@ def main():
     # Bloque centralizado con los 7 datos en el orden exacto y saltos de línea
     st.markdown(
         f"""
-        <div style="text-align: center; font-size: 14px; line-height: 1.6; margin-bottom: 25px; color: #333;">
+        <div style="text-align: center; font-size: 16px; line-height: 1.6; margin-bottom: 25px; color: #333;">
             <b>Empresa activa:</b> {empresa_activa}<br>
             <b>Propietario:</b> {propietario_val}<br>
             <b>RIF:</b> {rif_val}<br>
