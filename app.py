@@ -437,8 +437,18 @@ def verificar_acceso():
     # --- SECCIÓN DE AUTORÍA Y FOTOGRAFÍA ---
     col_i, col_c, col_d = st.columns([1, 1, 1])
     with col_c:
-        st.markdown("<h4 style='text-align: center;'>Diseñado y elaborado por<br>su Asesor de Importación Inteligente<br>Prof. Jesús Pulido V.</h4>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center;'>0424-728.3199 / 0416-291.6426</p>", unsafe_allow_html=True)
+        st.markdown(
+            """
+            <div style="text-align: center;">
+                Diseñado y elaborado por<br>
+                su Asesor de Importación Inteligente<br>
+                <b>Prof. Jesús Pulido V.</b><br><br>
+                <span style="font-size: 13px; color: #555;">0424-728.3199 / 0416-291.6426</span>
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )
+
         for nombre in ("profesor.jpg", "asesor.jpg"):
             if os.path.exists(nombre):
                 st.image(nombre, width=180)
