@@ -1638,16 +1638,8 @@ def main():
         vista_generador_sintetico()
     
     if not config.get("empresa"):
-        st.markdown(
-            """
-            <div style="padding: 0.75rem 1rem; border-radius: 0.5rem; background-color: #e8f4f8; border: 1px solid #b8d4e5; color: #0b2545; font-size: 15px; line-height: 1.5;">
-                👉 <strong>ADELANTE ‼️</strong><br>
-                después de ingresar los datos de la Empresa, cargue sus Datos Excel y...<br>
-                Disfrute de las bondades del Sistema Premium para Proteger su Capital y Maximizar sus Ganancias.
-            </div>
-            """, 
-            unsafe_allow_html=True
-        )
+        st.info("👉 **ADELANTE ‼️**\n\nDespués de ingresar los datos de la Empresa, cargue sus Datos Excel y...\nDisfrute de las bondades del Sistema Premium para Proteger su Capital y Maximizar sus Ganancias.")
+        
         return  # <--- ¡Este 'return' frena en seco el despliegue del Excel hasta que haya empresa activa!
            
     panel_configuracion_avanzada(config); panel_monedas_sidebar(config)
@@ -1704,7 +1696,7 @@ def main():
         
     archivo = st.file_uploader("", type=["xlsx", "xls", "csv"], label_visibility="collapsed")
     if archivo is None:
-        st.info("📤 Suba su archivo Excel o CSV para comenzar el análisis o activa el **Modo Demostración** en la barra lateral para crear un archivo de prueba en segundos.")
+        st.info("📤 Suba su archivo Excel o CSV para comenzar el análisis o activa el **Modo Demostración** en la barra lateral para crear un **archivo de prueba** en segundos.")
         with st.expander("❓ Columnas esperadas"): st.markdown("- Producto / Descripción\n- Cantidad\n- Precio FOB Origen (unitario)\n- Peso unitario (kg)\n- Volumen unitario (m³)\n- Stock Actual\n- Ventas Semanales\n- Días de Entrega\n- Partida Arancelaria (opcional)")
         return
 
