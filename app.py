@@ -1638,12 +1638,16 @@ def main():
         vista_generador_sintetico()
     
     if not config.get("empresa"):
-        st.markdown("""
-        <div style="padding: 1rem; border-radius: 0.5rem; background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; margin-bottom: 1rem;">
-            👉 <strong>ADELANTE ‼️<br>después de ingresar lo datos de la Empresa, cargue sus Datos Excel y...</strong><br>
-            Disfrute de las bondades del Sistema Premium para Proteger su Capital y Maximizar sus Ganancias.<br><br>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(
+            """
+            <div style="padding: 0.75rem 1rem; border-radius: 0.5rem; background-color: #e8f4f8; border: 1px solid #b8d4e5; color: #0b2545; font-size: 15px; line-height: 1.5;">
+                👉 <strong>ADELANTE ‼️</strong><br>
+                después de ingresar los datos de la Empresa, cargue sus Datos Excel y...<br>
+                Disfrute de las bondades del Sistema Premium para Proteger su Capital y Maximizar sus Ganancias.
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )
         return  # <--- ¡Este 'return' frena en seco el despliegue del Excel hasta que haya empresa activa!
            
     panel_configuracion_avanzada(config); panel_monedas_sidebar(config)
