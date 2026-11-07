@@ -370,7 +370,7 @@ def verificar_acceso():
     
     
         # 3. Pestaña desplegable informativa con lenguaje comercial optimizado
-        with st.expander("👈🏼✨📖 (TOQUE AQUÍ) \nConozca cómo el Sistema Premium protege y hace crecer su negocio."):
+        with st.expander("👈🏼✨📖 (TOQUE AQUÍ) <br>Conozca cómo el Sistema Premium protege y hace crecer su negocio."):
             st.markdown("""
             ### 🛡️ ¿Cómo este Sistema Premium 🐉 protege su inversión y maximiza sus ganancias?
             
