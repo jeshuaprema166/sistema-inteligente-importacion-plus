@@ -1681,9 +1681,14 @@ def main():
         """,
         unsafe_allow_html=True
     )
-    
 
-    st.caption("Ingeniería con IA: **Prof. Jesús Pulido V.** · Asesor de Importación Inteligente")
+    st.markdown(
+    "<div style='text-align: center; font-size: 14px; color: #1f4e78; margin-bottom: 20px;'>"
+    "Ingeniería con IA: <b>Prof. Jesús Pulido V.</b> · Asesor de Importación Inteligente"
+    "</div>",
+    unsafe_allow_html=True
+    )
+
     
     with st.sidebar:
         st.markdown("---")
