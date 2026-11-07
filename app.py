@@ -1672,24 +1672,41 @@ def main():
         return  # <--- ¡Este 'return' frena en seco el despliegue del Excel hasta que haya empresa activa!
            
     panel_configuracion_avanzada(config); panel_monedas_sidebar(config)
-    st.title("🛳️ Sistema de Análisis de Importación Inteligente Premium 🐉")
+    # Título principal centrado y ligeramente más pequeño
+    st.markdown("<h2 style='text-align: center; color: #1f4e78;'>🚢 Sistema de Análisis de Importación Inteligente Premium 🐉</h2>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
+
     # Definimos de forma segura la función auxiliar localmente si no existe
     def _texto_seguro(val, val_otro):
         if val == "Otro" and val_otro:
             return str(val_otro)
         return str(val or "No especificado")
 
-    # Variables efectivas limpias
+    # Variables efectivas limpias para los 7 datos de la empresa
     empresa_activa = config.get('empresa', 'Empresa Principal')
+    propietario_val = config.get('propietario', config.get('responsable', 'No especificado'))
+    rif_val = config.get('rif', 'No especificado')
+    email_val = config.get('email', config.get('correo', 'No especificado'))
     sector_activo = _texto_seguro(config.get('sector'), config.get('sector_otro'))
+    proveedor_val = config.get('proveedor', 'No especificado')
     origen_efectivo = _texto_seguro(config.get('origen'), config.get('origen_otro'))
-    
+
+    # Bloque centralizado con los 7 datos en el orden exacto y saltos de línea
     st.markdown(
-        f"<span style='font-size: 16px; color: #1f4e78; font-weight: bold;'>"
-        f"Empresa activa: {empresa_activa} &nbsp;|&nbsp; Sector: {sector_activo} &nbsp;|&nbsp; Origen: {origen_efectivo}"
-        f"</span>",
+        f"""
+        <div style="text-align: center; font-size: 14px; line-height: 1.6; margin-bottom: 25px; color: #333;">
+            <b>Empresa activa:</b> {empresa_activa}<br>
+            <b>Propietario:</b> {propietario_val}<br>
+            <b>RIF:</b> {rif_val}<br>
+            <b>Email:</b> {email_val}<br>
+            <b>Sector:</b> {sector_activo}<br>
+            <b>Proveedor:</b> {proveedor_val}<br>
+            <b>Origen Proveedor:</b> {origen_efectivo}
+        </div>
+        """,
         unsafe_allow_html=True
     )
+    
 
     st.caption("Ingeniería con IA: **Prof. Jesús Pulido V.** · Asesor de Importación Inteligente")
     
