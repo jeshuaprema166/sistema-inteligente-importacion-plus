@@ -340,8 +340,6 @@ def verificar_acceso():
         st.markdown("<h2 style='text-align: center;'>¡Bienvenido al Panel de Control Ejecutivo Premium!</h2>", unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
         
-        )
-        
         # 2. Indicación al menú de la izquierda
         # Se muestra solo si aún no se ha configurado la empresa
         # Verificación segura del estado de la empresa
