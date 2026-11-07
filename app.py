@@ -335,10 +335,35 @@ def verificar_acceso():
             try:
                 st.image("portada_sistema_premium.jpg", use_container_width=True)
             except Exception:
-                st.markdown("<h3 style='text-align: center;'>🚢 Sistema de Gestión Inteligente Premium</h3>", unsafe_allow_html=True)
+                pass
 
-        st.markdown("<h2 style='text-align: center;'>¡Bienvenido al Panel de Control Ejecutivo Premium!</h2>", unsafe_allow_html=True)
+        # 1. Título principal centrado y ligeramente más pequeño
+        st.markdown("<h2 style='text-align: center; color: #1f4e78;'>🚢 Sistema de Análisis de Importación Inteligente Premium 🐉</h2>", unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
+
+        # 2. Bloque con los 7 datos de la empresa en el orden solicitado y con sus saltos de línea
+        empresa_val = st.session_state.config_empresa.get("empresa", "N/D") if "config_empresa" in st.session_state else "N/D"
+        propietario_val = st.session_state.config_empresa.get("propietario", "N/D") if "config_empresa" in st.session_state else "N/D"
+        rif_val = st.session_state.config_empresa.get("rif", "N/D") if "config_empresa" in st.session_state else "N/D"
+        email_val = st.session_state.config_empresa.get("email", st.session_state.config_empresa.get("correo", "N/D")) if "config_empresa" in st.session_state else "N/D"
+        sector_val = st.session_state.config_empresa.get("sector", "N/D") if "config_empresa" in st.session_state else "N/D"
+        proveedor_val = st.session_state.config_empresa.get("proveedor", "N/D") if "config_empresa" in st.session_state else "N/D"
+        origen_val = st.session_state.config_empresa.get("origen", "N/D") if "config_empresa" in st.session_state else "N/D"
+
+        st.markdown(
+            f"""
+            <div style="text-align: center; font-size: 14px; line-height: 1.6; margin-bottom: 25px; color: #333;">
+                <b>Empresa activa:</b> {empresa_val}<br>
+                <b>Propietario:</b> {propietario_val}<br>
+                <b>RIF:</b> {rif_val}<br>
+                <b>Email:</b> {email_val}<br>
+                <b>Sector:</b> {sector_val}<br>
+                <b>Proveedor:</b> {proveedor_val}<br>
+                <b>Origen Proveedor:</b> {origen_val}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
         
         # 2. Indicación al menú de la izquierda
         # Se muestra solo si aún no se ha configurado la empresa
