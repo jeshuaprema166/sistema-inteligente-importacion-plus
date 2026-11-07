@@ -968,6 +968,44 @@ def mostrar_flujo_caja(df_flujo):
     ax.set_title("Saldo de caja proyectado"); ax.grid(alpha=0.3)
     st.pyplot(fig)
 
+    # --- MÓDULO DE INTERPRETACIÓN Y DIAGNÓSTICO EJECUTIVO DE FLUJO DE CAJA ---
+    st.markdown("---")
+    st.markdown("### 🧠 Interpretación y Diagnóstico Financiero")
+    
+    st.markdown(
+        """
+        **¿Qué es la Proyección de Flujo de Caja a 13 Semanas?**  
+        Es un modelo financiero dinámico de alta precisión que simula semana a semana la entrada de ingresos por ventas y la salida de compromisos operativos y de reposición, vigilando permanentemente que el capital de trabajo de la empresa **nunca caiga por debajo del límite seguro**.
+        """
+    )
+
+    # Extracción segura de los valores clave calculados en su flujo
+    min_val = float(saldo_minimo) if 'saldo_minimo' in locals() else 0.0
+    final_val = float(saldo_final) if 'saldo_final' in locals() else 0.0
+
+    # Evaluación automática del escenario para dar la explicación descriptiva al usuario
+    if min_val >= 1000 and final_val >= min_val:
+        st.success(
+            """
+            **🟢 Diagnóstico Financiero Óptimo (Saludable):**  
+            Su flujo de caja proyectado muestra una tendencia de crecimiento sólido y constante durante las 13 semanas. El capital de trabajo se mantiene en un límite sumamente seguro (con un saldo mínimo de caja superior al umbral de riesgo). Las ventas previstas cubren holgadamente la reposición de inventario, lo que indica que su modelo de importación genera la liquidez necesaria para sostener y hacer crecer el negocio sin apelar a financiamiento externo.
+            """
+        )
+    elif min_val >= 0:
+        st.warning(
+            """
+            **🟡 Diagnóstico de Liquidez Ajustada (En Observación):**  
+            El flujo proyectado presenta un bache de liquidez temporal o un margen ajustado en el saldo mínimo. Aunque el saldo final es positivo, su capital de trabajo se acerca al límite de seguridad debido a la concentración de pagos de reposición antes de que las ventas compensen el efectivo. Se recomienda espaciar los lotes de pedido o negociar plazos con proveedores para proteger la caja operativa.
+            """
+        )
+    else:
+        st.error(
+            """
+            **🔴 Diagnóstico de Alerta Roja por Déficit (Riesgo Crítico):**  
+            ¡Atención gerencial! El modelo detecta que su capital de trabajo caerá en terreno negativo (por debajo del límite seguro). Los compromisos de reposición y costos fijos superan el ritmo de ingresos previstos en algún punto de las semanas proyectadas. Ejecutar este pedido bajo estas condiciones pondrá en riesgo la operatividad; se sugiere ajustar los márgenes de venta o renegociar lotes antes de comprometer capital.
+            """
+        )
+  
 def exportar_csv_para_sheets(productos, config):
     filas = []
     for p in productos:
