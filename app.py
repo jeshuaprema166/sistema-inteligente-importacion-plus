@@ -1640,7 +1640,7 @@ def main():
     if not config.get("empresa"):
         st.markdown("""
         <div style="padding: 1rem; border-radius: 0.5rem; background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; margin-bottom: 1rem;">
-            👉 <strong>ADELANTE ‼️ después de ingresar lo datos de la Empresa, cargue sus Datos Excel y...</strong><br>
+            👉 <strong>ADELANTE ‼️<br>después de ingresar lo datos de la Empresa, cargue sus Datos Excel y...</strong><br>
             Disfrute de las bondades del Sistema Premium para Proteger su Capital y Maximizar sus Ganancias.<br><br>
         </div>
         """, unsafe_allow_html=True)
@@ -1699,9 +1699,9 @@ def main():
         else: st.info("💾 Modo local (sin sheets_db.py)")
         st.markdown("---"); st.caption("📞 0424-728.3199 / 0416-291.6426"); st.caption("✉️ jeshua166@gmail.com")
         
-    archivo = st.file_uploader("📤 Sube tu Excel o CSV con los productos", type=["xlsx", "xls", "csv"])
+    archivo = st.file_uploader("📤 Suba su archivo Excel o CSV con los productos", type=["xlsx", "xls", "csv"])
     if archivo is None:
-        st.info("Sube un archivo Excel o CSV para comenzar el análisis o activa el **Modo Demostración** en la barra lateral para crear un archivo de prueba en segundos.")
+        st.info("📤 Suba su archivo Excel o CSV para comenzar el análisis o activa el **Modo Demostración** en la barra lateral para crear un archivo de prueba en segundos.")
         with st.expander("❓ Columnas esperadas"): st.markdown("- Producto / Descripción\n- Cantidad\n- Precio FOB Origen (unitario)\n- Peso unitario (kg)\n- Volumen unitario (m³)\n- Stock Actual\n- Ventas Semanales\n- Días de Entrega\n- Partida Arancelaria (opcional)")
         return
 
