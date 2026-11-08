@@ -387,9 +387,10 @@ def verificar_acceso():
                 * **Historial Persistente en la Nube:** Respaldado de forma automática, permitiéndole tener acceso al Historial de Compras desde cualquier sitio en su celular personal, facilitando la auditoría de cada importación pasada y la toma de decisiones gerenciales en tiempo real.
                 * **Emisión de Informes Ejecutivos en PDF para Solicitudes Bancarias:** El sistema compila automáticamente toda la data analítica, contable y de proyecciones en un dossier en formato PDF de impecable factura profesional. Esto actúa como un excelente resumen administrativo y una elegante carta de presentación técnica y financiera ante la banca comercial para respaldar con total solidez cualquier solicitud de crédito.
                 """            
-            ---
-            *(Puede cerrar esta sección haciendo clic > nuevamente en la parte superior del desplegable).*
-            """)
+                ---
+                *(Puede cerrar esta sección haciendo clic > nuevamente en la parte superior del desplegable).*
+                """
+            )
            
         return True
             
