@@ -939,23 +939,59 @@ def renderizar_pestana_salvavidas(productos, config):
             
             st.markdown("---")
 
-def proyectar_flujo_caja(productos, config, semanas=13, crecimiento_semanal=0.02, costo_fijo_semanal=0.0, pago_importacion=None):
+def proyectar_flujo_caja(productos, config, semanas=13, crecimiento_semanal=0.02):
     hoy = date.today()
-    saldo = float(config.get("capital_inicial", 0))
+    capital_inicial = float(config.get("capital_inicial", 0.0))
+    costo_fijo = float(config.get("costo_fijo_semanal", 250.0))
+    
+    # Parámetros del próximo pedido desde config
+    monto_pedido = float(config.get("monto_proximo_pedido", 0.0))
+    fecha_pedido_str = config.get("fecha_proximo_pedido", None)
+    
+    # Determinar en qué número de semana (1 a 13) cae la fecha del próximo pedido
+    semana_objetivo_pedido = 1  # Por defecto semana 1 si no hay fecha válida
+    if fecha_pedido_str:
+        try:
+            from datetime import datetime
+            f_pedido = datetime.strptime(str(fecha_pedido_str), "%Y-%m-%d").date()
+            dias_diff = (f_pedido - hoy).days
+            semana_calc = max(1, (dias_diff // 7) + 1)
+            if semana_calc <= semanas:
+                semana_objetivo_pedido = semana_calc
+        except Exception:
+            pass
+
+    saldo = capital_inicial
     filas = []
+    
     for w in range(1, semanas + 1):
         fecha = hoy + timedelta(weeks=w)
         ingreso = 0.0
+        
         for p in productos:
-            ventas = float(p.get("ventas_semanales", 0))
-            pvp    = float(p.get("pvp_normal", 0))
+            ventas = float(p.get("ventas_semanales", 0.0))
+            pvp = float(p.get("pvp_normal", 0.0))
             factor = (1.0 + crecimiento_semanal) ** w
             ingreso += ventas * pvp * factor
-        egreso = float(costo_fijo_semanal)
-        if pago_importacion and pago_importacion.get("fecha") == fecha:
-            egreso += float(pago_importacion.get("monto_usd", 0))
-        saldo += ingreso - egreso
-        filas.append({"Semana": w, "Fecha": fecha.strftime("%Y-%m-%d"), "Ingreso proyectado": round(ingreso, 2), "Egreso proyectado": round(egreso, 2), "Saldo acumulado": round(saldo, 2)})
+            
+        # Egreso base semanal (costos fijos)
+        egreso = costo_fijo
+        
+        # Incorporar el monto del próximo pedido exactamente en su semana correspondiente
+        if w == semana_objetivo_pedido and monto_pedido > 0:
+            egreso += monto_pedido
+            
+        # Actualizar saldo acumulado
+        saldo += (ingreso - egreso)
+        
+        filas.append({
+            "Semana": w, 
+            "Fecha": fecha.strftime("%Y-%m-%d"), 
+            "Ingreso proyectado": round(ingreso, 2), 
+            "Egreso proyectado": round(egreso, 2),
+            "Saldo acumulado": round(saldo, 2)
+        })
+        
     return pd.DataFrame(filas)
 
 def mostrar_flujo_caja(df_flujo, config):
