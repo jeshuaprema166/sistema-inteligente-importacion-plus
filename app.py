@@ -1736,7 +1736,7 @@ def main():
         vista_generador_sintetico()
     
     if not config.get("empresa"):
-        st.info("👉 **ADELANTE ‼️**\n\nDespués de ingresar los datos de la Empresa, cargue sus Datos Excel y...\nDisfrute de las bondades del Sistema Premium para Proteger su Capital y Maximizar sus Ganancias.")
+        st.info("🫲🏼 **ADELANTE ‼️**\n\nDespués de ingresar los datos de la Empresa, cargue sus Datos Excel y...\nDisfrute de las bondades del Sistema Premium para Proteger su Capital y Maximizar sus Ganancias.")
         
         return  # <--- ¡Este 'return' frena en seco el despliegue del Excel hasta que haya empresa activa!
            
