@@ -385,8 +385,8 @@ def verificar_acceso():
                 * **Blindaje contra Fallas de Inventario:** Mediante las Alarmas Inteligentes por IA (🟢🟡🔴) y la Proyección de Flujo de Caja a 13 Semanas, el sistema anticipa cuándo se agotarán sus existencias y vigila que su capital de trabajo nunca caiga por debajo del límite seguro.
                 * **Búsqueda de Proveedores Locales (Módulo "Salvavidas"):** Si la cadena internacional sufre demoras, el sistema activa al instante un motor de búsqueda web y directorios locales especializados para cotizar con mayoristas nacionales, calcular rutas puente de auxilio y mantener su negocio abierto y facturando.
                 * **Historial Persistente en la Nube:** Respaldado de forma automática, permitiéndole tener acceso al Historial de Compras desde cualquier sitio en su celular personal, facilitando la auditoría de cada importación pasada y la toma de decisiones gerenciales en tiempo real.
-                * **Emisión de Informes Ejecutivos en PDF para Solicitudes Bancarias:** El sistema compila automáticamente toda la data analítica, contable y de proyecciones en un dossier en formato PDF de impecable factura profesional. Esto actúa como un excelente resumen administrativo y una elegante carta de presentación técnica y financiera ante la banca comercial para respaldar con total solidez cualquier solicitud de crédito.
-                """            
+                * **Emisión de Informes Ejecutivos en PDF para Solicitudes Bancarias:** El sistema compila automáticamente toda la data analítica, contable y de proyecciones en un dossier en formato PDF de impecable factura profesional. Esto actúa como un excelente resumen administrativo y una elegante carta de presentación técnica y financiera ante la banca comercial para respaldar con total solidez cualquier solicitud de crédito.          
+                
                 ---
                 *(Puede cerrar esta sección haciendo clic > nuevamente en la parte superior del desplegable).*
                 """
