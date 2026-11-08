@@ -1872,8 +1872,8 @@ def main():
             )
 
     with tab_flujo:
-        mostrar_flujo_caja(proyectar_flujo_caja(productos, config))
-        
+        mostrar_flujo_caja(proyectar_flujo_caja(productos, config), config)
+    
     with tab_auditoria:
         vista_auditoria_aduanera(productos)
 
