@@ -997,68 +997,116 @@ def proyectar_flujo_caja(productos, config, semanas=13, crecimiento_semanal=0.02
 def mostrar_flujo_caja(df_flujo, config):
     st.subheader("📅 Proyección de flujo de caja — 13 semanas")
     
-    # 🎛️ Switch o Interruptor para Activar el Simulador Interactivo
-    modo_simulacion = st.toggle("🎛️ Activar Simulador Gerencial de Escenarios (What-If)", value=False)
+    # 3 y 4) Texto del switch en negrita, color fucsia corporativo (#c71585) y flechas iniciales
+    st.markdown(
+        '<p style="color: #c71585; font-weight: bold; font-size: 15px; margin-bottom: 4px;">👉🏼 🎛️ Activar Simulador Gerencial de Escenarios (What-If)</p>',
+        unsafe_allow_html=True
+    )
+    modo_simulacion = st.toggle("Habilite para ajustar variables en tiempo real", value=False, label_visibility="collapsed")
     
     df_activo = df_flujo.copy()
     
+    # Extracción de fechas de embarque y arribo desde config
+    fecha_embarque = config.get("fecha_proximo_pedido", config.get("fecha_embarque", "2027/01/20"))
+    fecha_arribo = config.get("fecha_estimada_arribo", "Por definir (aprox. +4 semanas)")
+
     if modo_simulacion:
-        st.info("💡 **Modo Simulación Activo:** Separe el tiempo físico del pedido y el tiempo de pago financiero para evaluar el impacto real en caja e inventario.")
+        st.markdown(
+            """
+            <div style="background-color: #f8f9fa; padding: 6px 10px; border-radius: 6px; border: 1px solid #b8d4e5; margin-bottom: 8px; font-size: 12px; color: #0b2545;">
+                💡 <b>Modo Simulación Activo:</b> Ajuste los parámetros abajo. Las métricas y la gráfica se actualizan instantáneamente.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
         
-        col_s1, col_s2, col_s3 = st.columns(3)
-        with col_s1:
-            sim_cap = st.number_input("Inyección Capital Adicional ($)", value=0.0, step=500.0, key="sim_cap_s")
-            # Cambiado de slider a number_input con incrementos discretos de 1 en 1
-            sim_margen = st.number_input("Margen Comercial Simulado (%)", min_value=5.0, max_value=100.0, value=float(config.get("margen", 30.0)), step=1.0, key="sim_m_s")
-        with col_s2:
-            sim_cfijo = st.number_input("Costo Fijo Semanal Simulado ($)", value=float(config.get("costo_fijo_semanal", 250.0)), step=50.0, key="sim_cf_s")
-            sim_pedido = st.number_input("Monto Próximo Pedido Simulado ($)", value=float(config.get("monto_proximo_pedido", 15000.0)), step=1000.0, key="sim_ped_s")
-        with col_s3:
-            sem_emision = st.selectbox("Semana de Emisión del Pedido (Físico)", list(range(1, 10)), index=0, help="Semana en que se ordena la mercancía afectando el flujo de inventario.")
-            estrategia_pago = st.selectbox("Condición de Pago al Proveedor", ["Contado (Al emitir)", "Crédito a 30 días (+4 semanas)", "Crédito a 60 días (+8 semanas)"], help="Momento en que sale el dinero efectivo de su caja.")
+        # 1 y 2) Diseño compacto en dos columnas principales (Izquierda: Inputs reducidos / Derecha: Métricas y Fechas)
+        col_sim_izq, col_sim_der = st.columns([1.2, 1])
         
-        # Factor de ajuste de ingresos por margen
-        margen_base = float(config.get("margen", 30.0))
-        factor_m = (1.0 + (sim_margen / 100.0)) / (1.0 + (margen_base / 100.0)) if margen_base > 0 else 1.0
+        with col_sim_izq:
+            st.markdown("<p style='font-size: 11px; font-weight: bold; color: #1f4e78; margin-bottom: 2px;'>🎛️ Parámetros de Simulación (Compactos):</p>", unsafe_allow_html=True)
+            sub_c1, sub_c2 = st.columns(2)
+            with sub_c1:
+                sim_cap = st.number_input("Capital Adic. ($)", value=0.0, step=500.0, key="sim_cap_s")
+                sim_margen = st.number_input("Margen (%)", min_value=5.0, max_value=100.0, value=float(config.get("margen", 30.0)), step=1.0, key="sim_m_s")
+                sim_cfijo = st.number_input("Costo Fijo ($)", value=float(config.get("costo_fijo_semanal", 250.0)), step=50.0, key="sim_cf_s")
+            with sub_c2:
+                sim_pedido = st.number_input("Próx. Pedido ($)", value=float(config.get("monto_proximo_pedido", 15000.0)), step=1000.0, key="sim_ped_s")
+                sem_emision = st.selectbox("Sem. Emisión", list(range(1, 10)), index=0, key="sim_sem_s")
+                estrategia_pago = st.selectbox("Cond. Pago", ["Contado", "Crédito 30d", "Crédito 60d"], key="sim_pago_s")
         
-        # Recálculo dinámico separando emisión física y pago financiero
-        saldos_simulados = []
-        capital_inicial_base = float(config.get("capital_inicial", 0.0)) + sim_cap
-        acumulado = capital_inicial_base
-        
-        if estrategia_pago.startswith("Contado"):
-            semana_pago = sem_emision
-        elif estrategia_pago.startswith("Crédito a 30"):
-            semana_pago = sem_emision + 4
-        else:
-            semana_pago = sem_emision + 8
+        with col_sim_der:
+            # Factor de ajuste por margen
+            margen_base = float(config.get("margen", 30.0))
+            factor_m = (1.0 + (sim_margen / 100.0)) / (1.0 + (margen_base / 100.0)) if margen_base > 0 else 1.0
             
-        for idx, row in df_activo.iterrows():
-            sem = int(row["Semana"])
-            ingreso_original = float(row.get("Ingreso proyectado", 3500.0))
-            ingreso_nuevo = ingreso_original * factor_m
+            saldos_simulados = []
+            capital_inicial_base = float(config.get("capital_inicial", 0.0)) + sim_cap
+            acumulado = capital_inicial_base
             
-            egreso_nuevo = sim_cfijo
-            if sem == semana_pago:
-                egreso_nuevo += sim_pedido
+            if estrategia_pago.startswith("Contado"):
+                semana_pago = sem_emision
+            elif estrategia_pago.startswith("Crédito 30"):
+                semana_pago = sem_emision + 4
+            else:
+                semana_pago = sem_emision + 8
                 
-            acumulado += (ingreso_nuevo - egreso_nuevo)
-            saldos_simulados.append(acumulado)
+            for idx, row in df_activo.iterrows():
+                sem = int(row["Semana"])
+                ingreso_original = float(row.get("Ingreso proyectado", 3500.0))
+                ingreso_nuevo = ingreso_original * factor_m
+                
+                egreso_nuevo = sim_cfijo
+                if sem == semana_pago:
+                    egreso_nuevo += sim_pedido
+                    
+                acumulado += (ingreso_nuevo - egreso_nuevo)
+                saldos_simulados.append(acumulado)
+                
+            df_activo["Saldo acumulado"] = saldos_simulados
+            if "Ingreso proyectado" in df_activo.columns:
+                df_activo["Ingreso proyectado"] = df_activo["Ingreso proyectado"] * factor_m
+
+            ingreso_total_val = df_activo['Ingreso proyectado'].sum() if 'Ingreso proyectado' in df_activo.columns else df_activo['Saldo acumulado'].iloc[-1]
+            saldo_final_val = df_activo['Saldo acumulado'].iloc[-1]
+            minimo_val = df_activo["Saldo acumulado"].min()
+
+            st.markdown("<p style='font-size: 11px; font-weight: bold; color: #1f4e78; margin-bottom: 2px;'>📊 Resultados y Fechas Clave:</p>", unsafe_allow_html=True)
+            mc1, mc2, mc3 = st.columns(3)
+            mc1.metric("Ingreso", f"${ingreso_total_val:,.0f}")
+            mc2.metric("Final", f"${saldo_final_val:,.0f}")
+            mc3.metric("Mínimo", f"${minimo_val:,.0f}", delta=None if minimo_val >= 0 else "Déficit")
             
-        df_activo["Saldo acumulado"] = saldos_simulados
-        if "Ingreso proyectado" in df_activo.columns:
-            df_activo["Ingreso proyectado"] = df_activo["Ingreso proyectado"] * factor_m
+            st.markdown(
+                f"""
+                <div style="background-color: #e8f4f8; padding: 5px 8px; border-radius: 5px; border: 1px solid #b8d4e5; font-size: 11px; color: #0b2545; margin-top: 3px;">
+                    🚢 <b>Fecha prox. Embarque:</b> {fecha_embarque}<br>
+                    🏁 <b>Fecha estimada de Arribo:</b> {fecha_arribo}
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+    else:
+        # Modo Normal: Métricas estándar y fechas clave visibles abajo
+        ingreso_total_val = df_activo['Ingreso proyectado'].sum() if 'Ingreso proyectado' in df_activo.columns else df_activo['Saldo acumulado'].iloc[-1]
+        saldo_final_val = df_activo['Saldo acumulado'].iloc[-1]
+        minimo_val = df_activo["Saldo acumulado"].min()
 
-    # --- RENDERIZADO COMÚN (Métricas y Gráfica) ---
-    ingreso_total_val = df_activo['Ingreso proyectado'].sum() if 'Ingreso proyectado' in df_activo.columns else df_activo['Saldo acumulado'].iloc[-1]
-    saldo_final_val = df_activo['Saldo acumulado'].iloc[-1]
-    minimo_val = df_activo["Saldo acumulado"].min()
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Ingreso total", f"$ {ingreso_total_val:,.0f}")
+        c2.metric("Saldo final", f"$ {saldo_final_val:,.0f}")
+        c3.metric("Saldo mínimo", f"$ {minimo_val:,.0f}", delta=None if minimo_val >= 0 else "Riesgo de Déficit")
 
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Ingreso total", f"$ {ingreso_total_val:,.0f}")
-    c2.metric("Saldo final", f"$ {saldo_final_val:,.0f}")
-    c3.metric("Saldo mínimo", f"$ {minimo_val:,.0f}", delta=None if minimo_val >= 0 else "Riesgo de Déficit")
+        st.markdown(
+            f"""
+            <div style="background-color: #f8f9fa; padding: 8px 12px; border-radius: 6px; border: 1px solid #dcdcdc; font-size: 13px; color: #1f4e78; margin-top: 6px; margin-bottom: 10px;">
+                👉🏼 🚢 <b>Fecha prox. Embarque:</b> {fecha_embarque} &nbsp;&nbsp;|&nbsp;&nbsp; 🏁 <b>Fecha estimada de Arribo:</b> {fecha_arribo}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
+    # --- RENDERIZADO DE LA GRÁFICA ---
     import matplotlib.pyplot as plt
     fig, ax = plt.subplots(figsize=(11, 4))
     ax.plot(df_activo["Semana"], df_activo["Saldo acumulado"], marker="o", color="#1f4e78", linewidth=2)
@@ -1101,7 +1149,7 @@ def mostrar_flujo_caja(df_flujo, config):
             ¡Atención gerencial! El modelo detecta un saldo mínimo negativo (**$ {minimo_val:,.0f}**). Los compromisos superan el ritmo de ingresos previstos en la semana crítica. Aplazar la condición de pago a crédito resolverá este déficit de inmediato.
             """
         )
-             
+        
 def exportar_csv_para_sheets(productos, config):
     filas = []
     for p in productos:
