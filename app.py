@@ -997,7 +997,7 @@ def proyectar_flujo_caja(productos, config, semanas=13, crecimiento_semanal=0.02
 def mostrar_flujo_caja(df_flujo, config):
     st.subheader("📅 Proyección de flujo de caja — 13 semanas")
     
-    # 3 y 4) Texto del switch en negrita, color fucsia corporativo (#c71585) y flechas iniciales
+    # Texto del switch en negrita y fucsia corporativo (#c71585)
     st.markdown(
         '<p style="color: #c71585; font-weight: bold; font-size: 15px; margin-bottom: 4px;">👉🏼 🎛️ Activar Simulador Gerencial de Escenarios (What-If)</p>',
         unsafe_allow_html=True
@@ -1006,9 +1006,21 @@ def mostrar_flujo_caja(df_flujo, config):
     
     df_activo = df_flujo.copy()
     
-    # Extracción de fechas de embarque y arribo desde config
-    fecha_embarque = config.get("fecha_proximo_pedido", config.get("fecha_embarque", "2027/01/20"))
-    fecha_arribo = config.get("fecha_estimada_arribo", "Por definir (aprox. +4 semanas)")
+    # 1) Extracción de fecha de embarque desde config y cálculo automático del arribo (+60 días)
+    fecha_embarque = config.get("fecha_proximo_pedido", "2027-01-20")
+    try:
+        from datetime import datetime, timedelta
+        dt_emb = datetime.strptime(str(fecha_embarque), "%Y-%m-%d")
+        dt_arr = dt_emb + timedelta(days=60)
+        fecha_arribo = dt_arr.strftime("%Y-%m-%d")
+        
+        # Cálculo automático de la semana de emisión basada en la fecha real para sincronizar con el reporte
+        hoy = date.today()
+        dias_diff = (dt_emb.date() - hoy).days
+        semana_defecto_emision = max(1, min(13, (dias_diff // 7) + 1))
+    except Exception:
+        fecha_arribo = "Por definir (60 días)"
+        semana_defecto_emision = 1
 
     if modo_simulacion:
         st.markdown(
@@ -1020,11 +1032,11 @@ def mostrar_flujo_caja(df_flujo, config):
             unsafe_allow_html=True
         )
         
-        # 1 y 2) Diseño compacto en dos columnas principales (Izquierda: Inputs reducidos / Derecha: Métricas y Fechas)
+        # Estructura compacta: Izquierda (Inputs reducidos) / Derecha (Métricas verticales y Fechas)
         col_sim_izq, col_sim_der = st.columns([1.2, 1])
         
         with col_sim_izq:
-            st.markdown("<p style='font-size: 11px; font-weight: bold; color: #1f4e78; margin-bottom: 2px;'>🎛️ Parámetros de Simulación (Compactos):</p>", unsafe_allow_html=True)
+            st.markdown("<p style='font-size: 11px; font-weight: bold; color: #1f4e78; margin-bottom: 2px;'>🎛️ Parámetros de Simulación:</p>", unsafe_allow_html=True)
             sub_c1, sub_c2 = st.columns(2)
             with sub_c1:
                 sim_cap = st.number_input("Capital Adic. ($)", value=0.0, step=500.0, key="sim_cap_s")
@@ -1032,8 +1044,8 @@ def mostrar_flujo_caja(df_flujo, config):
                 sim_cfijo = st.number_input("Costo Fijo ($)", value=float(config.get("costo_fijo_semanal", 250.0)), step=50.0, key="sim_cf_s")
             with sub_c2:
                 sim_pedido = st.number_input("Próx. Pedido ($)", value=float(config.get("monto_proximo_pedido", 15000.0)), step=1000.0, key="sim_ped_s")
-                sem_emision = st.selectbox("Sem. Emisión", list(range(1, 10)), index=0, key="sim_sem_s")
-                estrategia_pago = st.selectbox("Cond. Pago", ["Contado", "Crédito 30d", "Crédito 60d"], key="sim_pago_s")
+                sem_emision = st.number_input("Sem. Emisión", min_value=1, max_value=13, value=int(semana_defecto_emision), step=1, key="sim_sem_num_s")
+                estrategia_pago = st.selectbox("Cond. Pago", ["Contado", "Crédito a 30 días (+4sem)", "Crédito a 60 días (+8sem)"], key="sim_pago_s")
         
         with col_sim_der:
             # Factor de ajuste por margen
@@ -1045,11 +1057,11 @@ def mostrar_flujo_caja(df_flujo, config):
             acumulado = capital_inicial_base
             
             if estrategia_pago.startswith("Contado"):
-                semana_pago = sem_emision
-            elif estrategia_pago.startswith("Crédito 30"):
-                semana_pago = sem_emision + 4
+                semana_pago = int(sem_emision)
+            elif estrategia_pago.startswith("Crédito a 30"):
+                semana_pago = int(sem_emision) + 4
             else:
-                semana_pago = sem_emision + 8
+                semana_pago = int(sem_emision) + 8
                 
             for idx, row in df_activo.iterrows():
                 sem = int(row["Semana"])
@@ -1072,35 +1084,35 @@ def mostrar_flujo_caja(df_flujo, config):
             minimo_val = df_activo["Saldo acumulado"].min()
 
             st.markdown("<p style='font-size: 11px; font-weight: bold; color: #1f4e78; margin-bottom: 2px;'>📊 Resultados y Fechas Clave:</p>", unsafe_allow_html=True)
-            mc1, mc2, mc3 = st.columns(3)
-            mc1.metric("Ingreso", f"${ingreso_total_val:,.0f}")
-            mc2.metric("Final", f"${saldo_final_val:,.0f}")
-            mc3.metric("Mínimo", f"${minimo_val:,.0f}", delta=None if minimo_val >= 0 else "Déficit")
+            
+            # Métricas apiladas verticalmente para evitar cortes horizontales
+            st.metric("Ingreso total", f"${ingreso_total_val:,.0f}")
+            st.metric("Saldo final", f"${saldo_final_val:,.0f}")
+            st.metric("Saldo mínimo", f"${minimo_val:,.0f}", delta=None if minimo_val >= 0 else "Riesgo de Déficit")
             
             st.markdown(
                 f"""
-                <div style="background-color: #e8f4f8; padding: 5px 8px; border-radius: 5px; border: 1px solid #b8d4e5; font-size: 11px; color: #0b2545; margin-top: 3px;">
+                <div style="background-color: #e8f4f8; padding: 6px 10px; border-radius: 5px; border: 1px solid #b8d4e5; font-size: 12px; color: #0b2545; margin-top: 6px;">
                     🚢 <b>Fecha prox. Embarque:</b> {fecha_embarque}<br>
-                    🏁 <b>Fecha estimada de Arribo:</b> {fecha_arribo}
+                    🏁 <b>Fecha estimada de Arribo (+60 días):</b> {fecha_arribo}
                 </div>
                 """,
                 unsafe_allow_html=True
             )
     else:
-        # Modo Normal: Métricas estándar y fechas clave visibles abajo
+        # Modo Normal: Métricas apiladas verticalmente y fechas clave debajo
         ingreso_total_val = df_activo['Ingreso proyectado'].sum() if 'Ingreso proyectado' in df_activo.columns else df_activo['Saldo acumulado'].iloc[-1]
         saldo_final_val = df_activo['Saldo acumulado'].iloc[-1]
         minimo_val = df_activo["Saldo acumulado"].min()
 
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Ingreso total", f"$ {ingreso_total_val:,.0f}")
-        c2.metric("Saldo final", f"$ {saldo_final_val:,.0f}")
-        c3.metric("Saldo mínimo", f"$ {minimo_val:,.0f}", delta=None if minimo_val >= 0 else "Riesgo de Déficit")
+        st.metric("Ingreso total", f"$ {ingreso_total_val:,.0f}")
+        st.metric("Saldo final", f"$ {saldo_final_val:,.0f}")
+        st.metric("Saldo mínimo", f"$ {minimo_val:,.0f}", delta=None if minimo_val >= 0 else "Riesgo de Déficit")
 
         st.markdown(
             f"""
-            <div style="background-color: #f8f9fa; padding: 8px 12px; border-radius: 6px; border: 1px solid #dcdcdc; font-size: 13px; color: #1f4e78; margin-top: 6px; margin-bottom: 10px;">
-                👉🏼 🚢 <b>Fecha prox. Embarque:</b> {fecha_embarque} &nbsp;&nbsp;|&nbsp;&nbsp; 🏁 <b>Fecha estimada de Arribo:</b> {fecha_arribo}
+            <div style="background-color: #f8f9fa; padding: 8px 12px; border-radius: 6px; border: 1px solid #dcdcdc; font-size: 13px; color: #1f4e78; margin-top: 8px; margin-bottom: 10px;">
+                👉🏼 🚢 <b>Fecha prox. Embarque:</b> {fecha_embarque} &nbsp;&nbsp;|&nbsp;&nbsp; 🏁 <b>Fecha estimada de Arribo (+60 días):</b> {fecha_arribo}
             </div>
             """,
             unsafe_allow_html=True
@@ -1149,7 +1161,7 @@ def mostrar_flujo_caja(df_flujo, config):
             ¡Atención gerencial! El modelo detecta un saldo mínimo negativo (**$ {minimo_val:,.0f}**). Los compromisos superan el ritmo de ingresos previstos en la semana crítica. Aplazar la condición de pago a crédito resolverá este déficit de inmediato.
             """
         )
-        
+       
 def exportar_csv_para_sheets(productos, config):
     filas = []
     for p in productos:
