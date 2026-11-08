@@ -957,44 +957,49 @@ def proyectar_flujo_caja(productos, config, semanas=13, crecimiento_semanal=0.02
 def mostrar_flujo_caja(df_flujo, config):
     st.subheader("📅 Proyección de flujo de caja — 13 semanas")
     
-    # 🎛️ Switch o Interruptor para Activar el Simulador Interactivo sobre la misma vista
+    # 🎛️ Switch o Interruptor para Activar el Simulador Interactivo
     modo_simulacion = st.toggle("🎛️ Activar Simulador Gerencial de Escenarios (What-If)", value=False)
     
-    # Copia de trabajo del DataFrame original
     df_activo = df_flujo.copy()
     
     if modo_simulacion:
-        st.info("💡 **Modo Simulación Activo:** Modifique las variables abajo. La gráfica y las métricas se actualizarán en tiempo real sobre las mismas coordenadas.")
+        st.info("💡 **Modo Simulación Activo:** Separe el tiempo físico del pedido y el tiempo de pago financiero para evaluar el impacto real en caja e inventario.")
         
         col_s1, col_s2, col_s3 = st.columns(3)
         with col_s1:
             sim_cap = st.number_input("Inyección Capital Adicional ($)", value=0.0, step=500.0, key="sim_cap_s")
-            sim_margen = st.slider("Margen Comercial Simulado (%)", min_value=10.0, max_value=80.0, value=float(config.get("margen", 30.0)), key="sim_m_s")
+            # Cambiado de slider a number_input con incrementos discretos de 1 en 1
+            sim_margen = st.number_input("Margen Comercial Simulado (%)", min_value=5.0, max_value=100.0, value=float(config.get("margen", 30.0)), step=1.0, key="sim_m_s")
         with col_s2:
             sim_cfijo = st.number_input("Costo Fijo Semanal Simulado ($)", value=float(config.get("costo_fijo_semanal", 250.0)), step=50.0, key="sim_cf_s")
-            sim_pedido = st.number_input("Monto Próximo Pedido Simulado ($)", value=float(config.get("monto_proximo_pedido", 0.0)), step=1000.0, key="sim_ped_s")
+            sim_pedido = st.number_input("Monto Próximo Pedido Simulado ($)", value=float(config.get("monto_proximo_pedido", 15000.0)), step=1000.0, key="sim_ped_s")
         with col_s3:
-            sim_plazo = st.selectbox("Estrategia de Pago Proveedor", ["Contado (Semana 1)", "Diferido (Semana 4)", "Diferido (Semana 8)"], key="sim_plz_s")
+            sem_emision = st.selectbox("Semana de Emisión del Pedido (Físico)", list(range(1, 10)), index=0, help="Semana en que se ordena la mercancía afectando el flujo de inventario.")
+            estrategia_pago = st.selectbox("Condición de Pago al Proveedor", ["Contado (Al emitir)", "Crédito a 30 días (+4 semanas)", "Crédito a 60 días (+8 semanas)"], help="Momento en que sale el dinero efectivo de su caja.")
         
-        # Factor de ajuste de ingresos por cambio de margen
+        # Factor de ajuste de ingresos por margen
         margen_base = float(config.get("margen", 30.0))
         factor_m = (1.0 + (sim_margen / 100.0)) / (1.0 + (margen_base / 100.0)) if margen_base > 0 else 1.0
         
-        # Recálculo dinámico sobre df_activo manteniendo las 13 semanas exactas
+        # Recálculo dinámico separando emisión física y pago financiero
         saldos_simulados = []
         capital_inicial_base = float(config.get("capital_inicial", 0.0)) + sim_cap
         acumulado = capital_inicial_base
         
+        if estrategia_pago.startswith("Contado"):
+            semana_pago = sem_emision
+        elif estrategia_pago.startswith("Crédito a 30"):
+            semana_pago = sem_emision + 4
+        else:
+            semana_pago = sem_emision + 8
+            
         for idx, row in df_activo.iterrows():
             sem = int(row["Semana"])
             ingreso_original = float(row.get("Ingreso proyectado", 3500.0))
             ingreso_nuevo = ingreso_original * factor_m
             
             egreso_nuevo = sim_cfijo
-            # Aplicar el egreso del pedido en la semana seleccionada
-            if (sim_plazo.startswith("Contado") and sem == 1) or \
-               (sim_plazo.startswith("Diferido (Semana 4)") and sem == 4) or \
-               (sim_plazo.startswith("Diferido (Semana 8)") and sem == 8):
+            if sem == semana_pago:
                 egreso_nuevo += sim_pedido
                 
             acumulado += (ingreso_nuevo - egreso_nuevo)
@@ -1004,7 +1009,7 @@ def mostrar_flujo_caja(df_flujo, config):
         if "Ingreso proyectado" in df_activo.columns:
             df_activo["Ingreso proyectado"] = df_activo["Ingreso proyectado"] * factor_m
 
-    # --- RENDERIZADO COMÚN (Métricas y Gráfica sobre df_activo) ---
+    # --- RENDERIZADO COMÚN (Métricas y Gráfica) ---
     ingreso_total_val = df_activo['Ingreso proyectado'].sum() if 'Ingreso proyectado' in df_activo.columns else df_activo['Saldo acumulado'].iloc[-1]
     saldo_final_val = df_activo['Saldo acumulado'].iloc[-1]
     minimo_val = df_activo["Saldo acumulado"].min()
@@ -1014,7 +1019,7 @@ def mostrar_flujo_caja(df_flujo, config):
     c2.metric("Saldo final", f"$ {saldo_final_val:,.0f}")
     c3.metric("Saldo mínimo", f"$ {minimo_val:,.0f}", delta=None if minimo_val >= 0 else "Riesgo de Déficit")
 
-    # Gráfica unificada
+    import matplotlib.pyplot as plt
     fig, ax = plt.subplots(figsize=(11, 4))
     ax.plot(df_activo["Semana"], df_activo["Saldo acumulado"], marker="o", color="#1f4e78", linewidth=2)
     ax.axhline(0, color="red", linestyle="--", linewidth=1)
@@ -1035,29 +1040,28 @@ def mostrar_flujo_caja(df_flujo, config):
         """
     )
 
-    # Evaluación automática basada en el estado activo (sea real o simulado)
     if minimo_val >= 1000 and saldo_final_val >= minimo_val:
         st.success(
             f"""
             **🟢 Diagnóstico Financiero Óptimo (Saludable):**  
-            El flujo de caja proyectado muestra una tendencia de crecimiento sólido y constante. El saldo mínimo de caja es de **$ {minimo_val:,.0f}**, superando holgadamente el umbral de riesgo. Las ventas cubren con holgura la reposición de inventario y los costos fijos.
+            El flujo de caja proyectado muestra una tendencia de crecimiento sólido y constante. El saldo mínimo de caja es de **$ {minimo_val:,.0f}**, superando holgadamente el umbral de riesgo. La combinación de tiempos de emisión y pago protege la liquidez y asegura el inventario.
             """
         )
     elif minimo_val >= 0:
         st.warning(
             f"""
             **🟡 Diagnóstico de Liquidez Ajustada (En Observación):**  
-            El flujo proyectado presenta un margen ajustado (Saldo Mínimo: **$ {minimo_val:,.0f}**). Su capital de trabajo se acerca al límite de seguridad debido a la concentración de pagos. Se recomienda espaciar lotes o negociar plazos con proveedores para proteger la caja operativa.
+            El flujo proyectado presenta un margen ajustado (Saldo Mínimo: **$ {minimo_val:,.0f}**). Su capital de trabajo se acerca al límite de seguridad. Considere negociar mayor plazo de pago con el proveedor para desahogar la caja operativa sin alterar su fecha de inventario.
             """
         )
     else:
         st.error(
             f"""
             **🔴 Diagnóstico de Alerta Roja por Déficit (Riesgo Crítico):**  
-            ¡Atención gerencial! El modelo detecta un saldo mínimo negativo (**$ {minimo_val:,.0f}**). Los compromisos superan el ritmo de ingresos previstos. Ajuste los márgenes de venta o fraccione el pedido antes de comprometer capital.
+            ¡Atención gerencial! El modelo detecta un saldo mínimo negativo (**$ {minimo_val:,.0f}**). Los compromisos superan el ritmo de ingresos previstos en la semana crítica. Aplazar la condición de pago a crédito resolverá este déficit de inmediato.
             """
         )
-         
+             
 def exportar_csv_para_sheets(productos, config):
     filas = []
     for p in productos:
