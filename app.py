@@ -2017,25 +2017,28 @@ def main():
         
         items_c_list = []
         for ic in range(int(num_items_c)):
-            ic_cols = st.columns(4)
+            st.markdown(f"**Artículo {ic+1}**")
+            ic_cols = st.columns(3)
             with ic_cols[0]:
-                nom_i = st.text_input(f"Nombre {ic+1}", value=f"Zapato Modelo {ic+1}", key=f"c_nom_{ic}")
+                nom_i = st.text_input(f"Nombre {ic+1}", value=f"Modelo {ic+1}", key=f"c_nom_{ic}")
+                cant_i = st.number_input(f"Cantidad (Unidades) {ic+1}", min_value=1, value=100, step=1, key=f"c_cant_{ic}")
             with ic_cols[1]:
-                cant_i = st.number_input(f"Cantidad {ic+1}", min_value=1, value=100, step=1, key=f"c_cant_{ic}")
-            with ic_cols[2]:
                 fob_i = st.number_input(f"FOB Unit. {ic+1} ($)", min_value=0.0, value=15.0, step=1.0, key=f"c_fob_{ic}")
-            with ic_cols[3]:
                 vol_i = st.number_input(f"Vol. Unit. m³ {ic+1}", min_value=0.001, value=0.01, step=0.001, key=f"c_vol_{ic}")
+            with ic_cols[2]:
+                stock_i = st.number_input(f"Stock Inicial (Unids) {ic+1}", min_value=0.0, value=100.0, step=1.0, key=f"c_stock_{ic}")
+                ventas_i = st.number_input(f"Ventas Semanales (Unids) {ic+1}", min_value=0.1, value=10.0, step=1.0, key=f"c_ventas_{ic}")
                 
             items_c_list.append({
                 "nombre": nom_i,
                 "cantidad": cant_i,
                 "precio_fob": fob_i,
                 "volumen_m3": vol_i,
-                "stock_inicial": cant_i,
-                "ventas_semanales": 15.0
+                "stock_inicial": stock_i,
+                "ventas_semanales": ventas_i
             })
-            
+            st.markdown("---")
+                   
     if st.button("🚀 Procesar Importación Puerta a Puerta (DDP)", type="primary"):
         df_temp_c = pd.DataFrame(items_c_list)
         st.session_state["df_lcl"] = procesar_opcion_c_lcl(
