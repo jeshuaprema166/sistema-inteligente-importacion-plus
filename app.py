@@ -939,6 +939,78 @@ def renderizar_pestana_salvavidas(productos, config):
             
             st.markdown("---")
 
+def procesar_opcion_c_lcl(productos_c_df, tarifa_plana_m3, fecha_embarque, semanas_transito, margen_objetivo):
+    """
+    Motor matemático especializado para la Opción B (Puerta a Puerta / Carga Fraccionada LCL).
+    Calcula costos reales DDP, cobertura de stock, fechas de arribo y alerta matemática de quiebre.
+    """
+    from datetime import datetime, timedelta
+    import pandas as pd
+
+    resultados = []
+    
+    # Cálculos globales de volumen y costos
+    volumen_total = productos_c_df["volumen_m3"].sum()
+    costo_total_flete_ddp = volumen_total * tarifa_plana_m3
+    
+    # Prorrateo del costo de arribo DDP basado en el volumen de cada producto
+    for idx, row in productos_c_df.iterrows():
+        nombre = row["nombre"]
+        cantidad = float(row["cantidad"])
+        fob_unitario = float(row["precio_fob"])
+        vol_unitario = float(row["volumen_m3"])
+        stock_inicial = float(row.get("stock_inicial", cantidad))
+        ventas_semanales = float(row.get("ventas_semanales", 15.0))
+        
+        # Proporción de volumen
+        proporcion_vol = (vol_unitario / volumen_total) if volumen_total > 0 else (1 / len(productos_c_df))
+        arribo_asignado_total = costo_total_flete_ddp * proporcion_vol
+        arribo_unitario = arribo_asignado_total / cantidad if cantidad > 0 else 0
+        
+        # Costo Real en Puerta (Depósito)
+        costo_real_unitario = fob_unitario + arribo_unitario
+        
+        # PVP Sugerido basado en el Margen Objetivo
+        pvp_sugerido = costo_real_unitario / (1.0 - (margen_objetivo / 100.0)) if margen_objetivo < 100 else costo_real_unitario * 2
+        
+        # Cobertura de Stock (Semanas de inventario actual)
+        semanas_cobertura = stock_inicial / ventas_semanales if ventas_semanales > 0 else 999.0
+        
+        # Fechas clave y cronograma
+        try:
+            dt_emb = datetime.strptime(str(fecha_embarque), "%Y-%m-%d")
+            dt_arribo = dt_emb + timedelta(weeks=int(semanas_transito))
+            str_arribo = dt_arribo.strftime("%Y-%m-%d")
+        except Exception:
+            str_arribo = "Por definir"
+            
+        # Alerta matemática de quiebre (Bache de inventario)
+        deficit_semanas = semanas_transito - semanas_cobertura
+        if deficit_semanas > 0:
+            estado_alerta = "🔴 CRÍTICO: Quiebre de Stock inminente"
+            recomendacion = f"¡Atención! Su stock se agotará {abs(round(deficit_semanas, 1))} semanas antes de que el barco llegue a puerta. Debe adelantar el pedido."
+        elif semanas_cobertura <= (semanas_transito + 2):
+            estado_alerta = "🟡 PREVENTIVO: Margen de stock ajustado"
+            recomendacion = "El inventario cubrirá justo a tiempo el tránsito. Planifique la reposición la próxima semana."
+        else:
+            estado_alerta = "🟢 ÓPTIMO: Cobertura asegurada"
+            recomendacion = "El stock actual supera holgadamente el tiempo de tránsito del flete DDP."
+
+        resultados.append({
+            "Producto": nombre,
+            "Stock Inicial": stock_inicial,
+            "Ventas Semanales": ventas_semanales,
+            "Cobertura (Semanas)": round(semanas_cobertura, 1),
+            "Costo FOB ($)": round(fob_unitario, 2),
+            "Costo Real Puerta ($)": round(costo_real_unitario, 2),
+            "PVP Sugerido ($)": round(pvp_sugerido, 2),
+            "Fecha Arribo DDP": str_arribo,
+            "Diagnóstico Inventario": estado_alerta,
+            "Recomendación Operativa": recomendacion
+        })
+        
+    return pd.DataFrame(resultados)
+        
 def proyectar_flujo_caja(productos, config, semanas=13, crecimiento_semanal=0.02):
     hoy = date.today()
     capital_inicial = float(config.get("capital_inicial", 0.0))
