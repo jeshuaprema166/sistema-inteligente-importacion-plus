@@ -939,13 +939,17 @@ def renderizar_pestana_salvavidas(productos, config):
             
             st.markdown("---")
 
-def procesar_opcion_c_lcl(productos_c_df, tarifa_plana_m3, fecha_embarque, semanas_transito, m_normal, m_mayor, m_sugerido):
+def procesar_opcion_c_lcl(productos_c_df, volumen_m3_global, tarifa_plana_m3, fecha_embarque, semanas_transito, m_normal, m_mayor, m_sugerido):
     from datetime import datetime, timedelta
     import pandas as pd
 
     resultados = []
-    volumen_total = (productos_c_df["cantidad"] * productos_c_df["volumen_m3"]).sum()
-    costo_total_flete_ddp = volumen_total * tarifa_plana_m3
+    
+    # El costo total del flete DDP ahora se calcula estrictamente con el volumen global ingresado en pantalla
+    costo_total_flete_ddp = volumen_m3_global * tarifa_plana_m3
+    
+    # Suma de volúmenes individuales de los artículos para prorrateo proporcional
+    volumen_items_suma = (productos_c_df["cantidad"] * productos_c_df["volumen_m3"]).sum()
     
     inversion_general_total = 0.0
     utilidad_general_total = 0.0
@@ -965,9 +969,9 @@ def procesar_opcion_c_lcl(productos_c_df, tarifa_plana_m3, fecha_embarque, seman
         un_may = float(row["unidades_mayor"])
         un_sug = float(row["unidades_sugeridas"])
         
-        # Prorrateo de flete DDP por volumen del lote
+        # Prorrateo del flete DDP basado en la participación del volumen de cada artículo frente al total
         volumen_lote = cantidad * vol_unitario
-        proporcion_vol = (volumen_lote / volumen_total) if volumen_total > 0 else (1 / len(productos_c_df))
+        proporcion_vol = (volumen_lote / volumen_items_suma) if volumen_items_suma > 0 else (1 / len(productos_c_df))
         arribo_asignado_total = costo_total_flete_ddp * proporcion_vol
         arribo_unitario = arribo_asignado_total / cantidad if cantidad > 0 else 0
         
@@ -975,12 +979,12 @@ def procesar_opcion_c_lcl(productos_c_df, tarifa_plana_m3, fecha_embarque, seman
         costo_real_unitario = fob_unitario + arribo_unitario
         inversion_total_articulo = cantidad * costo_real_unitario
         
-        # Precios por Canal
-        pvp_normal = costo_real_unitario / (1.0 - (m_normal / 100.0)) if m_normal < 100 else costo_real_unitario * (1 + m_normal/100)
-        pvp_mayor = costo_real_unitario / (1.0 - (m_mayor / 100.0)) if m_mayor < 100 else costo_real_unitario * (1 + m_mayor/100)
-        pvp_sugerido = costo_real_unitario / (1.0 - (m_sugerido / 100.0)) if m_sugerido < 100 else costo_real_unitario * (1 + m_sugerido/100)
+        # Precios por Canal (con recargo porcentual directo)
+        pvp_normal = costo_real_unitario * (1.0 + (m_normal / 100.0))
+        pvp_mayor = costo_real_unitario * (1.0 + (m_mayor / 100.0))
+        pvp_sugerido = costo_real_unitario * (1.0 + (m_sugerido / 100.0))
         
-        # Utilidades por canal para este artículo
+        # Utilidades por canal
         utilidad_un_normal = (pvp_normal - costo_real_unitario) * un_norm
         utilidad_un_mayor = (pvp_mayor - costo_real_unitario) * un_may
         utilidad_un_sug = (pvp_sugerido - costo_real_unitario) * un_sug
@@ -1047,7 +1051,7 @@ def procesar_opcion_c_lcl(productos_c_df, tarifa_plana_m3, fecha_embarque, seman
     st.markdown("---")
 
     return df_res
-          
+     
 def proyectar_flujo_caja(productos, config, semanas=13, crecimiento_semanal=0.02):
     hoy = date.today()
     capital_inicial = float(config.get("capital_inicial", 0.0))
@@ -2094,7 +2098,7 @@ def main():
     if st.button("🚀 Procesar Importación Multicanal (DDP)", type="primary"):
         df_temp_c = pd.DataFrame(items_c_list)
         st.session_state["df_lcl"] = procesar_opcion_c_lcl(
-            df_temp_c, tarifa_plana_m3, fecha_embarque_c, semanas_transito_c, 
+            df_temp_c, volumen_m3_c, tarifa_plana_m3, fecha_embarque_c, semanas_transito_c, 
             margen_normal, margen_mayor, margen_sugerido
         )
         st.success("✅ ¡Cálculo multicanal y cobertura procesados con éxito!")
