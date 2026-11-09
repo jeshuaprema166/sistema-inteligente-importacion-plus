@@ -414,7 +414,7 @@ def verificar_acceso():
     * **Identificar los márgenes reales de ganancia** antes de nacionalizar, analizando la rentabilidad neta por producto prorrateando con precisión los costos según peso (kg) y volumen ($m^3$). Así sabrá qué productos le dejan ganancia real y cuáles no.
     * **Optimizar el espacio de su contenedor** y evite pérdidas por costos ocultos.
     * **Alarmas de reposición de inventario 🟢🟡🔴 por IA**, que permiten monitorear el comportamiento de las existencias, previniendo el desabastecimiento o sobrecompra, que redunda en estancamiento del Capital económico.
-    * **Ingresar de forma automática de TODOS los datos** y detalles del Excel de sus artículos del inventario al Sistema de Análisis Inteligente de Importación.
+    * **Ingresar de forma automática TODOS los datos** y detalles desde el Excel de su inventario al Sistema de Análisis Inteligente de Importación.
     * **Definir fácilmente y con certeza** a qué proveedor del exterior debe comprar, o si es mejor hacerlo localmente.
     """)
 
@@ -446,7 +446,7 @@ def verificar_acceso():
             <div style="text-align: center;">
                 Diseñado y elaborado por<br>
                 su Asesor de Importación Inteligente<br>
-                <b>Prof. Jesús Pulido V.</b><br><br>
+                <b>Prof. Jesús Pulido V.</b><br>
                 <span style="font-size: 17px; color: #555;">0424-728.3199 / 0416-291.6426</span>
             </div>
             """, 
