@@ -1894,9 +1894,9 @@ def main():
     modalidad = st.selectbox(
         "Elija el tipo de operación logística:",
         [
-            "📊 Opción B · Contenedor Completo (FCL - Tradicional / Aduana)",
-            "📦 Opción C · Carga Fraccionada Puerta a Puerta (LCL - DDP / Emprendedor)",
-            "✍️ Opción A · Ingreso Manual Rápido"
+            "📊 Opción A · Contenedor Completo (FCL - Tradicional / Aduana)",
+            "📦 Opción B · Carga Fraccionada Puerta a Puerta (LCL - DDP / Emprendedor)",
+            "✍️ Opción C · Ingreso Manual Rápido"
         ],
         index=0,
         help="Seleccione el ambiente adaptado a la realidad operativa de su importación."
@@ -1904,9 +1904,10 @@ def main():
     
     df = None  # Variable unificada para el DataFrame principal
     
-    if modalidad.startswith("📊 Opción B"):
+    if modalidad.startswith("📊 Opción A"):
         st.info("ℹ️ **Ambiente FCL Activo:** Gestión corporativa completa con prorrateo de peso/volumen, auditoría arancelaria y flujo de caja a 13 semanas.")
         
+        # --- AQUÍ VA EL CARGADOR DE EXCEL DE LA OPCIÓN A ---
         archivo = st.file_uploader("", type=["xlsx", "xls", "csv"], label_visibility="collapsed")
         if archivo is None:
             st.info("📦 Suba su archivo Excel o CSV para comenzar el análisis o activa el **Modo Demostración** en la barra lateral para crear un archivo de prueba en segundos.")
@@ -1925,10 +1926,10 @@ def main():
             
         mapeo = mapear_columnas(df)
 
-    elif modalidad.startswith("📦 Opción C"):
+    elif modalidad.startswith("📦 Opción B"):
         st.info("ℹ️ **Ambiente LCL DDP Activo:** Diseñado para pequeños emprendedores. Cálculo por tarifa plana de volumen ($/m³), control de cobertura de stock y alerta de bache de inventario.")
         
-        # Formulario rápido para la Opción C
+        # --- CÓDIGO DE LA OPCIÓN B (LCL DDP) ---
         c_cols1, c_cols2 = st.columns(2)
         with c_cols1:
             fob_total_c = st.number_input("Valor FOB Total de la Mercancía ($)", min_value=0.0, value=2500.0, step=100.0)
@@ -1965,12 +1966,11 @@ def main():
             
         if st.button("🚀 Procesar Importación Puerta a Puerta (DDP)", type="primary"):
             df_temp_c = pd.DataFrame(items_c_list)
-            # Llamada al motor especializado de la Opción C
             df = procesar_opcion_c_lcl(df_temp_c, tarifa_plana_m3, fecha_embarque_c, semanas_transito_c, margen_c)
             st.success("✅ ¡Cálculo DDP y cobertura de inventario procesados con éxito!")
         else:
             return
-            
+           
     else:
         st.info("ℹ️ **Ambiente Manual Activo:** Registro directo de productos y gastos del contenedor.")
         # Aquí puedes integrar el formulario de la Opción A que estructuramos antes o dejarlo listo para desplegar
