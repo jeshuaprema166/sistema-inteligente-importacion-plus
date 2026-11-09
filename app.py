@@ -2036,13 +2036,21 @@ def main():
                 "ventas_semanales": 15.0
             })
             
-        if st.button("🚀 Procesar Importación Puerta a Puerta (DDP)", type="primary"):
-            df_temp_c = pd.DataFrame(items_c_list)
-            df = procesar_opcion_c_lcl(df_temp_c, tarifa_plana_m3, fecha_embarque_c, semanas_transito_c, margen_c)
-            st.success("✅ ¡Cálculo DDP y cobertura de inventario procesados con éxito!")
-        else:
-            return
-           
+    if st.button("🚀 Procesar Importación Puerta a Puerta (DDP)", type="primary"):
+        df_temp_c = pd.DataFrame(items_c_list)
+        st.session_state["df_lcl"] = procesar_opcion_c_lcl(
+            df_temp_c, tarifa_plana_m3, fecha_embarque_c, semanas_transito_c, margen_c
+        )
+        st.success("✅ ¡Cálculo DDP y cobertura de inventario procesados con éxito!")
+    
+    # Si ya tenemos resultados DDP guardados en la sesión y estamos en la Opción B, mostramos el reporte y detenemos el flujo FCL
+    if "df_lcl" in st.session_state and modalidad.startswith("📦 Opción B"):
+        st.markdown("---")
+        st.markdown("### 📊 Reporte Ejecutivo y Cobertura de Inventario — Puerta a Puerta (DDP)")
+        st.dataframe(st.session_state["df_lcl"], use_container_width=True)
+        st.success("🎉 ¡Su análisis de costos en puerta y control de bache de inventario está listo para la toma de decisiones!")
+        return
+            
     else:
         st.info("ℹ️ **Ambiente Manual Activo:** Registro directo de productos y gastos del contenedor.")
         # Aquí puedes integrar el formulario de la Opción A que estructuramos antes o dejarlo listo para desplegar
