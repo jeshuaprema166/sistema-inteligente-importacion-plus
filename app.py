@@ -1888,18 +1888,94 @@ def main():
         else: st.info("💾 Modo local (sin sheets_db.py)")
         st.markdown("---"); st.caption("📞 0424-728.3199 / 0416-291.6426"); st.caption("✉️ jeshua166@gmail.com")
         
-    archivo = st.file_uploader("", type=["xlsx", "xls", "csv"], label_visibility="collapsed")
-    if archivo is None:
-        st.info("📤 Suba su archivo Excel o CSV para comenzar el análisis o activa el **Modo Demostración** en la barra lateral para crear un **archivo de prueba** en segundos.")
-        with st.expander("❓ Columnas esperadas"): st.markdown("- Producto / Descripción\n- Cantidad\n- Precio FOB Origen (unitario)\n- Peso unitario (kg)\n- Volumen unitario (m³)\n- Stock Actual\n- Ventas Semanales\n- Días de Entrega\n- Partida Arancelaria (opcional)")
-        return
-
-    try:
-        df = leer_excel(archivo); st.success(f"✅ Archivo cargado: **{len(df)}** filas")
-        with st.expander("👀 Ver primeras filas"): st.dataframe(df.head(), use_container_width=True)
-    except Exception as e: st.error(f"Error al leer archivo: {e}"); return
+    # --- NUEVO SELECTOR MULTI-MODALIDAD ---
+    st.markdown("### 🏢 Seleccione la Modalidad de Gestión de Importación")
     
-    mapeo = mapear_columnas(df)
+    modalidad = st.selectbox(
+        "Elija el tipo de operación logística:",
+        [
+            "📊 Opción B · Contenedor Completo (FCL - Tradicional / Aduana)",
+            "📦 Opción C · Carga Fraccionada Puerta a Puerta (LCL - DDP / Emprendedor)",
+            "✍️ Opción A · Ingreso Manual Rápido"
+        ],
+        index=0,
+        help="Seleccione el ambiente adaptado a la realidad operativa de su importación."
+    )
+    
+    df = None  # Variable unificada para el DataFrame principal
+    
+    if modalidad.startswith("📊 Opción B"):
+        st.info("ℹ️ **Ambiente FCL Activo:** Gestión corporativa completa con prorrateo de peso/volumen, auditoría arancelaria y flujo de caja a 13 semanas.")
+        
+        archivo = st.file_uploader("", type=["xlsx", "xls", "csv"], label_visibility="collapsed")
+        if archivo is None:
+            st.info("📦 Suba su archivo Excel o CSV para comenzar el análisis o activa el **Modo Demostración** en la barra lateral para crear un archivo de prueba en segundos.")
+            with st.expander("❓ Columnas esperadas"):
+                st.markdown("- Producto / Descripción\n- Cantidad\n- Precio FOB\n- Peso unitario\n- Volumen unitario\n- Ventas Semanales\n- PVP Sugerido")
+            return
+
+        try:
+            df = leer_excel(archivo)
+            st.success(f"✅ Archivo cargado: **{len(df)}** filas")
+            with st.expander("👀 Ver primeras filas"):
+                st.dataframe(df.head(), use_container_width=True)
+        except Exception as e:
+            st.error(f"❌ Error al leer el archivo: {e}")
+            return
+            
+        mapeo = mapear_columnas(df)
+
+    elif modalidad.startswith("📦 Opción C"):
+        st.info("ℹ️ **Ambiente LCL DDP Activo:** Diseñado para pequeños emprendedores. Cálculo por tarifa plana de volumen ($/m³), control de cobertura de stock y alerta de bache de inventario.")
+        
+        # Formulario rápido para la Opción C
+        c_cols1, c_cols2 = st.columns(2)
+        with c_cols1:
+            fob_total_c = st.number_input("Valor FOB Total de la Mercancía ($)", min_value=0.0, value=2500.0, step=100.0)
+            volumen_m3_c = st.number_input("Volumen Total Ocupado (m³)", min_value=0.1, value=1.0, step=0.1)
+            tarifa_plana_m3 = st.number_input("Tarifa DDP por m³ ($/m³)", min_value=0.0, value=400.0, step=25.0)
+        with c_cols2:
+            fecha_embarque_c = st.date_input("Fecha Estimada de Embarque")
+            semanas_transito_c = st.number_input("Tiempo de Tránsito a Puerta (Semanas)", min_value=4, value=12, step=1)
+            margen_c = st.number_input("Margen Comercial Objetivo (%)", min_value=5.0, value=40.0, step=1.0)
+            
+        st.markdown("##### 📝 Productos o Lotes para el reporte DDP:")
+        num_items_c = st.number_input("Cantidad de ítems diferentes", min_value=1, value=2, step=1, key="num_c")
+        
+        items_c_list = []
+        for ic in range(int(num_items_c)):
+            ic_cols = st.columns(4)
+            with ic_cols[0]:
+                nom_i = st.text_input(f"Nombre {ic+1}", value=f"Zapato Modelo {ic+1}", key=f"c_nom_{ic}")
+            with ic_cols[1]:
+                cant_i = st.number_input(f"Cantidad {ic+1}", min_value=1, value=100, step=1, key=f"c_cant_{ic}")
+            with ic_cols[2]:
+                fob_i = st.number_input(f"FOB Unit. {ic+1} ($)", min_value=0.0, value=15.0, step=1.0, key=f"c_fob_{ic}")
+            with ic_cols[3]:
+                vol_i = st.number_input(f"Vol. Unit. m³ {ic+1}", min_value=0.001, value=0.01, step=0.001, key=f"c_vol_{ic}")
+                
+            items_c_list.append({
+                "nombre": nom_i,
+                "cantidad": cant_i,
+                "precio_fob": fob_i,
+                "volumen_m3": vol_i,
+                "stock_inicial": cant_i,
+                "ventas_semanales": 15.0
+            })
+            
+        if st.button("🚀 Procesar Importación Puerta a Puerta (DDP)", type="primary"):
+            df_temp_c = pd.DataFrame(items_c_list)
+            # Llamada al motor especializado de la Opción C
+            df = procesar_opcion_c_lcl(df_temp_c, tarifa_plana_m3, fecha_embarque_c, semanas_transito_c, margen_c)
+            st.success("✅ ¡Cálculo DDP y cobertura de inventario procesados con éxito!")
+        else:
+            return
+            
+    else:
+        st.info("ℹ️ **Ambiente Manual Activo:** Registro directo de productos y gastos del contenedor.")
+        # Aquí puedes integrar el formulario de la Opción A que estructuramos antes o dejarlo listo para desplegar
+        return
+    
     st.markdown("### 💼 Gastos del contenedor (en USD)")
     cols = st.columns(3); gastos_ingresados = {}
     for i, (nombre, criterio) in enumerate(GASTOS_CONTENEDOR):
