@@ -939,47 +939,64 @@ def renderizar_pestana_salvavidas(productos, config):
             
             st.markdown("---")
 
-def procesar_opcion_c_lcl(productos_c_df, tarifa_plana_m3, fecha_embarque, semanas_transito, margen_objetivo):
+def procesar_opcion_c_lcl(productos_c_df, tarifa_plana_m3, fecha_embarque, semanas_transito, m_normal, m_mayor, m_sugerido):
     from datetime import datetime, timedelta
     import pandas as pd
 
     resultados = []
-    volumen_total = (productos_c_df["cantidad"] * productos_c_df["volumen_m3"]).sum() # Volumen total real ocupado
+    volumen_total = (productos_c_df["cantidad"] * productos_c_df["volumen_m3"]).sum()
     costo_total_flete_ddp = volumen_total * tarifa_plana_m3
     
     inversion_general_total = 0.0
     utilidad_general_total = 0.0
+    utilidad_normal_total_gen = 0.0
+    utilidad_mayor_total_gen = 0.0
+    utilidad_sug_total_gen = 0.0
 
     for idx, row in productos_c_df.iterrows():
         nombre = row["nombre"]
         cantidad = float(row["cantidad"])
         fob_unitario = float(row["precio_fob"])
         vol_unitario = float(row["volumen_m3"])
-        stock_inicial = float(row.get("stock_inicial", cantidad))
-        ventas_semanales = float(row.get("ventas_semanales", 10.0))
+        stock_inicial = float(row["stock_inicial"])
+        ventas_semanales = float(row["ventas_semanales"])
         
-        # Prorrateo del flete DDP basado en el volumen total del lote (cantidad * vol_unitario)
+        un_norm = float(row["unidades_normal"])
+        un_may = float(row["unidades_mayor"])
+        un_sug = float(row["unidades_sugeridas"])
+        
+        # Prorrateo de flete DDP por volumen del lote
         volumen_lote = cantidad * vol_unitario
         proporcion_vol = (volumen_lote / volumen_total) if volumen_total > 0 else (1 / len(productos_c_df))
         arribo_asignado_total = costo_total_flete_ddp * proporcion_vol
         arribo_unitario = arribo_asignado_total / cantidad if cantidad > 0 else 0
         
-        # Costos e Inversiones
+        # Costo Real en Puerta
         costo_real_unitario = fob_unitario + arribo_unitario
         inversion_total_articulo = cantidad * costo_real_unitario
         
-        # PVP Sugerido y Utilidad
-        pvp_sugerido = costo_real_unitario / (1.0 - (margen_objetivo / 100.0)) if margen_objetivo < 100 else costo_real_unitario * 2
-        utilidad_unitaria = pvp_sugerido - costo_real_unitario
-        utilidad_total_articulo = cantidad * utilidad_unitaria
+        # Precios por Canal
+        pvp_normal = costo_real_unitario / (1.0 - (m_normal / 100.0)) if m_normal < 100 else costo_real_unitario * (1 + m_normal/100)
+        pvp_mayor = costo_real_unitario / (1.0 - (m_mayor / 100.0)) if m_mayor < 100 else costo_real_unitario * (1 + m_mayor/100)
+        pvp_sugerido = costo_real_unitario / (1.0 - (m_sugerido / 100.0)) if m_sugerido < 100 else costo_real_unitario * (1 + m_sugerido/100)
+        
+        # Utilidades por canal para este artículo
+        utilidad_un_normal = (pvp_normal - costo_real_unitario) * un_norm
+        utilidad_un_mayor = (pvp_mayor - costo_real_unitario) * un_may
+        utilidad_un_sug = (pvp_sugerido - costo_real_unitario) * un_sug
+        
+        utilidad_total_articulo = utilidad_un_normal + utilidad_un_mayor + utilidad_un_sug
         
         inversion_general_total += inversion_total_articulo
         utilidad_general_total += utilidad_total_articulo
+        utilidad_normal_total_gen += utilidad_un_normal
+        utilidad_mayor_total_gen += utilidad_un_mayor
+        utilidad_sug_total_gen += utilidad_un_sug
         
         # Cobertura de Stock
         semanas_cobertura = stock_inicial / ventas_semanales if ventas_semanales > 0 else 999.0
         
-        # Fechas
+        # Fechas y Alertas
         try:
             dt_emb = datetime.strptime(str(fecha_embarque), "%Y-%m-%d")
             dt_arribo = dt_emb + timedelta(weeks=int(semanas_transito))
@@ -987,44 +1004,50 @@ def procesar_opcion_c_lcl(productos_c_df, tarifa_plana_m3, fecha_embarque, seman
         except Exception:
             str_arribo = "Por definir"
             
-        # Alertas de Quiebre
         deficit_semanas = semanas_transito - semanas_cobertura
         if deficit_semanas > 0:
             estado_alerta = "🔴 CRÍTICO: Quiebre inminente"
-            recomendacion = f"Stock se agota {abs(round(deficit_semanas, 1))} sem. antes de arribo."
         elif semanas_cobertura <= (semanas_transito + 2):
             estado_alerta = "🟡 PREVENTIVO: Margen ajustado"
-            recomendacion = "Cobertura justa al tiempo de tránsito."
         else:
             estado_alerta = "🟢 ÓPTIMO: Seguro"
-            recomendacion = "Stock cubre holgadamente el tránsito."
 
         resultados.append({
             "Artículo": nombre,
             "Cant": int(cantidad),
-            "Stock Inicial": int(stock_inicial),
-            "Ventas/Sem": float(ventas_semanales),
-            "Cobertura (Sem)": round(semanas_cobertura, 1),
-            "Costo Real Puerta ($)": round(costo_real_unitario, 2),
-            "Inversión Total ($)": round(inversion_total_articulo, 2),
+            "Costo Puerta ($)": round(costo_real_unitario, 2),
+            "Inversión ($)": round(inversion_total_articulo, 2),
+            "PVP Normal ($)": round(pvp_normal, 2),
+            "PVP Mayor ($)": round(pvp_mayor, 2),
             "PVP Sugerido ($)": round(pvp_sugerido, 2),
+            "Utilidad Normal ($)": round(utilidad_un_normal, 2),
+            "Utilidad Mayor ($)": round(utilidad_un_mayor, 2),
+            "Utilidad Sugerida ($)": round(utilidad_un_sug, 2),
             "Utilidad Total ($)": round(utilidad_total_articulo, 2),
-            "Fecha Arribo": str_arribo,
+            "Cobert. (Sem)": round(semanas_cobertura, 1),
             "Estado": estado_alerta
         })
         
     df_res = pd.DataFrame(resultados)
     
-    # Mostrar métricas generales del embarque encima de la tabla
+    # Métricas Globales Ejecutivas de la Operación
     st.markdown("---")
-    m1, m2, m3 = st.columns(3)
-    m1.metric("📦 Inversión General Embarque", f"${inversion_general_total:,.2f}")
-    m2.metric("💰 Utilidad Total Proyectada", f"${utilidad_general_total:,.2f}")
-    m3.metric("📊 Margen Global Estimado", f"{((utilidad_general_total/inversion_general_total)*100 if inversion_general_total > 0 else 0):.1f}%")
+    st.markdown("### 📊 Tablero Financiero Multicanal del Embarque")
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("📦 Inversión General", f"${inversion_general_total:,.2f}")
+    m2.metric("🛍️ Utilidad PVP Normal", f"${utilidad_normal_total_gen:,.2f}")
+    m3.metric("🤝 Utilidad Mayorista", f"${utilidad_mayor_total_gen:,.2f}")
+    m4.metric("⭐ Utilidad Sugerida", f"${utilidad_sug_total_gen:,.2f}")
+    
+    st.markdown("---")
+    mg1, mg2 = st.columns(2)
+    mg1.metric("💰 Utilidad Global de Operación", f"${utilidad_general_total:,.2f}")
+    margen_global_pct = (utilidad_general_total / inversion_general_total * 100) if inversion_general_total > 0 else 0
+    mg2.metric("📈 Margen Global Ponderado", f"{margen_global_pct:.1f}%")
     st.markdown("---")
 
     return df_res
-       
+          
 def proyectar_flujo_caja(productos, config, semanas=13, crecimiento_semanal=0.02):
     hoy = date.today()
     capital_inicial = float(config.get("capital_inicial", 0.0))
