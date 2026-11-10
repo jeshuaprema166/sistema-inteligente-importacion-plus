@@ -961,7 +961,7 @@ def procesar_opcion_c_lcl(productos_c_df, volumen_m3_global, tarifa_plana_m3, fe
 
     factor_efectivo = 1.0 - (pct_perdida / 100.0)
 
-    # 1. Procesamiento por artículo considerando el % de pérdida/estancamiento
+    # 1. Procesamiento por artículo
     for idx, row in productos_c_df.iterrows():
         nombre = row["nombre"]
         cantidad = float(row["cantidad"])
@@ -970,17 +970,12 @@ def procesar_opcion_c_lcl(productos_c_df, volumen_m3_global, tarifa_plana_m3, fe
         stock_inicial = float(row["stock_inicial"])
         ventas_semanales = float(row["ventas_semanales"])
         
-        # Unidades brutas asignadas por canal
-        un_norm_brutas = float(row["unidades_normal"])
-        un_may_brutas = float(row["unidades_mayor"])
-        un_sug_brutas = float(row["unidades_sugeridas"])
+        # Unidades efectivas cobrables (descontando % de pérdida/estancamiento)
+        un_norm = float(row["unidades_normal"]) * factor_efectivo
+        un_may = float(row["unidades_mayor"]) * factor_efectivo
+        un_sug = float(row["unidades_sugeridas"]) * factor_efectivo
         
-        # Unidades efectivas cobrables (descontando el % de pérdida/estancamiento)
-        un_norm = un_norm_brutas * factor_efectivo
-        un_may = un_may_brutas * factor_efectivo
-        un_sug = un_sug_brutas * factor_efectivo
-        
-        # Prorrateo de flete DDP
+        # Prorrateo de flete DDP unitario (Gastos de Envío por unidad)
         volumen_lote = cantidad * vol_unitario
         proporcion_vol = (volumen_lote / volumen_items_suma) if volumen_items_suma > 0 else (1 / len(productos_c_df))
         arribo_asignado_total = costo_total_flete_ddp * proporcion_vol
@@ -990,22 +985,24 @@ def procesar_opcion_c_lcl(productos_c_df, volumen_m3_global, tarifa_plana_m3, fe
         inversion_total_articulo = cantidad * costo_real_unitario
         inversion_general_total += inversion_total_articulo
         
-        # Precios por Canal (redondeados a enteros)
-        pvp_normal = round(costo_real_unitario * (1.0 + (m_normal / 100.0)))
-        pvp_mayor = round(costo_real_unitario * (1.0 + (m_mayor / 100.0)))
-        pvp_sugerido = round(costo_real_unitario * (1.0 + (m_sugerido / 100.0)))
+        # Precios por Canal redondeados al múltiplo de 5 más cercano
+        def redondear_multiplo_5(val):
+            return int(round(val / 5.0) * 5)
+            
+        pvp_normal = redondear_multiplo_5(costo_real_unitario * (1.0 + (m_normal / 100.0)))
+        pvp_mayor = redondear_multiplo_5(costo_real_unitario * (1.0 + (m_mayor / 100.0)))
+        pvp_sugerido = redondear_multiplo_5(costo_real_unitario * (1.0 + (m_sugerido / 100.0)))
         
-        # Ingreso Bruto por Venta Operativa de este artículo (Unidades efectivas * Precio de cada canal)
+        # Ingreso Bruto por Venta Operativa de este artículo
         ingreso_bruto_articulo = (un_norm * pvp_normal) + (un_may * pvp_mayor) + (un_sug * pvp_sugerido)
         ingreso_bruto_operaciones_total += ingreso_bruto_articulo
         
-        # Utilidades por canal basadas en unidades efectivas comercializadas
+        # Utilidades por canal
         utilidad_un_normal = (pvp_normal - costo_real_unitario) * un_norm
         utilidad_un_mayor = (pvp_mayor - costo_real_unitario) * un_may
         utilidad_un_sug = (pvp_sugerido - costo_real_unitario) * un_sug
         
         utilidad_total_articulo = utilidad_un_normal + utilidad_un_mayor + utilidad_un_sug
-        
         utilidad_general_total += utilidad_total_articulo
         utilidad_normal_total_gen += utilidad_un_normal
         utilidad_mayor_total_gen += utilidad_un_mayor
@@ -1025,6 +1022,8 @@ def procesar_opcion_c_lcl(productos_c_df, volumen_m3_global, tarifa_plana_m3, fe
         resultados.append({
             "Artículo": nombre,
             "Cant": int(cantidad),
+            "Precio FOB ($)": round(fob_unitario, 2),
+            "Gastos de Envío ($)": round(arribo_unitario, 2),
             "Stock Inicial": int(stock_inicial),
             "Ventas/Sem": float(ventas_semanales),
             "Cobert. (Sem)": round(semanas_cobertura, 1),
@@ -1064,95 +1063,42 @@ def procesar_opcion_c_lcl(productos_c_df, volumen_m3_global, tarifa_plana_m3, fe
     str_quiebre = dt_quiebre.strftime("%Y-%m-%d")
     str_entrega_prox = dt_entrega_proximo.strftime("%Y-%m-%d")
 
-    # 4. Tablero Financiero y Cronograma Ejecutivo Actualizado
+    # 4. Tablero Financiero Reordenado y Cronograma Ejecutivo
     st.markdown("---")
     st.markdown("### 📊 Tablero Financiero Multicanal y Cronograma Ejecutivo")
     
+    # Reordenamiento solicitado en el tablero superior:
+    # 1. Ingreso Bruto, 2. Inversión Gral., 3. Meta Próximo Pedido
     rc1, rc2, rc3 = st.columns(3)
-    rc1.metric("📦 Inversión General Embarque", f"${inversion_general_total:,.2f}")
-    rc2.metric("🎯 Meta Próximo Pedido (con Envío)", f"${meta_proximo_pedido_con_envio:,.2f}")
-    rc3.metric("⏱️ Tiempo Recuperación Capital", f"{semanas_recapitalizacion:.1f} Semanas")
+    rc1.metric("💵 Ingreso Bruto x Vtas Operac.", f"${ingreso_bruto_operaciones_total:,.2f}", help="Calculado sobre unidades efectivas descontando el % de pérdida.")
+    rc2.metric("📦 Inversión General Embarque", f"${inversion_general_total:,.2f}")
+    rc3.metric("🎯 Meta p/Próx Pedido (+ Gtos Envío)", f"${meta_proximo_pedido_con_envio:,.2f}")
     
     st.markdown("---")
     
-    # Nuevo indicador solicitado ubicado antes de las utilidades
-    st.metric("💵 Ingreso Bruto x Vtas Operac.", f"${ingreso_bruto_operaciones_total:,.2f}", help="Calculado sobre las unidades efectivas descontando el % de pérdida/estancamiento estimado.")
+    # Tiempo de recuperación del capital ubicado abajo como se solicitó
+    st.metric("⏱️ Tiempo Recuperación Capital", f"{semanas_recapitalizacion:.1f} Semanas", help="Calculado a partir de la llegada a puerta considerando pagos fraccionados.")
     st.markdown("---")
 
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("💰 Utilidad Global", f"${utilidad_general_total:,.2f}")
-    m2.metric("🛍️ Utilidad Normal", f"${utilidad_normal_total_gen:,.2f}")
-    m3.metric("🤝 Utilidad Mayorista", f"${utilidad_mayor_total_gen:,.2f}")
-    m4.metric("⭐ Utilidad Sugerida", f"${utilidad_sug_total_gen:,.2f}")
+    m2.metric("🛍️ Utilidad PV Normal", f"${utilidad_normal_total_gen:,.2f}")
+    m3.metric("🤝 Utilidad PV Mayor", f"${utilidad_mayor_total_gen:,.2f}")
+    m4.metric("⭐ Utilidad PV Sug", f"${utilidad_sug_total_gen:,.2f}")
     
     st.markdown("---")
     st.markdown("#### 📅 Cronograma de Hitos y Fechas Clave del Embarque:")
     st.markdown(f"""
     * **a. 🚢 Fecha pedido inicial:** `{str_pedido_inicial}`
     * **b. 🚚 Fecha estimada de entrega DDP Inicial:** `{str_entrega_inicial}`
-    * **c. 💰 Fecha estimada de recuperación del Capital para próximo pedido:** `{str_recap}`
+    * **c. 💰 Fecha estimada de recuperación del Capital para invertir en próximo pedido:** `{str_recap}`
     * **d. 🔴 Fecha de Quiebre de inventario (según estimado de Vtas.):** `{str_quiebre}`
     * **e. 📦 Fecha de estimado entrega DDP próximo:** `{str_entrega_prox}`
     """)
     st.markdown("---")
 
     return df_res
-           
-def proyectar_flujo_caja(productos, config, semanas=13, crecimiento_semanal=0.02):
-    hoy = date.today()
-    capital_inicial = float(config.get("capital_inicial", 0.0))
-    costo_fijo = float(config.get("costo_fijo_semanal", 250.0))
     
-    # Parámetros del próximo pedido desde config
-    monto_pedido = float(config.get("monto_proximo_pedido", 0.0))
-    fecha_pedido_str = config.get("fecha_proximo_pedido", None)
-    
-    # Determinar en qué número de semana (1 a 13) cae la fecha del próximo pedido
-    semana_objetivo_pedido = 1  # Por defecto semana 1 si no hay fecha válida
-    if fecha_pedido_str:
-        try:
-            from datetime import datetime
-            f_pedido = datetime.strptime(str(fecha_pedido_str), "%Y-%m-%d").date()
-            dias_diff = (f_pedido - hoy).days
-            semana_calc = max(1, (dias_diff // 7) + 1)
-            if semana_calc <= semanas:
-                semana_objetivo_pedido = semana_calc
-        except Exception:
-            pass
-
-    saldo = capital_inicial
-    filas = []
-    
-    for w in range(1, semanas + 1):
-        fecha = hoy + timedelta(weeks=w)
-        ingreso = 0.0
-        
-        for p in productos:
-            ventas = float(p.get("ventas_semanales", 0.0))
-            pvp = float(p.get("pvp_normal", 0.0))
-            factor = (1.0 + crecimiento_semanal) ** w
-            ingreso += ventas * pvp * factor
-            
-        # Egreso base semanal (costos fijos)
-        egreso = costo_fijo
-        
-        # Incorporar el monto del próximo pedido exactamente en su semana correspondiente
-        if w == semana_objetivo_pedido and monto_pedido > 0:
-            egreso += monto_pedido
-            
-        # Actualizar saldo acumulado
-        saldo += (ingreso - egreso)
-        
-        filas.append({
-            "Semana": w, 
-            "Fecha": fecha.strftime("%Y-%m-%d"), 
-            "Ingreso proyectado": round(ingreso, 2), 
-            "Egreso proyectado": round(egreso, 2),
-            "Saldo acumulado": round(saldo, 2)
-        })
-        
-    return pd.DataFrame(filas)
-
 def mostrar_flujo_caja(df_flujo, config):
     st.subheader("📅 Proyección de flujo de caja — 13 semanas")
     
