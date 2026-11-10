@@ -2207,10 +2207,10 @@ def main():
         type="primary"
     )
 
-else:
-    st.info("ℹ️ **Ambiente Manual Activo:** Registro directo de productos y gastos del contenedor.")
-    # Aquí puedes integrar el formulario de la Opción A que estructuramos antes o dejarlo listo para desplegar
-    return
+    else:
+        st.info("ℹ️ **Ambiente Manual Activo:** Registro directo de productos y gastos del contenedor.")
+        # Aquí puedes integrar el formulario de la Opción A que estructuramos antes o dejarlo listo para desplegar
+        return
     
     st.markdown("### 💼 Gastos del contenedor (en USD)")
     cols = st.columns(3); gastos_ingresados = {}
