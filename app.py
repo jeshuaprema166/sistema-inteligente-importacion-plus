@@ -2131,11 +2131,18 @@ def main():
     if st.button("🚀 Procesar Importación Multicanal (DDP)", type="primary"):
         df_temp_c = pd.DataFrame(items_c_list)
         st.session_state["df_lcl"] = procesar_opcion_c_lcl(
-            df_temp_c, volumen_m3_c, tarifa_plana_m3, fecha_embarque_c, semanas_transito_c, 
-            margen_normal, margen_mayor, margen_sugerido, monto_prox_pedido  # 👈 ¡Aquí se incluye el argumento!
+            df_temp_c, 
+            volumen_m3_c, 
+            tarifa_plana_m3, 
+            fecha_embarque_c, 
+            semanas_transito_c, 
+            margen_normal, 
+            margen_mayor, 
+            margen_sugerido, 
+            monto_prox_pedido  # <-- Asegúrese de que este argumento esté presente aquí
         )
         st.success("✅ ¡Cálculo multicanal y cobertura procesados con éxito!")
-           
+              
     # Si ya tenemos resultados DDP guardados en la sesión y estamos en la Opción B, mostramos el reporte y detenemos el flujo FCL
     if "df_lcl" in st.session_state and modalidad.startswith("📦 Opción B"):
         st.markdown("---")
