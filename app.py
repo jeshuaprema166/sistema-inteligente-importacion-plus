@@ -1087,7 +1087,7 @@ def procesar_opcion_c_lcl(productos_c_df, volumen_m3_global, tarifa_plana_m3, fe
     m4.metric("⭐ Utilidad PV Sug", f"${utilidad_sug_total_gen:,.2f}")
     
     st.markdown("---")
-    st.markdown("#### 📅 Cronograma de Hitos y Fechas Clave del Embarque:")
+    st.markdown("#### 📅 Cronograma de Eventos y Fechas Clave de la Operación:")
     st.markdown(f"""
     * **a. 🚢 Fecha pedido inicial:** `{str_pedido_inicial}`
     * **b. 🚚 Fecha estimada de entrega DDP Inicial:** `{str_entrega_inicial}`
