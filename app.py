@@ -2055,7 +2055,9 @@ def main():
             margen_normal = st.number_input("Margen % PVP Normal (Detal)", min_value=0.0, max_value=999.0, value=150.0, step=5.0)
             margen_mayor = st.number_input("Margen % PVP Mayorista", min_value=0.0, max_value=999.0, value=50.0, step=5.0)
             margen_sugerido = st.number_input("Margen % PVP Sugerido", min_value=0.0, max_value=999.0, value=400.0, step=5.0)
-            
+            # Campo para definir la meta de capitalización del próximo pedido
+            monto_prox_pedido = st.number_input("Monto para Próximo Pedido ($)", min_value=100.0, value=3000.0, step=100.0)
+        
         st.markdown("##### 📝 Detalle de Artículos y Distribución por Canal de Venta:")
         num_items_c = st.number_input("Cantidad de ítems diferentes", min_value=1, value=2, step=1, key="num_c")
         
@@ -2099,10 +2101,10 @@ def main():
         df_temp_c = pd.DataFrame(items_c_list)
         st.session_state["df_lcl"] = procesar_opcion_c_lcl(
             df_temp_c, volumen_m3_c, tarifa_plana_m3, fecha_embarque_c, semanas_transito_c, 
-            margen_normal, margen_mayor, margen_sugerido
+            margen_normal, margen_mayor, margen_sugerido, monto_prox_pedido  # 👈 ¡Aquí se incluye el argumento!
         )
         st.success("✅ ¡Cálculo multicanal y cobertura procesados con éxito!")
-        
+           
     # Si ya tenemos resultados DDP guardados en la sesión y estamos en la Opción B, mostramos el reporte y detenemos el flujo FCL
     if "df_lcl" in st.session_state and modalidad.startswith("📦 Opción B"):
         st.markdown("---")
