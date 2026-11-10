@@ -2130,14 +2130,25 @@ def main():
         </div>
         """, unsafe_allow_html=True)
 
-        # Botón nativo de Streamlit que activa la orden de impresión del navegador de forma segura
-        if st.button("🖨️ Imprimir / Guardar Reporte Ejecutivo como PDF", type="primary"):
-            st.markdown("""
-                <script>
-                    window.parent.print();
-                </script>
-            """, unsafe_allow_html=True)
-                  
+        # --- BOTÓN DE IMPRESIÓN DIRECTA VÍA HTML / JAVASCRIPT ---
+        st.markdown("""
+        <div style="text-align: center; margin: 20px 0;">
+            <a href="#" onclick="window.print(); return false;" style="
+                display: inline-block;
+                background-color: #dc2626;
+                color: white;
+                padding: 12px 24px;
+                font-size: 16px;
+                font-weight: bold;
+                text-decoration: none;
+                border-radius: 6px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            ">
+                🖨️ Imprimir / Guardar Reporte Ejecutivo como PDF
+            </a>
+        </div>
+        """, unsafe_allow_html=True)
+                    
         return
             
     else:
