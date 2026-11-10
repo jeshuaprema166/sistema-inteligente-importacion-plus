@@ -1096,6 +1096,26 @@ def procesar_opcion_c_lcl(productos_c_df, volumen_m3_global, tarifa_plana_m3, fe
     * **e. 📦 Fecha de estimado entrega DDP próximo:** `{str_entrega_prox}`
     """)
     st.markdown("---")
+    
+    # 🖨️ Botón de Exportación PDF al pie del reporte
+    html_pdf_button = """
+    <div style="text-align: center; margin: 20px 0;">
+        <button onclick="window.print();" style="
+            background-color: #2563eb;
+            color: white;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        ">
+            🖨️ Descargar / Imprimir Reporte Ejecutivo (PDF)
+        </button>
+    </div>
+    """
+    st.markdown(html_pdf_button, unsafe_allow_html=True)
 
     return df_res
     
