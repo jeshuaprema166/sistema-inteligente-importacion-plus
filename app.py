@@ -2207,7 +2207,7 @@ def main():
         type="primary"
     )
 
-    return 
+        return 
     
     else:
         st.info("ℹ️ **Ambiente Manual Activo:** Registro directo de productos y gastos del contenedor.")
