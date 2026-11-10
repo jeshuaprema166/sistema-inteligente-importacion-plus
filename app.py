@@ -2107,7 +2107,22 @@ def main():
             pct_perdida 
         )
         st.success("✅ ¡Cálculo multicanal y cobertura procesados con éxito!")
-              
+
+        # 👇 AÑADE ESTAS LÍNEAS AQUÍ PARA GUARDAR LOS RESULTADOS 👇
+        st.session_state["res_ingreso_bruto"] = ingreso_bruto_operaciones_total
+        st.session_state["res_inversion_total"] = inversion_general_total
+        st.session_state["res_meta_proximo"] = meta_proximo_pedido_con_envio
+        st.session_state["res_semanas_recap"] = semanas_recapitalizacion
+        st.session_state["res_utilidad_global"] = utilidad_general_total
+        st.session_state["res_utilidad_normal"] = utilidad_normal_total_gen
+        st.session_state["res_utilidad_mayor"] = utilidad_mayor_total_gen
+        st.session_state["res_utilidad_sug"] = utilidad_sug_total_gen
+        st.session_state["res_f_pedido"] = str_pedido_inicial
+        st.session_state["res_f_entrega"] = str_entrega_inicial
+        st.session_state["res_f_recap"] = str_recap
+        st.session_state["res_f_quiebre"] = str_quiebre
+        st.session_state["res_f_entrega_prox"] = str_entrega_prox
+    
     # Si ya tenemos resultados DDP guardados en la sesión y estamos en la Opción B, mostramos el reporte y detenemos el flujo FCL
     if "df_lcl" in st.session_state and modalidad.startswith("📦 Opción B"):
         st.markdown("---")
@@ -2118,23 +2133,15 @@ def main():
         # --- GENERACIÓN Y DESCARGA DE PDF CON FPDF ---
         from fpdf import FPDF
         
-        # Función para limpiar caracteres no soportados por las fuentes core de PDF
         def sanitize_text(text):
             if not isinstance(text, str):
                 text = str(text)
             replacements = {
-                '\u2014': '-',   # Raya em (—) -> Guion normal
-                '\u2013': '-',   # Raya en (–) -> Guion normal
-                '\u2018': "'",   # Comilla simple izquierda (')
-                '\u2019': "'",   # Comilla simple derecha (')
-                '\u201c': '"',   # Comilla doble izquierda (")
-                '\u201d': '"',   # Comilla doble derecha (")
-                '\u2026': '...', # Puntos suspensivos (…)
-                '\u2022': '-',   # Viñeta (•)
+                '\u2014': '-', '\u2013': '-', '\u2018': "'", '\u2019': "'", 
+                '\u201c': '"', '\u201d': '"', '\u2026': '...', '\u2022': '-',
             }
             for search, replace in replacements.items():
                 text = text.replace(search, replace)
-            # Red de seguridad final: si queda algún carácter raro, lo reemplaza para no romper el PDF
             return text.encode('latin-1', 'replace').decode('latin-1')
         
         class PDFReporte(FPDF):
@@ -2144,7 +2151,6 @@ def main():
                 self.set_font('helvetica', '', 10)
                 self.cell(0, 5, sanitize_text('Reporte Ejecutivo y Cronograma de Operación (DDP)'), 0, 1, 'C')
                 self.set_font('helvetica', 'I', 9)
-                # Aquí estaba el error de la raya em (—)
                 self.cell(0, 5, sanitize_text('Autoría y Administración por: Prof. Jesús Pulido — Asesor y Analista en Importación.'), 0, 1, 'C')
                 self.ln(4)
         
@@ -2158,35 +2164,35 @@ def main():
             pdf.add_page()
             pdf.set_auto_page_break(auto=True, margin=15)
             
-            # 1. Resumen Financiero
+            # 1. Resumen Financiero (Leyendo desde st.session_state)
             pdf.set_font('helvetica', 'B', 11)
             pdf.cell(0, 6, sanitize_text('1. Resumen Financiero del Embarque'), 0, 1, 'L')
             pdf.set_font('helvetica', '', 10)
-            pdf.cell(0, 6, sanitize_text(f'  * Ingreso Bruto x Vtas Operac.: ${ingreso_bruto_operaciones_total:,.2f}'), 0, 1)
-            pdf.cell(0, 6, sanitize_text(f'  * Inversión General Embarque: ${inversion_general_total:,.2f}'), 0, 1)
-            pdf.cell(0, 6, sanitize_text(f'  * Meta Próximo Pedido (con Envío): ${meta_proximo_pedido_con_envio:,.2f}'), 0, 1)
-            pdf.cell(0, 6, sanitize_text(f'  * Tiempo de Recuperación de Capital: {semanas_recapitalizacion:.1f} Semanas'), 0, 1)
+            pdf.cell(0, 6, sanitize_text(f"  * Ingreso Bruto x Vtas Operac.: ${st.session_state.get('res_ingreso_bruto', 0):,.2f}"), 0, 1)
+            pdf.cell(0, 6, sanitize_text(f"  * Inversión General Embarque: ${st.session_state.get('res_inversion_total', 0):,.2f}"), 0, 1)
+            pdf.cell(0, 6, sanitize_text(f"  * Meta Próximo Pedido (con Envío): ${st.session_state.get('res_meta_proximo', 0):,.2f}"), 0, 1)
+            pdf.cell(0, 6, sanitize_text(f"  * Tiempo de Recuperación de Capital: {st.session_state.get('res_semanas_recap', 0):.1f} Semanas"), 0, 1)
             pdf.ln(3)
             
             # 2. Utilidades
             pdf.set_font('helvetica', 'B', 11)
             pdf.cell(0, 6, sanitize_text('2. Desglose de Utilidades por Canal'), 0, 1, 'L')
             pdf.set_font('helvetica', '', 10)
-            pdf.cell(0, 6, sanitize_text(f'  * Utilidad Global: ${utilidad_general_total:,.2f}'), 0, 1)
-            pdf.cell(0, 6, sanitize_text(f'  * Utilidad Normal (Detal): ${utilidad_normal_total_gen:,.2f}'), 0, 1)
-            pdf.cell(0, 6, sanitize_text(f'  * Utilidad Mayorista: ${utilidad_mayor_total_gen:,.2f}'), 0, 1)
-            pdf.cell(0, 6, sanitize_text(f'  * Utilidad Sugerida (Crédito): ${utilidad_sug_total_gen:,.2f}'), 0, 1)
+            pdf.cell(0, 6, sanitize_text(f"  * Utilidad Global: ${st.session_state.get('res_utilidad_global', 0):,.2f}"), 0, 1)
+            pdf.cell(0, 6, sanitize_text(f"  * Utilidad Normal (Detal): ${st.session_state.get('res_utilidad_normal', 0):,.2f}"), 0, 1)
+            pdf.cell(0, 6, sanitize_text(f"  * Utilidad Mayorista: ${st.session_state.get('res_utilidad_mayor', 0):,.2f}"), 0, 1)
+            pdf.cell(0, 6, sanitize_text(f"  * Utilidad Sugerida (Crédito): ${st.session_state.get('res_utilidad_sug', 0):,.2f}"), 0, 1)
             pdf.ln(3)
             
             # 3. Cronograma
             pdf.set_font('helvetica', 'B', 11)
             pdf.cell(0, 6, sanitize_text('3. Cronograma de Hitos y Fechas Clave'), 0, 1, 'L')
             pdf.set_font('helvetica', '', 10)
-            pdf.cell(0, 6, sanitize_text(f'  * a. Fecha pedido inicial: {str_pedido_inicial}'), 0, 1)
-            pdf.cell(0, 6, sanitize_text(f'  * b. Fecha estimada de entrega DDP Inicial: {str_entrega_inicial}'), 0, 1)
-            pdf.cell(0, 6, sanitize_text(f'  * c. Fecha estimada de recuperación de Capital: {str_recap}'), 0, 1)
-            pdf.cell(0, 6, sanitize_text(f'  * d. Fecha de Quiebre de inventario: {str_quiebre}'), 0, 1)
-            pdf.cell(0, 6, sanitize_text(f'  * e. Fecha estimada entrega DDP próximo: {str_entrega_prox}'), 0, 1)
+            pdf.cell(0, 6, sanitize_text(f"  * a. Fecha pedido inicial: {st.session_state.get('res_f_pedido', 'N/A')}"), 0, 1)
+            pdf.cell(0, 6, sanitize_text(f"  * b. Fecha estimada de entrega DDP Inicial: {st.session_state.get('res_f_entrega', 'N/A')}"), 0, 1)
+            pdf.cell(0, 6, sanitize_text(f"  * c. Fecha estimada de recuperación de Capital: {st.session_state.get('res_f_recap', 'N/A')}"), 0, 1)
+            pdf.cell(0, 6, sanitize_text(f"  * d. Fecha de Quiebre de inventario: {st.session_state.get('res_f_quiebre', 'N/A')}"), 0, 1)
+            pdf.cell(0, 6, sanitize_text(f"  * e. Fecha estimada entrega DDP próximo: {st.session_state.get('res_f_entrega_prox', 'N/A')}"), 0, 1)
             pdf.ln(3)
             
             # 4. Tabla de Artículos
@@ -2204,8 +2210,9 @@ def main():
             pdf.cell(24, 6, 'PVP Sug', 1, 1, 'R')
             
             pdf.set_font('helvetica', '', 9)
-            for _, row in df_res.iterrows():
-                # Sanitizamos también los textos dinámicos que vienen del DataFrame por si el usuario tipeó algo raro
+            # Usamos st.session_state["df_lcl"] para iterar
+            df_para_pdf = st.session_state["df_lcl"]
+            for _, row in df_para_pdf.iterrows():
                 pdf.cell(38, 6, sanitize_text(str(row['Artículo'])[:18]), 1)
                 pdf.cell(12, 6, sanitize_text(str(row['Cant'])), 1, 0, 'C')
                 pdf.cell(24, 6, f"{row['Precio FOB ($)']:.2f}", 1, 0, 'R')
@@ -2215,10 +2222,10 @@ def main():
                 pdf.cell(24, 6, sanitize_text(str(row['PVP Normal ($)'])), 1, 0, 'R')
                 pdf.cell(24, 6, sanitize_text(str(row['PVP Sugerido ($)'])), 1, 1, 'R')
                 
-            # CORRECCIÓN: Manejo seguro de la salida para fpdf2 moderno
             salida = pdf.output(dest='S')
             return salida.encode('latin1') if isinstance(salida, str) else bytes(salida)
         
+        # Botón final
         st.markdown("---")
         st.markdown("### 📄 Exportación de Reporte Ejecutivo")
         
@@ -2228,7 +2235,7 @@ def main():
             file_name="Reporte_Ejecutivo_Importacion.pdf",
             mime="application/pdf",
             type="primary"
-        )
+            )
 
     else:
         st.info("ℹ️ **Ambiente Manual Activo:** Registro directo de productos y gastos del contenedor.")
