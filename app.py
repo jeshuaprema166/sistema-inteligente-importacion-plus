@@ -2086,8 +2086,10 @@ def main():
             margen_normal = st.number_input("Margen % PVP Normal (Detal)", min_value=0.0, max_value=999.0, value=150.0, step=5.0)
             margen_mayor = st.number_input("Margen % PVP Mayorista", min_value=0.0, max_value=999.0, value=50.0, step=5.0)
             margen_sugerido = st.number_input("Margen % PVP Sugerido", min_value=0.0, max_value=999.0, value=400.0, step=5.0)
+            
             # Campo para definir la meta de capitalización del próximo pedido
-            monto_prox_pedido = st.number_input("Monto para Próximo Pedido ($)", min_value=100.0, value=3000.0, step=100.0)
+            reinversion_base_prox = st.number_input("Reinversión base para el próximo pedido (sin costo de envío) ($)", min_value=100.0, value=700.0, step=50.0)
+            
         
         st.markdown("##### 📝 Detalle de Artículos y Distribución por Canal de Venta:")
         num_items_c = st.number_input("Cantidad de ítems diferentes", min_value=1, value=2, step=1, key="num_c")
@@ -2138,8 +2140,8 @@ def main():
             semanas_transito_c, 
             margen_normal, 
             margen_mayor, 
-            margen_sugerido, 
-            monto_prox_pedido  # <-- Asegúrese de que este argumento esté presente aquí
+            margen_sugerido,  
+            reinversion_base_prox 
         )
         st.success("✅ ¡Cálculo multicanal y cobertura procesados con éxito!")
               
