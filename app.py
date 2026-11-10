@@ -2115,97 +2115,97 @@ def main():
         st.dataframe(st.session_state["df_lcl"], use_container_width=True)
         st.success("🎉 ¡Su análisis de costos en puerta y control de bache de inventario está listo para la toma de decisiones!")
     
-    # --- GENERACIÓN Y DESCARGA DE PDF CON FPDF ---
-    from fpdf import FPDF
-
-    class PDFReporte(FPDF):
-        def header(self):
-            self.set_font('helvetica', 'B', 13)
-            self.cell(0, 7, 'Sistema Inteligente de Importación Marítima para Emprendedores', 0, 1, 'C')
-            self.set_font('helvetica', '', 10)
-            self.cell(0, 5, 'Reporte Ejecutivo y Cronograma de Operación (DDP)', 0, 1, 'C')
-            self.set_font('helvetica', 'I', 9)
-            self.cell(0, 5, 'Autoría y Administración por: Prof. Jesús Pulido — Asesor y Analista en Importación.', 0, 1, 'C')
-            self.ln(4)
-
-        def footer(self):
-            self.set_y(-15)
-            self.set_font('helvetica', 'I', 8)
-            self.cell(0, 10, f'Página {self.page_no()}', 0, 0, 'C')
-
-    def crear_pdf():
-        pdf = PDFReporte()
-        pdf.add_page()
-        pdf.set_auto_page_break(auto=True, margin=15)
-        
-        # 1. Resumen Financiero
-        pdf.set_font('helvetica', 'B', 11)
-        pdf.cell(0, 6, '1. Resumen Financiero del Embarque', 0, 1, 'L')
-        pdf.set_font('helvetica', '', 10)
-        pdf.cell(0, 6, f'  * Ingreso Bruto x Vtas Operac.: ${ingreso_bruto_operaciones_total:,.2f}', 0, 1)
-        pdf.cell(0, 6, f'  * Inversión General Embarque: ${inversion_general_total:,.2f}', 0, 1)
-        pdf.cell(0, 6, f'  * Meta Próximo Pedido (con Envío): ${meta_proximo_pedido_con_envio:,.2f}', 0, 1)
-        pdf.cell(0, 6, f'  * Tiempo de Recuperación de Capital: {semanas_recapitalizacion:.1f} Semanas', 0, 1)
-        pdf.ln(3)
-        
-        # 2. Utilidades
-        pdf.set_font('helvetica', 'B', 11)
-        pdf.cell(0, 6, '2. Desglose de Utilidades por Canal', 0, 1, 'L')
-        pdf.set_font('helvetica', '', 10)
-        pdf.cell(0, 6, f'  * Utilidad Global: ${utilidad_general_total:,.2f}', 0, 1)
-        pdf.cell(0, 6, f'  * Utilidad Normal (Detal): ${utilidad_normal_total_gen:,.2f}', 0, 1)
-        pdf.cell(0, 6, f'  * Utilidad Mayorista: ${utilidad_mayor_total_gen:,.2f}', 0, 1)
-        pdf.cell(0, 6, f'  * Utilidad Sugerida (Crédito): ${utilidad_sug_total_gen:,.2f}', 0, 1)
-        pdf.ln(3)
-        
-        # 3. Cronograma
-        pdf.set_font('helvetica', 'B', 11)
-        pdf.cell(0, 6, '3. Cronograma de Hitos y Fechas Clave', 0, 1, 'L')
-        pdf.set_font('helvetica', '', 10)
-        pdf.cell(0, 6, f'  * a. Fecha pedido inicial: {str_pedido_inicial}', 0, 1)
-        pdf.cell(0, 6, f'  * b. Fecha estimada de entrega DDP Inicial: {str_entrega_inicial}', 0, 1)
-        pdf.cell(0, 6, f'  * c. Fecha estimada de recuperación de Capital: {str_recap}', 0, 1)
-        pdf.cell(0, 6, f'  * d. Fecha de Quiebre de inventario: {str_quiebre}', 0, 1)
-        pdf.cell(0, 6, f'  * e. Fecha estimada entrega DDP próximo: {str_entrega_prox}', 0, 1)
-        pdf.ln(3)
-        
-        # 4. Tabla de Artículos
-        pdf.set_font('helvetica', 'B', 11)
-        pdf.cell(0, 6, '4. Detalle de Artículos y Costos en Puerta', 0, 1, 'L')
-        pdf.set_font('helvetica', 'B', 9)
-        
-        pdf.cell(38, 6, 'Artículo', 1)
-        pdf.cell(12, 6, 'Cant', 1, 0, 'C')
-        pdf.cell(24, 6, 'FOB($)', 1, 0, 'R')
-        pdf.cell(24, 6, 'Envío($)', 1, 0, 'R')
-        pdf.cell(24, 6, 'C.Puerta($)', 1, 0, 'R')
-        pdf.cell(24, 6, 'Inversión($)', 1, 0, 'R')
-        pdf.cell(24, 6, 'PVP Norm', 1, 0, 'R')
-        pdf.cell(24, 6, 'PVP Sug', 1, 1, 'R')
-        
-        pdf.set_font('helvetica', '', 9)
-        for _, row in df_res.iterrows():
-            pdf.cell(38, 6, str(row['Artículo'])[:18], 1)
-            pdf.cell(12, 6, str(row['Cant']), 1, 0, 'C')
-            pdf.cell(24, 6, f"{row['Precio FOB ($)']:.2f}", 1, 0, 'R')
-            pdf.cell(24, 6, f"{row['Gastos de Envío ($)']:.2f}", 1, 0, 'R')
-            pdf.cell(24, 6, f"{row['Costo Puerta ($)']:.2f}", 1, 0, 'R')
-            pdf.cell(24, 6, f"{row['Inversión ($)']:.2f}", 1, 0, 'R')
-            pdf.cell(24, 6, str(row['PVP Normal ($)']), 1, 0, 'R')
-            pdf.cell(24, 6, str(row['PVP Sugerido ($)']), 1, 1, 'R')
-            
-        return pdf.output(dest='S').encode('latin1')
-
-    st.markdown("---")
-    st.markdown("### 📄 Exportación de Reporte Ejecutivo")
+        # --- GENERACIÓN Y DESCARGA DE PDF CON FPDF ---
+        from fpdf import FPDF
     
-    st.download_button(
-        label="📥 Descargar Reporte Ejecutivo Oficial en PDF",
-        data=crear_pdf(),
-        file_name="Reporte_Ejecutivo_Importacion.pdf",
-        mime="application/pdf",
-        type="primary"
-    )
+        class PDFReporte(FPDF):
+            def header(self):
+                self.set_font('helvetica', 'B', 13)
+                self.cell(0, 7, 'Sistema Inteligente de Importación Marítima para Emprendedores', 0, 1, 'C')
+                self.set_font('helvetica', '', 10)
+                self.cell(0, 5, 'Reporte Ejecutivo y Cronograma de Operación (DDP)', 0, 1, 'C')
+                self.set_font('helvetica', 'I', 9)
+                self.cell(0, 5, 'Autoría y Administración por: Prof. Jesús Pulido — Asesor y Analista en Importación.', 0, 1, 'C')
+                self.ln(4)
+    
+            def footer(self):
+                self.set_y(-15)
+                self.set_font('helvetica', 'I', 8)
+                self.cell(0, 10, f'Página {self.page_no()}', 0, 0, 'C')
+    
+        def crear_pdf():
+            pdf = PDFReporte()
+            pdf.add_page()
+            pdf.set_auto_page_break(auto=True, margin=15)
+            
+            # 1. Resumen Financiero
+            pdf.set_font('helvetica', 'B', 11)
+            pdf.cell(0, 6, '1. Resumen Financiero del Embarque', 0, 1, 'L')
+            pdf.set_font('helvetica', '', 10)
+            pdf.cell(0, 6, f'  * Ingreso Bruto x Vtas Operac.: ${ingreso_bruto_operaciones_total:,.2f}', 0, 1)
+            pdf.cell(0, 6, f'  * Inversión General Embarque: ${inversion_general_total:,.2f}', 0, 1)
+            pdf.cell(0, 6, f'  * Meta Próximo Pedido (con Envío): ${meta_proximo_pedido_con_envio:,.2f}', 0, 1)
+            pdf.cell(0, 6, f'  * Tiempo de Recuperación de Capital: {semanas_recapitalizacion:.1f} Semanas', 0, 1)
+            pdf.ln(3)
+            
+            # 2. Utilidades
+            pdf.set_font('helvetica', 'B', 11)
+            pdf.cell(0, 6, '2. Desglose de Utilidades por Canal', 0, 1, 'L')
+            pdf.set_font('helvetica', '', 10)
+            pdf.cell(0, 6, f'  * Utilidad Global: ${utilidad_general_total:,.2f}', 0, 1)
+            pdf.cell(0, 6, f'  * Utilidad Normal (Detal): ${utilidad_normal_total_gen:,.2f}', 0, 1)
+            pdf.cell(0, 6, f'  * Utilidad Mayorista: ${utilidad_mayor_total_gen:,.2f}', 0, 1)
+            pdf.cell(0, 6, f'  * Utilidad Sugerida (Crédito): ${utilidad_sug_total_gen:,.2f}', 0, 1)
+            pdf.ln(3)
+            
+            # 3. Cronograma
+            pdf.set_font('helvetica', 'B', 11)
+            pdf.cell(0, 6, '3. Cronograma de Hitos y Fechas Clave', 0, 1, 'L')
+            pdf.set_font('helvetica', '', 10)
+            pdf.cell(0, 6, f'  * a. Fecha pedido inicial: {str_pedido_inicial}', 0, 1)
+            pdf.cell(0, 6, f'  * b. Fecha estimada de entrega DDP Inicial: {str_entrega_inicial}', 0, 1)
+            pdf.cell(0, 6, f'  * c. Fecha estimada de recuperación de Capital: {str_recap}', 0, 1)
+            pdf.cell(0, 6, f'  * d. Fecha de Quiebre de inventario: {str_quiebre}', 0, 1)
+            pdf.cell(0, 6, f'  * e. Fecha estimada entrega DDP próximo: {str_entrega_prox}', 0, 1)
+            pdf.ln(3)
+            
+            # 4. Tabla de Artículos
+            pdf.set_font('helvetica', 'B', 11)
+            pdf.cell(0, 6, '4. Detalle de Artículos y Costos en Puerta', 0, 1, 'L')
+            pdf.set_font('helvetica', 'B', 9)
+            
+            pdf.cell(38, 6, 'Artículo', 1)
+            pdf.cell(12, 6, 'Cant', 1, 0, 'C')
+            pdf.cell(24, 6, 'FOB($)', 1, 0, 'R')
+            pdf.cell(24, 6, 'Envío($)', 1, 0, 'R')
+            pdf.cell(24, 6, 'C.Puerta($)', 1, 0, 'R')
+            pdf.cell(24, 6, 'Inversión($)', 1, 0, 'R')
+            pdf.cell(24, 6, 'PVP Norm', 1, 0, 'R')
+            pdf.cell(24, 6, 'PVP Sug', 1, 1, 'R')
+            
+            pdf.set_font('helvetica', '', 9)
+            for _, row in df_res.iterrows():
+                pdf.cell(38, 6, str(row['Artículo'])[:18], 1)
+                pdf.cell(12, 6, str(row['Cant']), 1, 0, 'C')
+                pdf.cell(24, 6, f"{row['Precio FOB ($)']:.2f}", 1, 0, 'R')
+                pdf.cell(24, 6, f"{row['Gastos de Envío ($)']:.2f}", 1, 0, 'R')
+                pdf.cell(24, 6, f"{row['Costo Puerta ($)']:.2f}", 1, 0, 'R')
+                pdf.cell(24, 6, f"{row['Inversión ($)']:.2f}", 1, 0, 'R')
+                pdf.cell(24, 6, str(row['PVP Normal ($)']), 1, 0, 'R')
+                pdf.cell(24, 6, str(row['PVP Sugerido ($)']), 1, 1, 'R')
+                
+            return pdf.output(dest='S').encode('latin1')
+    
+        st.markdown("---")
+        st.markdown("### 📄 Exportación de Reporte Ejecutivo")
+        
+        st.download_button(
+            label="📥 Descargar Reporte Ejecutivo Oficial en PDF",
+            data=crear_pdf(),
+            file_name="Reporte_Ejecutivo_Importacion.pdf",
+            mime="application/pdf",
+            type="primary"
+        )
 
     else:
         st.info("ℹ️ **Ambiente Manual Activo:** Registro directo de productos y gastos del contenedor.")
