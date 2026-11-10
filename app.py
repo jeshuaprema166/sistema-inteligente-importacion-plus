@@ -939,16 +939,12 @@ def renderizar_pestana_salvavidas(productos, config):
             
             st.markdown("---")
 
-def procesar_opcion_c_lcl(productos_c_df, volumen_m3_global, tarifa_plana_m3, fecha_embarque, semanas_transito, m_normal, m_mayor, m_sugerido):
+def procesar_opcion_c_lcl(productos_c_df, volumen_m3_global, tarifa_plana_m3, fecha_embarque, semanas_transito, m_normal, m_mayor, m_sugerido, monto_prox_pedido):
     from datetime import datetime, timedelta
     import pandas as pd
 
     resultados = []
-    
-    # El costo total del flete DDP ahora se calcula estrictamente con el volumen global ingresado en pantalla
     costo_total_flete_ddp = volumen_m3_global * tarifa_plana_m3
-    
-    # Suma de volúmenes individuales de los artículos para prorrateo proporcional
     volumen_items_suma = (productos_c_df["cantidad"] * productos_c_df["volumen_m3"]).sum()
     
     inversion_general_total = 0.0
@@ -956,6 +952,8 @@ def procesar_opcion_c_lcl(productos_c_df, volumen_m3_global, tarifa_plana_m3, fe
     utilidad_normal_total_gen = 0.0
     utilidad_mayor_total_gen = 0.0
     utilidad_sug_total_gen = 0.0
+    
+    ingreso_semanal_global = 0.0
 
     for idx, row in productos_c_df.iterrows():
         nombre = row["nombre"]
@@ -969,17 +967,16 @@ def procesar_opcion_c_lcl(productos_c_df, volumen_m3_global, tarifa_plana_m3, fe
         un_may = float(row["unidades_mayor"])
         un_sug = float(row["unidades_sugeridas"])
         
-        # Prorrateo del flete DDP basado en la participación del volumen de cada artículo frente al total
+        # Prorrateo de flete DDP
         volumen_lote = cantidad * vol_unitario
         proporcion_vol = (volumen_lote / volumen_items_suma) if volumen_items_suma > 0 else (1 / len(productos_c_df))
         arribo_asignado_total = costo_total_flete_ddp * proporcion_vol
         arribo_unitario = arribo_asignado_total / cantidad if cantidad > 0 else 0
         
-        # Costo Real en Puerta
         costo_real_unitario = fob_unitario + arribo_unitario
         inversion_total_articulo = cantidad * costo_real_unitario
         
-        # Precios por Canal (con recargo porcentual directo)
+        # Precios por Canal (recargo porcentual directo)
         pvp_normal = costo_real_unitario * (1.0 + (m_normal / 100.0))
         pvp_mayor = costo_real_unitario * (1.0 + (m_mayor / 100.0))
         pvp_sugerido = costo_real_unitario * (1.0 + (m_sugerido / 100.0))
@@ -997,6 +994,11 @@ def procesar_opcion_c_lcl(productos_c_df, volumen_m3_global, tarifa_plana_m3, fe
         utilidad_mayor_total_gen += utilidad_un_mayor
         utilidad_sug_total_gen += utilidad_un_sug
         
+        # Cálculo de ingresos semanales generados por este artículo según su ritmo de venta estimado
+        # Distribuimos proporcionalmente el ingreso por canal basado en las unidades asignadas frente a la cantidad total
+        ingreso_unit_ponderado = ((pvp_normal * un_norm) + (pvp_mayor * un_may) + (pvp_sugerido * un_sug)) / cantidad if cantidad > 0 else 0
+        ingreso_semanal_global += ventas_semanales * ingreso_unit_ponderado
+        
         # Cobertura de Stock
         semanas_cobertura = stock_inicial / ventas_semanales if ventas_semanales > 0 else 999.0
         
@@ -1006,6 +1008,7 @@ def procesar_opcion_c_lcl(productos_c_df, volumen_m3_global, tarifa_plana_m3, fe
             dt_arribo = dt_emb + timedelta(weeks=int(semanas_transito))
             str_arribo = dt_arribo.strftime("%Y-%m-%d")
         except Exception:
+            dt_arribo = datetime.today()
             str_arribo = "Por definir"
             
         deficit_semanas = semanas_transito - semanas_cobertura
@@ -1034,24 +1037,37 @@ def procesar_opcion_c_lcl(productos_c_df, volumen_m3_global, tarifa_plana_m3, fe
         
     df_res = pd.DataFrame(resultados)
     
-    # Métricas Globales Ejecutivas de la Operación
+    # Cálculo del tiempo de recapitalización (Semanas y Fecha estimada para el próximo pedido)
+    semanas_recapitalizacion = (monto_prox_pedido / ingreso_semanal_global) if ingreso_semanal_global > 0 else 0.0
+    
+    try:
+        dt_recapitalizacion = dt_arribo + timedelta(weeks=float(semanas_recapitalizacion))
+        str_fecha_recap = dt_recapitalizacion.strftime("%Y-%m-%d")
+    except Exception:
+        str_fecha_recap = "Por definir"
+
+    # Tablero Financiero y de Recapitalización
     st.markdown("---")
-    st.markdown("### 📊 Tablero Financiero Multicanal del Embarque")
+    st.markdown("### 📊 Tablero Financiero Multicanal y Ciclo de Recapitalización")
+    
+    rc1, rc2, rc3 = st.columns(3)
+    rc1.metric("📦 Inversión General Embarque", f"${inversion_general_total:,.2f}")
+    rc2.metric("🎯 Meta Próximo Pedido", f"${monto_prox_pedido:,.2f}")
+    rc3.metric("⏱️ Tiempo de Recuperación", f"{semanas_recapitalizacion:.1f} Semanas")
+    
+    st.markdown(f"📅 **Fecha estimada para reponer inventario y emitir nuevo pedido:** `{str_fecha_recap}` (Calculado a partir de la llegada a puerta)")
+    st.markdown("---")
+    
     m1, m2, m3, m4 = st.columns(4)
-    m1.metric("📦 Inversión General", f"${inversion_general_total:,.2f}")
-    m2.metric("🛍️ Utilidad PVP Normal", f"${utilidad_normal_total_gen:,.2f}")
+    m1.metric("💰 Utilidad Global", f"${utilidad_general_total:,.2f}")
+    m2.metric("🛍️ Utilidad Normal", f"${utilidad_normal_total_gen:,.2f}")
     m3.metric("🤝 Utilidad Mayorista", f"${utilidad_mayor_total_gen:,.2f}")
     m4.metric("⭐ Utilidad Sugerida", f"${utilidad_sug_total_gen:,.2f}")
     
     st.markdown("---")
-    mg1, mg2 = st.columns(2)
-    mg1.metric("💰 Utilidad Global de Operación", f"${utilidad_general_total:,.2f}")
-    margen_global_pct = (utilidad_general_total / inversion_general_total * 100) if inversion_general_total > 0 else 0
-    mg2.metric("📈 Margen Global Ponderado", f"{margen_global_pct:.1f}%")
-    st.markdown("---")
 
     return df_res
-     
+       
 def proyectar_flujo_caja(productos, config, semanas=13, crecimiento_semanal=0.02):
     hoy = date.today()
     capital_inicial = float(config.get("capital_inicial", 0.0))
