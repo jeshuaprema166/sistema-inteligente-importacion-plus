@@ -954,7 +954,9 @@ def procesar_opcion_c_lcl(productos_c_df, volumen_m3_global, tarifa_plana_m3, fe
     utilidad_sug_total_gen = 0.0
     
     ingreso_semanal_global = 0.0
+    min_semanas_cobertura = 999.0
 
+    # 1. Procesamiento por artículo
     for idx, row in productos_c_df.iterrows():
         nombre = row["nombre"]
         cantidad = float(row["cantidad"])
@@ -994,34 +996,25 @@ def procesar_opcion_c_lcl(productos_c_df, volumen_m3_global, tarifa_plana_m3, fe
         utilidad_mayor_total_gen += utilidad_un_mayor
         utilidad_sug_total_gen += utilidad_un_sug
         
-        # Cálculo de ingresos semanales generados por este artículo según su ritmo de venta estimado
-        # Distribuimos proporcionalmente el ingreso por canal basado en las unidades asignadas frente a la cantidad total
-        ingreso_unit_ponderado = ((pvp_normal * un_norm) + (pvp_mayor * un_may) + (pvp_sugerido * un_sug)) / cantidad if cantidad > 0 else 0
-        ingreso_semanal_global += ventas_semanales * ingreso_unit_ponderado
+        # Ingresos semanales ponderados considerando el fraccionamiento de crédito en PVP Sugerido
+        # Contado (Normal y Mayor): 100% inmediato por semana
+        ingreso_contado_sem = (pvp_normal * un_norm + pvp_mayor * un_may) / cantidad * ventas_semanales if cantidad > 0 else 0
+        # Crédito Sugerido fraccionado (30% inicial, 35% a las 2 sem, 35% a las 4 sem) -> ponderado efectivo semanal
+        ingreso_sug_sem = (pvp_sugerido * un_sug) / cantidad * ventas_semanales if cantidad > 0 else 0
+        # Flujo efectivo semanal ponderado considerando los desfases de cobro
+        ingreso_semanal_global += ingreso_contado_sem + (ingreso_sug_sem * (0.30 + 0.35/2 + 0.35/4))
         
         # Cobertura de Stock
         semanas_cobertura = stock_inicial / ventas_semanales if ventas_semanales > 0 else 999.0
-        
-        # Fechas y Alertas
-        try:
-            dt_emb = datetime.strptime(str(fecha_embarque), "%Y-%m-%d")
-            dt_arribo = dt_emb + timedelta(weeks=int(semanas_transito))
-            str_arribo = dt_arribo.strftime("%Y-%m-%d")
-        except Exception:
-            dt_arribo = datetime.today()
-            str_arribo = "Por definir"
-            
-        deficit_semanas = semanas_transito - semanas_cobertura
-        if deficit_semanas > 0:
-            estado_alerta = "🔴 CRÍTICO: Quiebre inminente"
-        elif semanas_cobertura <= (semanas_transito + 2):
-            estado_alerta = "🟡 PREVENTIVO: Margen ajustado"
-        else:
-            estado_alerta = "🟢 ÓPTIMO: Seguro"
+        if semanas_cobertura < min_semanas_cobertura:
+            min_semanas_cobertura = semanas_cobertura
 
         resultados.append({
             "Artículo": nombre,
             "Cant": int(cantidad),
+            "Stock Inicial": int(stock_inicial),
+            "Ventas/Sem": float(ventas_semanales),
+            "Cobert. (Sem)": round(semanas_cobertura, 1),
             "Costo Puerta ($)": round(costo_real_unitario, 2),
             "Inversión ($)": round(inversion_total_articulo, 2),
             "PVP Normal ($)": round(pvp_normal, 2),
@@ -1030,32 +1023,54 @@ def procesar_opcion_c_lcl(productos_c_df, volumen_m3_global, tarifa_plana_m3, fe
             "Utilidad Normal ($)": round(utilidad_un_normal, 2),
             "Utilidad Mayor ($)": round(utilidad_un_mayor, 2),
             "Utilidad Sugerida ($)": round(utilidad_un_sug, 2),
-            "Utilidad Total ($)": round(utilidad_total_articulo, 2),
-            "Cobert. (Sem)": round(semanas_cobertura, 1),
-            "Estado": estado_alerta
+            "Utilidad Total ($)": round(utilidad_total_articulo, 2)
         })
         
     df_res = pd.DataFrame(resultados)
     
-    # Cálculo del tiempo de recapitalización (Semanas y Fecha estimada para el próximo pedido)
-    semanas_recapitalizacion = (monto_prox_pedido / ingreso_semanal_global) if ingreso_semanal_global > 0 else 0.0
-    
+    # 2. Manejo de Fechas y Cronograma
     try:
-        dt_recapitalizacion = dt_arribo + timedelta(weeks=float(semanas_recapitalizacion))
-        str_fecha_recap = dt_recapitalizacion.strftime("%Y-%m-%d")
+        dt_pedido_inicial = datetime.strptime(str(fecha_embarque), "%Y-%m-%d")
     except Exception:
-        str_fecha_recap = "Por definir"
+        dt_pedido_inicial = datetime.today()
+        
+    dt_entrega_inicial = dt_pedido_inicial + timedelta(weeks=int(semanas_transito))
+    
+    # Fecha de quiebre de inventario estimada desde hoy a partir de la menor cobertura de stock
+    dt_quiebre = dt_pedido_inicial + timedelta(weeks=float(min_semanas_cobertura))
+    
+    # Cálculo del tiempo de recuperación del capital basado estrictamente en la inversión general total (FOB + DDP)
+    semanas_recapitalizacion = (inversion_general_total / ingreso_semanal_global) if ingreso_semanal_global > 0 else 0.0
+    dt_recapitalizacion = dt_entrega_inicial + timedelta(weeks=float(semanas_recapitalizacion))
+    
+    # Fecha estimada de entrega DDP próximo (asumiendo un nuevo ciclo de tránsito idéntico)
+    dt_entrega_proximo = dt_recapitalizacion + timedelta(weeks=int(semanas_transito))
 
-    # Tablero Financiero y de Recapitalización
+    # Formateo de cadenas de texto para visualización
+    str_pedido_inicial = dt_pedido_inicial.strftime("%Y-%m-%d")
+    str_entrega_inicial = dt_entrega_inicial.strftime("%Y-%m-%d")
+    str_recap = dt_recapitalizacion.strftime("%Y-%m-%d")
+    str_quiebre = dt_quiebre.strftime("%Y-%m-%d")
+    str_entrega_prox = dt_entrega_proximo.strftime("%Y-%m-%d")
+
+    # 3. Tablero Financiero y Cronograma Ejecutivo con las 5 Fechas Clave
     st.markdown("---")
-    st.markdown("### 📊 Tablero Financiero Multicanal y Ciclo de Recapitalización")
+    st.markdown("### 📊 Tablero Financiero Multicanal y Cronograma Ejecutivo")
     
     rc1, rc2, rc3 = st.columns(3)
     rc1.metric("📦 Inversión General Embarque", f"${inversion_general_total:,.2f}")
     rc2.metric("🎯 Meta Próximo Pedido", f"${monto_prox_pedido:,.2f}")
-    rc3.metric("⏱️ Tiempo de Recuperación", f"{semanas_recapitalizacion:.1f} Semanas")
+    rc3.metric("⏱️ Tiempo Recuperación Capital", f"{semanas_recapitalizacion:.1f} Semanas")
     
-    st.markdown(f"📅 **Fecha estimada para reponer inventario y emitir nuevo pedido:** `{str_fecha_recap}` (Calculado a partir de la llegada a puerta)")
+    st.markdown("---")
+    st.markdown("#### 📅 Cronograma de Hitos y Fechas Clave del Embarque:")
+    st.markdown(f"""
+    * **a. 🚢 Fecha pedido inicial:** `{str_pedido_inicial}`
+    * **b. 🤝 Fecha estimada de entrega DDP Inicial:** `{str_entrega_inicial}`
+    * **c. 💰 Fecha estimada de recuperación del Capital para próximo pedido:** `{str_recap}`
+    * **d. 🔴 Fecha de Quiebre de inventario (según estimado de Vtas.):** `{str_quiebre}`
+    * **e. 🚚 Fecha de estimado entrega DDP próximo:** `{str_entrega_prox}`
+    """)
     st.markdown("---")
     
     m1, m2, m3, m4 = st.columns(4)
@@ -1067,7 +1082,7 @@ def procesar_opcion_c_lcl(productos_c_df, volumen_m3_global, tarifa_plana_m3, fe
     st.markdown("---")
 
     return df_res
-       
+     
 def proyectar_flujo_caja(productos, config, semanas=13, crecimiento_semanal=0.02):
     hoy = date.today()
     capital_inicial = float(config.get("capital_inicial", 0.0))
