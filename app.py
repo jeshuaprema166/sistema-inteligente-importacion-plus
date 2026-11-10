@@ -2206,7 +2206,9 @@ def main():
         mime="application/pdf",
         type="primary"
     )
-            
+
+    return 
+    
     else:
         st.info("ℹ️ **Ambiente Manual Activo:** Registro directo de productos y gastos del contenedor.")
         # Aquí puedes integrar el formulario de la Opción A que estructuramos antes o dejarlo listo para desplegar
