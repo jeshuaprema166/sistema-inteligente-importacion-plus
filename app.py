@@ -2117,22 +2117,42 @@ def main():
     
         # --- GENERACIÓN Y DESCARGA DE PDF CON FPDF ---
         from fpdf import FPDF
-    
+        
+        # Función para limpiar caracteres no soportados por las fuentes core de PDF
+        def sanitize_text(text):
+            if not isinstance(text, str):
+                text = str(text)
+            replacements = {
+                '\u2014': '-',   # Raya em (—) -> Guion normal
+                '\u2013': '-',   # Raya en (–) -> Guion normal
+                '\u2018': "'",   # Comilla simple izquierda (')
+                '\u2019': "'",   # Comilla simple derecha (')
+                '\u201c': '"',   # Comilla doble izquierda (")
+                '\u201d': '"',   # Comilla doble derecha (")
+                '\u2026': '...', # Puntos suspensivos (…)
+                '\u2022': '-',   # Viñeta (•)
+            }
+            for search, replace in replacements.items():
+                text = text.replace(search, replace)
+            # Red de seguridad final: si queda algún carácter raro, lo reemplaza para no romper el PDF
+            return text.encode('latin-1', 'replace').decode('latin-1')
+        
         class PDFReporte(FPDF):
             def header(self):
                 self.set_font('helvetica', 'B', 13)
-                self.cell(0, 7, 'Sistema Inteligente de Importación Marítima para Emprendedores', 0, 1, 'C')
+                self.cell(0, 7, sanitize_text('Sistema Inteligente de Importación Marítima para Emprendedores'), 0, 1, 'C')
                 self.set_font('helvetica', '', 10)
-                self.cell(0, 5, 'Reporte Ejecutivo y Cronograma de Operación (DDP)', 0, 1, 'C')
+                self.cell(0, 5, sanitize_text('Reporte Ejecutivo y Cronograma de Operación (DDP)'), 0, 1, 'C')
                 self.set_font('helvetica', 'I', 9)
-                self.cell(0, 5, 'Autoría y Administración por: Prof. Jesús Pulido — Asesor y Analista en Importación.', 0, 1, 'C')
+                # Aquí estaba el error de la raya em (—)
+                self.cell(0, 5, sanitize_text('Autoría y Administración por: Prof. Jesús Pulido — Asesor y Analista en Importación.'), 0, 1, 'C')
                 self.ln(4)
-    
+        
             def footer(self):
                 self.set_y(-15)
                 self.set_font('helvetica', 'I', 8)
                 self.cell(0, 10, f'Página {self.page_no()}', 0, 0, 'C')
-    
+        
         def crear_pdf():
             pdf = PDFReporte()
             pdf.add_page()
@@ -2140,38 +2160,38 @@ def main():
             
             # 1. Resumen Financiero
             pdf.set_font('helvetica', 'B', 11)
-            pdf.cell(0, 6, '1. Resumen Financiero del Embarque', 0, 1, 'L')
+            pdf.cell(0, 6, sanitize_text('1. Resumen Financiero del Embarque'), 0, 1, 'L')
             pdf.set_font('helvetica', '', 10)
-            pdf.cell(0, 6, f'  * Ingreso Bruto x Vtas Operac.: ${ingreso_bruto_operaciones_total:,.2f}', 0, 1)
-            pdf.cell(0, 6, f'  * Inversión General Embarque: ${inversion_general_total:,.2f}', 0, 1)
-            pdf.cell(0, 6, f'  * Meta Próximo Pedido (con Envío): ${meta_proximo_pedido_con_envio:,.2f}', 0, 1)
-            pdf.cell(0, 6, f'  * Tiempo de Recuperación de Capital: {semanas_recapitalizacion:.1f} Semanas', 0, 1)
+            pdf.cell(0, 6, sanitize_text(f'  * Ingreso Bruto x Vtas Operac.: ${ingreso_bruto_operaciones_total:,.2f}'), 0, 1)
+            pdf.cell(0, 6, sanitize_text(f'  * Inversión General Embarque: ${inversion_general_total:,.2f}'), 0, 1)
+            pdf.cell(0, 6, sanitize_text(f'  * Meta Próximo Pedido (con Envío): ${meta_proximo_pedido_con_envio:,.2f}'), 0, 1)
+            pdf.cell(0, 6, sanitize_text(f'  * Tiempo de Recuperación de Capital: {semanas_recapitalizacion:.1f} Semanas'), 0, 1)
             pdf.ln(3)
             
             # 2. Utilidades
             pdf.set_font('helvetica', 'B', 11)
-            pdf.cell(0, 6, '2. Desglose de Utilidades por Canal', 0, 1, 'L')
+            pdf.cell(0, 6, sanitize_text('2. Desglose de Utilidades por Canal'), 0, 1, 'L')
             pdf.set_font('helvetica', '', 10)
-            pdf.cell(0, 6, f'  * Utilidad Global: ${utilidad_general_total:,.2f}', 0, 1)
-            pdf.cell(0, 6, f'  * Utilidad Normal (Detal): ${utilidad_normal_total_gen:,.2f}', 0, 1)
-            pdf.cell(0, 6, f'  * Utilidad Mayorista: ${utilidad_mayor_total_gen:,.2f}', 0, 1)
-            pdf.cell(0, 6, f'  * Utilidad Sugerida (Crédito): ${utilidad_sug_total_gen:,.2f}', 0, 1)
+            pdf.cell(0, 6, sanitize_text(f'  * Utilidad Global: ${utilidad_general_total:,.2f}'), 0, 1)
+            pdf.cell(0, 6, sanitize_text(f'  * Utilidad Normal (Detal): ${utilidad_normal_total_gen:,.2f}'), 0, 1)
+            pdf.cell(0, 6, sanitize_text(f'  * Utilidad Mayorista: ${utilidad_mayor_total_gen:,.2f}'), 0, 1)
+            pdf.cell(0, 6, sanitize_text(f'  * Utilidad Sugerida (Crédito): ${utilidad_sug_total_gen:,.2f}'), 0, 1)
             pdf.ln(3)
             
             # 3. Cronograma
             pdf.set_font('helvetica', 'B', 11)
-            pdf.cell(0, 6, '3. Cronograma de Hitos y Fechas Clave', 0, 1, 'L')
+            pdf.cell(0, 6, sanitize_text('3. Cronograma de Hitos y Fechas Clave'), 0, 1, 'L')
             pdf.set_font('helvetica', '', 10)
-            pdf.cell(0, 6, f'  * a. Fecha pedido inicial: {str_pedido_inicial}', 0, 1)
-            pdf.cell(0, 6, f'  * b. Fecha estimada de entrega DDP Inicial: {str_entrega_inicial}', 0, 1)
-            pdf.cell(0, 6, f'  * c. Fecha estimada de recuperación de Capital: {str_recap}', 0, 1)
-            pdf.cell(0, 6, f'  * d. Fecha de Quiebre de inventario: {str_quiebre}', 0, 1)
-            pdf.cell(0, 6, f'  * e. Fecha estimada entrega DDP próximo: {str_entrega_prox}', 0, 1)
+            pdf.cell(0, 6, sanitize_text(f'  * a. Fecha pedido inicial: {str_pedido_inicial}'), 0, 1)
+            pdf.cell(0, 6, sanitize_text(f'  * b. Fecha estimada de entrega DDP Inicial: {str_entrega_inicial}'), 0, 1)
+            pdf.cell(0, 6, sanitize_text(f'  * c. Fecha estimada de recuperación de Capital: {str_recap}'), 0, 1)
+            pdf.cell(0, 6, sanitize_text(f'  * d. Fecha de Quiebre de inventario: {str_quiebre}'), 0, 1)
+            pdf.cell(0, 6, sanitize_text(f'  * e. Fecha estimada entrega DDP próximo: {str_entrega_prox}'), 0, 1)
             pdf.ln(3)
             
             # 4. Tabla de Artículos
             pdf.set_font('helvetica', 'B', 11)
-            pdf.cell(0, 6, '4. Detalle de Artículos y Costos en Puerta', 0, 1, 'L')
+            pdf.cell(0, 6, sanitize_text('4. Detalle de Artículos y Costos en Puerta'), 0, 1, 'L')
             pdf.set_font('helvetica', 'B', 9)
             
             pdf.cell(38, 6, 'Artículo', 1)
@@ -2185,17 +2205,20 @@ def main():
             
             pdf.set_font('helvetica', '', 9)
             for _, row in df_res.iterrows():
-                pdf.cell(38, 6, str(row['Artículo'])[:18], 1)
-                pdf.cell(12, 6, str(row['Cant']), 1, 0, 'C')
+                # Sanitizamos también los textos dinámicos que vienen del DataFrame por si el usuario tipeó algo raro
+                pdf.cell(38, 6, sanitize_text(str(row['Artículo'])[:18]), 1)
+                pdf.cell(12, 6, sanitize_text(str(row['Cant'])), 1, 0, 'C')
                 pdf.cell(24, 6, f"{row['Precio FOB ($)']:.2f}", 1, 0, 'R')
                 pdf.cell(24, 6, f"{row['Gastos de Envío ($)']:.2f}", 1, 0, 'R')
                 pdf.cell(24, 6, f"{row['Costo Puerta ($)']:.2f}", 1, 0, 'R')
                 pdf.cell(24, 6, f"{row['Inversión ($)']:.2f}", 1, 0, 'R')
-                pdf.cell(24, 6, str(row['PVP Normal ($)']), 1, 0, 'R')
-                pdf.cell(24, 6, str(row['PVP Sugerido ($)']), 1, 1, 'R')
+                pdf.cell(24, 6, sanitize_text(str(row['PVP Normal ($)'])), 1, 0, 'R')
+                pdf.cell(24, 6, sanitize_text(str(row['PVP Sugerido ($)'])), 1, 1, 'R')
                 
-            return pdf.output(dest='S').encode('latin1')
-    
+            # CORRECCIÓN: Manejo seguro de la salida para fpdf2 moderno
+            salida = pdf.output(dest='S')
+            return salida.encode('latin1') if isinstance(salida, str) else bytes(salida)
+        
         st.markdown("---")
         st.markdown("### 📄 Exportación de Reporte Ejecutivo")
         
