@@ -1096,26 +1096,6 @@ def procesar_opcion_c_lcl(productos_c_df, volumen_m3_global, tarifa_plana_m3, fe
     * **e. 📦 Fecha de estimado entrega DDP próximo:** `{str_entrega_prox}`
     """)
     st.markdown("---")
-    
-    # 🖨️ Botón de Exportación PDF al pie del reporte
-    html_pdf_button = """
-    <div style="text-align: center; margin: 20px 0;">
-        <button onclick="window.print();" style="
-            background-color: #2563eb;
-            color: white;
-            padding: 12px 24px;
-            font-size: 16px;
-            font-weight: bold;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        ">
-            🖨️ Descargar / Imprimir Reporte Ejecutivo (PDF)
-        </button>
-    </div>
-    """
-    st.markdown(html_pdf_button, unsafe_allow_html=True)
 
     return df_res
     
@@ -2134,6 +2114,30 @@ def main():
         st.markdown("### 📊 Reporte Ejecutivo y Cobertura de Inventario — Puerta a Puerta (DDP)")
         st.dataframe(st.session_state["df_lcl"], use_container_width=True)
         st.success("🎉 ¡Su análisis de costos en puerta y control de bache de inventario está listo para la toma de decisiones!")
+    
+    # --- BOTÓN NATIVO DE EXPORTACIÓN / IMPRESIÓN A PDF ---
+    if "df_lcl" in st.session_state:
+        st.markdown("---")
+        st.markdown("### 📄 Exportación de Reporte Ejecutivo")
+        
+        # Información de autoría profesional solicitada
+        st.markdown("""
+        <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
+            <p style="margin: 0; color: #1e293b; font-size: 14px;">
+                <strong>Sistema Inteligente de Importación Marítima para Emprendedores</strong><br>
+                Autoría y Administración por: <strong>Prof. Jesús Pulido</strong> — Asesor y Analista en Importación.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Botón nativo de Streamlit que activa la orden de impresión del navegador de forma segura
+        if st.button("🖨️ Imprimir / Guardar Reporte Ejecutivo como PDF", type="primary"):
+            st.markdown("""
+                <script>
+                    window.parent.print();
+                </script>
+            """, unsafe_allow_html=True)
+                  
         return
             
     else:
