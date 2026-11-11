@@ -2108,7 +2108,17 @@ def main():
             st.session_state["productos_actuales"] = productos
             st.session_state["config_actual"] = config
             st.session_state["gastos_contenedor"] = gastos_contenedor
-
+            st.markdown("---")
+    
+    # 1. Primero, el bloque opcional de guardar en el historial (si Sheets DB está activo)
+    if SHEETS_DB_OK:
+        if st.button("💾 Guardar esta importación en el historial", type="secondary"):
+            prods_guardar = st.session_state.get("productos_actuales", [])
+            conf_guardar = st.session_state.get("config_actual", {})
+            ok, msg = sheets_db.guardar_importacion(prods_guardar, conf_guardar)
+            (st.success if ok else st.warning)(msg)
+            sheets_db.guardar_alertas(generar_alertas_reposicion(prods_guardar, conf_guardar))
+    
     # =========================================================================
     # OPCIÓN B: CARGA FRACCIONADA (LCL DDP)
     # =========================================================================
@@ -2322,17 +2332,6 @@ def main():
                 
         # Aquí puedes seguir agregando el resto del formulario manual de la Opción C
     
-    # 1. Primero, el bloque opcional de guardar en el historial (si Sheets DB está activo)
-    if SHEETS_DB_OK:
-        if st.button("💾 Guardar esta importación en el historial", type="secondary"):
-            prods_guardar = st.session_state.get("productos_actuales", [])
-            conf_guardar = st.session_state.get("config_actual", {})
-            ok, msg = sheets_db.guardar_importacion(prods_guardar, conf_guardar)
-            (st.success if ok else st.warning)(msg)
-            sheets_db.guardar_alertas(generar_alertas_reposicion(prods_guardar, conf_guardar))
-
-    st.markdown("---")
-
     # 2. El candado principal para evitar el NameError (ALINEADO AL FLUJO PRINCIPAL, FUERA DE SHEETS_DB)
     if "productos_actuales" not in st.session_state:
         st.warning("⚠️ Por favor, configure sus datos y haga clic en **'Calcular análisis completo'** para habilitar los reportes ejecutivos.")
