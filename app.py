@@ -1097,6 +1097,21 @@ def procesar_opcion_c_lcl(productos_c_df, volumen_m3_global, tarifa_plana_m3, fe
     """)
     st.markdown("---")
 
+    # --- GUARDAR RESULTADOS EN SESIÓN PARA EL PDF ---
+    st.session_state["res_ingreso_bruto"] = ingreso_bruto_operaciones_total
+    st.session_state["res_inversion_total"] = inversion_general_total
+    st.session_state["res_meta_proximo"] = meta_proximo_pedido_con_envio
+    st.session_state["res_semanas_recap"] = semanas_recapitalizacion
+    st.session_state["res_utilidad_global"] = utilidad_general_total
+    st.session_state["res_utilidad_normal"] = utilidad_normal_total_gen
+    st.session_state["res_utilidad_mayor"] = utilidad_mayor_total_gen
+    st.session_state["res_utilidad_sug"] = utilidad_sug_total_gen
+    st.session_state["res_f_pedido"] = str_pedido_inicial
+    st.session_state["res_f_entrega"] = str_entrega_inicial
+    st.session_state["res_f_recap"] = str_recap
+    st.session_state["res_f_quiebre"] = str_quiebre
+    st.session_state["res_f_entrega_prox"] = str_entrega_prox
+  
     return df_res
     
 def mostrar_flujo_caja(df_flujo, config):
@@ -2107,21 +2122,6 @@ def main():
             pct_perdida 
         )
         st.success("✅ ¡Cálculo multicanal y cobertura procesados con éxito!")
-
-        # 👇 AÑADE ESTAS LÍNEAS AQUÍ PARA GUARDAR LOS RESULTADOS 👇
-        st.session_state["res_ingreso_bruto"] = ingreso_bruto_operaciones_total
-        st.session_state["res_inversion_total"] = inversion_general_total
-        st.session_state["res_meta_proximo"] = meta_proximo_pedido_con_envio
-        st.session_state["res_semanas_recap"] = semanas_recapitalizacion
-        st.session_state["res_utilidad_global"] = utilidad_general_total
-        st.session_state["res_utilidad_normal"] = utilidad_normal_total_gen
-        st.session_state["res_utilidad_mayor"] = utilidad_mayor_total_gen
-        st.session_state["res_utilidad_sug"] = utilidad_sug_total_gen
-        st.session_state["res_f_pedido"] = str_pedido_inicial
-        st.session_state["res_f_entrega"] = str_entrega_inicial
-        st.session_state["res_f_recap"] = str_recap
-        st.session_state["res_f_quiebre"] = str_quiebre
-        st.session_state["res_f_entrega_prox"] = str_entrega_prox
     
     # Si ya tenemos resultados DDP guardados en la sesión y estamos en la Opción B, mostramos el reporte y detenemos el flujo FCL
     if "df_lcl" in st.session_state and modalidad.startswith("📦 Opción B"):
