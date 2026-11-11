@@ -1986,33 +1986,107 @@ def vista_generador_sintetico():
 
 def main():
     st.set_page_config(page_title="Sistema de Importación Inteligente Premium", page_icon="🛳️", layout="wide")
-    if not verificar_acceso(): return
+    
+    # --- VERIFICACIÓN DE SESIÓN / AUTENTICACIÓN ---
+    if not st.session_state.get("autenticado", False):
+        # --- CARGA DE PORTADA LOCAL DESDE GITHUB (PANTALLA DE ACCESO) ---
+        try:
+            st.image("portada_sistema_premium.jpg", use_container_width=True)
+        except Exception:
+            st.markdown("<h3 style='text-align: center;'>🚢 Sistema de Gestión Inteligente Premium</h3>", unsafe_allow_html=True)
+
+        # --- BIENVENIDA Y TÍTULOS CENTRADOS ---
+        st.markdown("<h1 style='text-align: center;'>Bienvenidos 🚢</h1>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        st.markdown("<h3 style='text-align: center;'>¿Sabe cuánto le cuesta realmente traer los productos desde el exterior hasta su depósito?</h3>", unsafe_allow_html=True)
+        st.markdown("<h4 style='text-align: center;'>Este Sistema Inteligente le revela:</h4>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # --- LISTADO DE BENEFICIOS ---
+        st.markdown("""
+        * **La verdad sobre sus costos de importación**, márgenes de utilidad y precios óptimos de venta.
+        * **Identificar los márgenes reales de ganancia** antes de nacionalizar, analizando la rentabilidad neta por producto prorrateando con precisión los costos según peso (kg) y volumen ($m^3$). Así sabrá qué productos le dejan ganancia real y cuáles no.
+        * **Optimizar el espacio de su contenedor** y evite pérdidas por costos ocultos.
+        * **Alarmas de reposición de inventario 🟢🟡🔴 por IA**, que permiten monitorear el comportamiento de las existencias, previniendo el desabastecimiento o sobrecompra, que redunda en estancamiento del Capital económico.
+        * **Ingresar de forma automática TODOS los datos** y detalles desde el Excel de su inventario al Sistema de Análisis Inteligente de Importación.
+        * **Definir fácilmente y con certeza** a qué proveedor del exterior debe comprar, o si es mejor hacerlo localmente.
+        """)
+
+        st.info("✨ **Todo eso y más, con la ayuda de nuestro Sistema de Importación con IA** 🤖")
+
+        st.markdown("""
+        <div style="background-color: #e8f4f8; color: #0b2545; padding: 15px; border-radius: 8px; text-align: center;">
+        <strong>"UN SISTEMA DE COMERCIALIZACIÓN DISEÑADO PARA PROTEGER SU CAPITAL Y ASEGURAR QUE EL NEGOCIO SIEMPRE CREZCA"</strong>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("---")
+        
+        # --- INSTRUCCIONES RÁPIDAS ---
+        st.markdown("### 📋 Instrucciones:")
+        st.markdown("""
+        1. Una vez dentro, vaya al **menú desplegable de la izquierda** (⬅️) para configurar los **Datos de su empresa**: Razón Social, RIF, Propietario, márgenes de utilidad (%) y descuentos previstos, así como los datos del país y proveedor de origen.
+        2. Y además, le recomendamos conocer más a fondo todas las virtudes, capacidades técnicas y módulos avanzados que incorpora esta versión, **explore la pestaña desplegable (Expander)** que encontrará una vez dentro.
+        3. Para ingresar al Sistema, escriba más abajo la **contraseña** suministrada por su Asesor de Importación para comenzar el análisis.
+        """)
+
+        st.markdown("---")
+
+        # --- SECCIÓN DE AUTORÍA Y FOTOGRAFÍA ---
+        col_i, col_c, col_d = st.columns([1, 1, 1])
+        with col_c:
+            st.markdown(
+                """
+                <div style="text-align: center;">
+                    Diseñado y elaborado por<br>
+                    su Asesor de Importación Inteligente<br>
+                    <b>Prof. Jesús Pulido V.</b><br>
+                    <span style="font-size: 17px; color: #555;">0424-728.3199 / 0416-291.6426</span>
+                </div>
+                """, 
+                unsafe_allow_html=True
+            )
+
+            for nombre in ("profesor.jpg", "asesor.jpg"):
+                if os.path.exists(nombre):
+                    st.image(nombre, width=180)
+                    break
+
+        st.divider()
+
+        # --- CAMPO DE CONTRASEÑA ---
+        password = st.text_input("Contraseña de acceso", type="password")
+        if st.button("Ingresar", type="primary"):
+            if password == st.secrets["PASSWORD_ADMIN"]:
+                st.session_state["autenticado"] = True
+                st.rerun()
+            else:
+                st.error("❌ Contraseña incorrecta.")
+                
+        st.stop()  # Detiene la ejecución aquí hasta que se autentique
+
+    # =========================================================================
+    # ÁREA INTERNA (UNA VEZ INGRESADA LA CLAVE CORRECTA)
+    # =========================================================================
     inicializar_estado(); inicializar_monedas()
     panel_perfil_sidebar()
     config = st.session_state.config_empresa.copy()
     
-    # Herramienta auxiliar discreta en la barra lateral para demostraciones
     modo_demo = st.sidebar.toggle("🛠️ Modo Demostración (Generador de Datos)", value=False)
     if modo_demo:
         vista_generador_sintetico()
-    
-    if not config.get("empresa"):
-        st.info("🫲🏼 **ADELANTE ‼️**\n\nDespués de ingresar los datos de la Empresa, cargue sus Datos Excel y...\nDisfrute de las bondades del Sistema Premium para Proteger su Capital y Maximizar sus Ganancias.")
         
-        return  # <--- ¡Este 'return' frena en seco el despliegue del Excel hasta que haya empresa activa!
-           
     panel_configuracion_avanzada(config); panel_monedas_sidebar(config)
-    # Título principal centrado y ligeramente más pequeño
+    
     st.markdown("<h2 style='text-align: center; color: #1f4e78;'>🚢 Sistema de Análisis de Importación Inteligente Premium 🐉</h2>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Definimos de forma segura la función auxiliar localmente si no existe
     def _texto_seguro(val, val_otro):
         if val == "Otro" and val_otro:
             return str(val_otro)
         return str(val or "No especificado")
 
-    # Variables efectivas limpias para los 7 datos de la empresa
     empresa_activa = config.get('empresa', 'Empresa Principal')
     propietario_val = config.get('propietario', config.get('responsable', 'No especificado'))
     rif_val = config.get('rif', 'No especificado')
@@ -2021,7 +2095,6 @@ def main():
     proveedor_val = config.get('proveedor', 'No especificado')
     origen_efectivo = _texto_seguro(config.get('origen'), config.get('origen_otro'))
 
-    # Bloque centralizado con los 7 datos en el orden exacto y saltos de línea
     st.markdown(
         f"""
         <div style="text-align: center; font-size: 18px; line-height: 1.6; margin-bottom: 25px; color: #333;">
@@ -2053,364 +2126,375 @@ def main():
         else: st.info("💾 Modo local (sin sheets_db.py)")
         st.markdown("---"); st.caption("📞 0424-728.3199 / 0416-291.6426"); st.caption("✉️ jeshua166@gmail.com")
         
-# --- NUEVO SELECTOR MULTI-MODALIDAD ---
-st.markdown("### 🏢 Seleccione la Modalidad de Gestión de Importación")
+    # --- SELECTOR MULTI-MODALIDAD ---
+    st.markdown("### 🏢 Seleccione la Modalidad de Gestión de Importación")
     
-modalidad = st.selectbox(
-    "Elija el tipo de operación logística:",
-    [
-        "📊 Opción A · Contenedor Completo (FCL - Tradicional / Aduana)",
-        "📦 Opción B · Carga Fraccionada Puerta a Puerta (LCL - DDP / Emprendedor)",
-        "✍️ Opción C · Ingreso Manual Rápido"
-    ],
-    index=0,
-    help="Seleccione el ambiente adaptado a la realidad operativa de su importación."
-)
+    modalidad = st.selectbox(
+        "Elija el tipo de operación logística:",
+        [
+            "📊 Opción A · Contenedor Completo (FCL - Tradicional / Aduana)",
+            "📦 Opción B · Carga Fraccionada Puerta a Puerta (LCL - DDP / Emprendedor)",
+            "✍️ Opción C · Ingreso Manual Rápido"
+        ],
+        index=0,
+        help="Seleccione el ambiente adaptado a la realidad operativa de su importación."
+    )
     
-# =========================================================================
-# OPCIÓN A: CONTENEDOR COMPLETO (FCL)
-# =========================================================================
-if modalidad.startswith("📊 Opción A"):
-    st.info("ℹ️ **Ambiente FCL Activo:** Gestión corporativa completa con prorrateo de peso/volumen, auditoría arancelaria y flujo de caja a 13 semanas.")
-        
-    archivo = st.file_uploader("", type=["xlsx", "xls", "csv"], label_visibility="collapsed")
-    if archivo is None:
-        st.info("📦 Suba su archivo Excel o CSV para comenzar el análisis o activa el **Modo Demostración** en la barra lateral.")
-        with st.expander("❓ Columnas esperadas"):
-            st.markdown("- Producto / Descripción\n- Cantidad\n- Precio FOB\n- Peso unitario\n- Volumen unitario\n- Ventas Semanales\n- PVP Sugerido")
-    else:
-        try:
-            df = leer_excel(archivo)
-            st.success(f"✅ Archivo cargado: **{len(df)}** filas")
-            with st.expander("👀 Ver primeras filas"):
-                st.dataframe(df.head(), use_container_width=True)
-            mapeo = mapear_columnas(df)
-        except Exception as e:
-            st.error(f"❌ Error al leer el archivo: {e}")
+    # =========================================================================
+    # 4. INICIO DE LAS OPCIONES (A, B y C)
+    # =========================================================================
 
-        st.markdown("### 💼 Gastos del contenedor (en USD)")
-        cols = st.columns(3); gastos_ingresados = {}
-        for i, (nombre, criterio) in enumerate(GASTOS_CONTENEDOR):
-            with cols[i % 3]:
-                val = st.number_input(f"{nombre} ({criterio})", min_value=0.0, value=0.0, step=10.0, key=f"g_{nombre}")
-                gastos_ingresados[nombre] = Decimal(str(val))
-                    
-        if not st.button("🚀 Calcular análisis completo", type="primary") and "productos_actuales" not in st.session_state:
-            st.stop()
+    # =========================================================================
+    # OPCIÓN A: CONTENEDOR COMPLETO (FCL)
+    # =========================================================================
+    if modalidad.startswith("📊 Opción A"):    
+        st.info("ℹ️ **Ambiente FCL Activo:** Gestión corporativa completa con prorrateo de peso/volumen, auditoría arancelaria y flujo de caja a 13 semanas.")
             
+        archivo = st.file_uploader("", type=["xlsx", "xls", "csv"], label_visibility="collapsed")
+        if archivo is None:
+            st.info("📦 Suba su archivo Excel o CSV para comenzar el análisis o activa el **Modo Demostración** en la barra lateral.")
+            with st.expander("❓ Columnas esperadas"):
+                st.markdown("- Producto / Descripción\n- Cantidad\n- Precio FOB\n- Peso unitario\n- Volumen unitario\n- Ventas Semanales\n- PVP Sugerido")
+        else:
+            try:
+                df = leer_excel(archivo)
+                st.success(f"✅ Archivo cargado: **{len(df)}** filas")
+                with st.expander("👀 Ver primeras filas"):
+                    st.dataframe(df.head(), use_container_width=True)
+                mapeo = mapear_columnas(df)
+            except Exception as e:
+                st.error(f"❌ Error al leer el archivo: {e}")
+    
+            st.markdown("### 💼 Gastos del contenedor (en USD)")
+            cols = st.columns(3); gastos_ingresados = {}
+            for i, (nombre, criterio) in enumerate(GASTOS_CONTENEDOR):
+                with cols[i % 3]:
+                    val = st.number_input(f"{nombre} ({criterio})", min_value=0.0, value=0.0, step=10.0, key=f"g_{nombre}")
+                    gastos_ingresados[nombre] = Decimal(str(val))
+                        
+            if not st.button("🚀 Calcular análisis completo", type="primary") and "productos_actuales" not in st.session_state:
+                st.stop()
+                
+            try:
+                productos = construir_productos_desde_df(df, mapeo)
+                gastos_contenedor = calcular_costos(productos, gastos_ingresados, config)
+            except Exception as e: st.error(f"Error en cálculo: {e}"); st.stop()
+                
+            st.success(f"✅ Análisis completado para **{len(productos)}** productos.")
+                
+            st.session_state["productos_actuales"] = productos
+            st.session_state["config_actual"] = config
+            st.session_state["gastos_contenedor"] = gastos_contenedor
+    
+            st.markdown("---")
+        
+        # 1. El botón de cálculo de la Opción A
+        if not st.button("🚀 Calcular análisis completo", type="primary"):
+            st.stop() # <--- AQUÍ DETENEMOS EL FLUJO DE FORMA SILENCIOSA HASTA QUE PULSEN EL BOTÓN
+    
+        # 2. Si ya hicieron clic y se procesó el cálculo con éxito:
         try:
             productos = construir_productos_desde_df(df, mapeo)
-            gastos_contenedor = calcular_costos(productos, gastos_ingresados, config)
-        except Exception as e: st.error(f"Error en cálculo: {e}"); st.stop()
-            
+            gastos_contenedor = calcular_costos(productos, gastos_ingresos, config)
+        except Exception as e:
+            st.error(f"Error en cálculo: {e}")
+            st.stop()
+    
         st.success(f"✅ Análisis completado para **{len(productos)}** productos.")
-            
+    
+        # Guardamos en la sesión
         st.session_state["productos_actuales"] = productos
         st.session_state["config_actual"] = config
         st.session_state["gastos_contenedor"] = gastos_contenedor
-
+    
         st.markdown("---")
     
-    # 1. El botón de cálculo de la Opción A
-    if not st.button("🚀 Calcular análisis completo", type="primary"):
-        st.stop() # <--- AQUÍ DETENEMOS EL FLUJO DE FORMA SILENCIOSA HASTA QUE PULSEN EL BOTÓN
-
-    # 2. Si ya hicieron clic y se procesó el cálculo con éxito:
-    try:
-        productos = construir_productos_desde_df(df, mapeo)
-        gastos_contenedor = calcular_costos(productos, gastos_ingresos, config)
-    except Exception as e:
-        st.error(f"Error en cálculo: {e}")
-        st.stop()
-
-    st.success(f"✅ Análisis completado para **{len(productos)}** productos.")
-
-    # Guardamos en la sesión
-    st.session_state["productos_actuales"] = productos
-    st.session_state["config_actual"] = config
-    st.session_state["gastos_contenedor"] = gastos_contenedor
-
-    st.markdown("---")
-
-    # 3. AHORA SÍ: El botón de guardar en el historial (solo aparece después de calcular)
-    if SHEETS_DB_OK:
-        if st.button("💾 Guardar esta importación en el historial", type="secondary"):
-            prods_guardar = st.session_state.get("productos_actuales", [])
-            conf_guardar = st.session_state.get("config_actual", {})
-            ok, msg = sheets_db.guardar_importacion(prods_guardar, conf_guardar)
-            (st.success if ok else st.warning)(msg)
-            sheets_db.guardar_alertas(generar_alertas_reposicion(prods_guardar, conf_guardar))
-
-    st.markdown("---")
-
-    # 4. Definición de pestañas y reportes ejecutivos
-    tab_costos, tab_carga, tab_reposicion, tab_salvavidas, tab_reporte, tab_flujo, tab_auditoria, tab_historial = st.tabs([
-        "📊 Análisis de costos",
-        "⚖️ Carga Pesada",
-        "📦 Reposición",
-        "🆘 Salvavidas",
-        "📄 Reporte completo",
-        "📈 Flujo de caja",
-        "🔍 Auditoría aduanera",
-        "📜 Historial"
-    ])
-
-    with tab_costos:
-        vista_analisis_costos(productos, config)   
-    # ... (demás pestañas with)
-
-    with tab_carga:
-        vista_carga_pesada(productos, config)
+        # 3. AHORA SÍ: El botón de guardar en el historial (solo aparece después de calcular)
+        if SHEETS_DB_OK:
+            if st.button("💾 Guardar esta importación en el historial", type="secondary"):
+                prods_guardar = st.session_state.get("productos_actuales", [])
+                conf_guardar = st.session_state.get("config_actual", {})
+                ok, msg = sheets_db.guardar_importacion(prods_guardar, conf_guardar)
+                (st.success if ok else st.warning)(msg)
+                sheets_db.guardar_alertas(generar_alertas_reposicion(prods_guardar, conf_guardar))
     
-    with tab_reposicion:
-        mostrar_alertas_en_panel(generar_alertas_reposicion(productos, config))
-    
-    with tab_salvavidas:
-        renderizar_pestana_salvavidas(productos, config)
-    
-    with tab_reporte:
-        st.subheader("📄 Reporte Ejecutivo")
-        reporte_html = crear_reporte_html(productos, gastos_contenedor, config)
-        components.html(reporte_html, height=1500, scrolling=True)
-            
-        st.info("💡 Para guardar este reporte como PDF, presione el botón de 'Compartir' de su navegador y seleccione 'Imprimir' o 'Guardar como PDF'.")
-        st.divider()
-        boton_exportar_sheets(productos, config)
-            
         st.markdown("---")
-        pdf_bytes = generar_pdf_desde_html(reporte_html)
-        if pdf_bytes:
-            st.download_button(
-                label="📄 Descargar Reporte en PDF",
-                data=pdf_bytes,
-                file_name=f"Reporte_{config.get('factura','SN')}.pdf",
-                mime="application/pdf",
-                type="primary"
-            )
     
-    with tab_flujo:
-        mostrar_flujo_caja(proyectar_flujo_caja(productos, config), config)
-        
-    with tab_auditoria:
-        vista_auditoria_aduanera(productos)
+        # 4. Definición de pestañas y reportes ejecutivos
+        tab_costos, tab_carga, tab_reposicion, tab_salvavidas, tab_reporte, tab_flujo, tab_auditoria, tab_historial = st.tabs([
+            "📊 Análisis de costos",
+            "⚖️ Carga Pesada",
+            "📦 Reposición",
+            "🆘 Salvavidas",
+            "📄 Reporte completo",
+            "📈 Flujo de caja",
+            "🔍 Auditoría aduanera",
+            "📜 Historial"
+        ])
     
-    with tab_historial:
-        vista_historial(config)    
-
+        with tab_costos:
+            vista_analisis_costos(productos, config)   
+        # ... (demás pestañas with)
     
-# =========================================================================
-# OPCIÓN B: CARGA FRACCIONADA (LCL DDP)
-# =========================================================================
-elif modalidad.startswith("📦 Opción B"):
-    st.info("ℹ️ **Ambiente LCL DDP Activo:** Multicanal con márgenes diferenciados (Detal, Mayorista y Sugerido) y control de bache de inventario.")
+        with tab_carga:
+            vista_carga_pesada(productos, config)
         
-    # --- PARÁMETROS GLOBALES Y MÁRGENES ---
-    c_cols1, c_cols2 = st.columns(2)
-    with c_cols1:
-        fob_total_c = st.number_input("Valor FOB Total de la Mercancía ($)", min_value=0.0, value=2500.0, step=100.0)
-        volumen_m3_c = st.number_input("Volumen Total Ocupado (m³)", min_value=0.1, value=1.0, step=0.1)
-        tarifa_plana_m3 = st.number_input("Tarifa DDP por m³ ($/m³)", min_value=0.0, value=400.0, step=25.0)
-        fecha_embarque_c = st.date_input("Fecha Estimada de Embarque")
-    with c_cols2:
-        semanas_transito_c = st.number_input("Tiempo de Tránsito a Puerta (Semanas)", min_value=4, value=12, step=1)
-        margen_normal = st.number_input("Margen % PVP Normal (Detal)", min_value=0.0, max_value=999.0, value=150.0, step=5.0)
-        margen_mayor = st.number_input("Margen % PVP Mayorista", min_value=0.0, max_value=999.0, value=50.0, step=5.0)
-        margen_sugerido = st.number_input("Margen % PVP Sugerido", min_value=0.0, max_value=999.0, value=400.0, step=5.0)
-        reinversion_base_prox = st.number_input("Reinversión base para el próximo pedido ($)", min_value=100.0, value=700.0, step=50.0)
-        pct_perdida = st.number_input("% Estimado de Pérdida / Estancamiento", min_value=0.0, max_value=50.0, value=10.0, step=1.0)
-                   
-    st.markdown("##### 📝 Detalle de Artículos y Distribución por Canal de Venta:")
-    num_items_c = st.number_input("Cantidad de ítems diferentes", min_value=1, value=2, step=1, key="num_c")
+        with tab_reposicion:
+            mostrar_alertas_en_panel(generar_alertas_reposicion(productos, config))
         
-    items_c_list = []
-    for ic in range(int(num_items_c)):
-        st.markdown(f"**📦 Artículo {ic+1}**")
-        f_cols1, f_cols2 = st.columns(2)
-        with f_cols1:
-            nom_i = st.text_input(f"Nombre Artículo {ic+1}", value=f"Modelo {ic+1}", key=f"c_nom_{ic}")
-            cantidad_i = st.number_input(f"Cantidad Total Unidades {ic+1}", min_value=1, value=100, step=1, key=f"c_cant_{ic}")
-            fob_i = st.number_input(f"FOB Unit. {ic+1} ($)", min_value=0.0, value=15.0, step=1.0, key=f"c_fob_{ic}")
-        with f_cols2:
-            vol_i = st.number_input(f"Vol. Unit. m³ {ic+1}", min_value=0.001, value=0.01, step=0.001, key=f"c_vol_{ic}")
-            stock_i = st.number_input(f"Stock Inicial (Unids) {ic+1}", min_value=0.0, value=20.0, step=1.0, key=f"c_stock_{ic}")
-            ventas_i = st.number_input(f"Ventas Semanales (Unids) {ic+1}", min_value=0.1, value=5.0, step=1.0, key=f"c_ventas_{ic}")
-            
-        st.markdown("*Distribución de unidades a comercializar:*")
-        d_cols = st.columns(3)
-        with d_cols[0]:
-            unidades_normal = st.number_input(f"Unidades PVP Normal", min_value=0, value=int(cantidad_i * 0.4), step=1, key=f"c_un_norm_{ic}")
-        with d_cols[1]:
-            unidades_mayor = st.number_input(f"Unidades PVP Mayor", min_value=0, value=int(cantidad_i * 0.4), step=1, key=f"c_un_may_{ic}")
-        with d_cols[2]:
-            unidades_sug = st.number_input(f"Unidades PVP Sugerido", min_value=0, value=int(cantidad_i * 0.2), step=1, key=f"c_un_sug_{ic}")
+        with tab_salvavidas:
+            renderizar_pestana_salvavidas(productos, config)
+        
+        with tab_reporte:
+            st.subheader("📄 Reporte Ejecutivo")
+            reporte_html = crear_reporte_html(productos, gastos_contenedor, config)
+            components.html(reporte_html, height=1500, scrolling=True)
                 
-        items_c_list.append({
-            "nombre": nom_i, "cantidad": cantidad_i, "precio_fob": fob_i,
-            "volumen_m3": vol_i, "stock_inicial": stock_i, "ventas_semanales": ventas_i,
-            "unidades_normal": unidades_normal, "unidades_mayor": unidades_mayor, "unidades_sugeridas": unidades_sug
-        })
-        st.markdown("---")
-            
-        # --- BOTÓN DE PROCESAR (AHORA SÍ, DENTRO DE LA OPCIÓN B) ---
-        if st.button("🚀 Procesar Importación Multicanal (DDP)", type="primary"):
-            df_temp_c = pd.DataFrame(items_c_list)
-            st.session_state["df_lcl"] = procesar_opcion_c_lcl(
-                df_temp_c, volumen_m3_c, tarifa_plana_m3, fecha_embarque_c, semanas_transito_c,
-                margen_normal, margen_mayor, margen_sugerido, reinversion_base_prox, pct_perdida 
-            )
-            st.success("✅ ¡Cálculo multicanal y cobertura procesados con éxito!")
-        
-        # --- RESULTADOS Y DESCARGA DE PDF ---
-        if "df_lcl" in st.session_state:
+            st.info("💡 Para guardar este reporte como PDF, presione el botón de 'Compartir' de su navegador y seleccione 'Imprimir' o 'Guardar como PDF'.")
+            st.divider()
+            boton_exportar_sheets(productos, config)
+                
             st.markdown("---")
-            st.markdown("### 📊 Reporte Ejecutivo y Cobertura de Inventario — Puerta a Puerta (DDP)")
-            st.dataframe(st.session_state["df_lcl"], use_container_width=True)
-            st.success("🎉 ¡Su análisis de costos en puerta y control de bache de inventario está listo!")
-    
-            # --- GENERACIÓN DE PDF (Diseño de 2 Tablas) ---
-            from fpdf import FPDF
-    
-            def sanitize_text(text):
-                if not isinstance(text, str): text = str(text)
-                replacements = {'\u2014': '-', '\u2013': '-', '\u2018': "'", '\u2019': "'", '\u201c': '"', '\u201d': '"', '\u2026': '...', '\u2022': '-'}
-                for search, replace in replacements.items(): text = text.replace(search, replace)
-                return text.encode('latin-1', 'replace').decode('latin-1')
-    
-            class PDFReporte(FPDF):
-                def header(self):
-                    self.set_font('helvetica', 'B', 13)
-                    self.cell(0, 7, sanitize_text('Sistema Inteligente de Importación Marítima para Emprendedores'), 0, 1, 'C')
-                    self.set_font('helvetica', '', 10)
-                    self.cell(0, 5, sanitize_text('Reporte Ejecutivo y Cronograma de Operación (DDP)'), 0, 1, 'C')
-                    self.set_font('helvetica', 'I', 9)
-                    self.cell(0, 5, sanitize_text('Autoría y Administración por: Prof. Jesús Pulido — Asesor y Analista en Importación.'), 0, 1, 'C')
-                    self.ln(4)
-    
-                def footer(self):
-                    self.set_y(-15)
-                    self.set_font('helvetica', 'I', 8)
-                    self.cell(0, 10, f'Página {self.page_no()}', 0, 0, 'C')
-    
-            def crear_pdf():
-                pdf = PDFReporte()
-                pdf.add_page()
-                pdf.set_auto_page_break(auto=True, margin=15)
-                
-                # 1. Resumen Financiero
-                pdf.set_font('helvetica', 'B', 11)
-                pdf.cell(0, 6, sanitize_text('1. Resumen Financiero del Embarque'), 0, 1, 'L')
-                pdf.set_font('helvetica', '', 10)
-                pdf.cell(0, 6, sanitize_text(f"  * Ingreso Bruto x Vtas Operac.: ${st.session_state.get('res_ingreso_bruto', 0):,.2f}"), 0, 1)
-                pdf.cell(0, 6, sanitize_text(f"  * Inversión General Embarque: ${st.session_state.get('res_inversion_total', 0):,.2f}"), 0, 1)
-                pdf.cell(0, 6, sanitize_text(f"  * Meta Próximo Pedido (con Envío): ${st.session_state.get('res_meta_proximo', 0):,.2f}"), 0, 1)
-                pdf.cell(0, 6, sanitize_text(f"  * Tiempo de Recuperación de Capital: {st.session_state.get('res_semanas_recap', 0):.1f} Semanas"), 0, 1)
-                pdf.ln(3)
-                
-                # 2. Utilidades
-                pdf.set_font('helvetica', 'B', 11)
-                pdf.cell(0, 6, sanitize_text('2. Desglose de Utilidades por Canal'), 0, 1, 'L')
-                pdf.set_font('helvetica', '', 10)
-                pdf.cell(0, 6, sanitize_text(f"  * Utilidad Global: ${st.session_state.get('res_utilidad_global', 0):,.2f}"), 0, 1)
-                pdf.cell(0, 6, sanitize_text(f"  * Utilidad Normal (Detal): ${st.session_state.get('res_utilidad_normal', 0):,.2f}"), 0, 1)
-                pdf.cell(0, 6, sanitize_text(f"  * Utilidad Mayorista: ${st.session_state.get('res_utilidad_mayor', 0):,.2f}"), 0, 1)
-                pdf.cell(0, 6, sanitize_text(f"  * Utilidad Sugerida (Crédito): ${st.session_state.get('res_utilidad_sug', 0):,.2f}"), 0, 1)
-                pdf.ln(3)
-                
-                # 3. Cronograma
-                pdf.set_font('helvetica', 'B', 11)
-                pdf.cell(0, 6, sanitize_text('3. Cronograma de Hitos y Fechas Clave'), 0, 1, 'L')
-                pdf.set_font('helvetica', '', 10)
-                pdf.cell(0, 6, sanitize_text(f"  * a. Fecha pedido inicial: {st.session_state.get('res_f_pedido', 'N/A')}"), 0, 1)
-                pdf.cell(0, 6, sanitize_text(f"  * b. Fecha estimada de entrega DDP Inicial: {st.session_state.get('res_f_entrega', 'N/A')}"), 0, 1)
-                pdf.cell(0, 6, sanitize_text(f"  * c. Fecha estimada de recuperación de Capital: {st.session_state.get('res_f_recap', 'N/A')}"), 0, 1)
-                pdf.cell(0, 6, sanitize_text(f"  * d. Fecha de Quiebre de inventario: {st.session_state.get('res_f_quiebre', 'N/A')}"), 0, 1)
-                pdf.cell(0, 6, sanitize_text(f"  * e. Fecha estimada entrega DDP próximo: {st.session_state.get('res_f_entrega_prox', 'N/A')}"), 0, 1)
-                pdf.ln(4)
-                
-                # 4. Tabla de Artículos (Dividida en dos tablas verticales)
-                pdf.set_font('helvetica', 'B', 11)
-                pdf.cell(0, 6, sanitize_text('4. Detalle de Artículos y Costos en Puerta'), 0, 1, 'L')
-                pdf.set_font('helvetica', 'B', 8)
-                
-                # --- TABLA 1: COSTOS ---
-                pdf.cell(45, 6, 'Artículo', 1, 0, 'L')
-                pdf.cell(12, 6, 'Cant', 1, 0, 'C')
-                pdf.cell(18, 6, 'FOB($)', 1, 0, 'R')
-                pdf.cell(18, 6, 'Envío($)', 1, 0, 'R')
-                pdf.cell(14, 6, 'Stock', 1, 0, 'C')
-                pdf.cell(14, 6, 'Vtas/S', 1, 0, 'C')
-                pdf.cell(14, 6, 'Cobert', 1, 0, 'C')
-                pdf.cell(18, 6, 'C.Puerta', 1, 0, 'R')
-                pdf.cell(18, 6, 'Inversión', 1, 1, 'R')
-                
-                pdf.set_font('helvetica', '', 8)
-                df_para_pdf = st.session_state["df_lcl"]
-                for _, row in df_para_pdf.iterrows():
-                    pdf.cell(45, 6, sanitize_text(str(row['Artículo'])[:22]), 1, 0, 'L')
-                    pdf.cell(12, 6, sanitize_text(str(row['Cant'])), 1, 0, 'C')
-                    pdf.cell(18, 6, f"{row['Precio FOB ($)']:.2f}", 1, 0, 'R')
-                    pdf.cell(18, 6, f"{row['Gastos de Envío ($)']:.2f}", 1, 0, 'R')
-                    pdf.cell(14, 6, sanitize_text(str(row['Stock Inicial'])), 1, 0, 'C')
-                    pdf.cell(14, 6, f"{row['Ventas/Sem']:.1f}", 1, 0, 'C')
-                    pdf.cell(14, 6, f"{row['Cobert. (Sem)']:.1f}", 1, 0, 'C')
-                    pdf.cell(18, 6, f"{row['Costo Puerta ($)']:.2f}", 1, 0, 'R')
-                    pdf.cell(18, 6, f"{row['Inversión ($)']:.2f}", 1, 1, 'R')
-                    
-                pdf.ln(5)
-                
-                # --- TABLA 2: PRECIOS Y UTILIDADES ---
-                pdf.set_font('helvetica', 'B', 8)
-                pdf.cell(45, 6, 'Artículo', 1, 0, 'L')
-                pdf.cell(18, 6, 'PVP Norm', 1, 0, 'R')
-                pdf.cell(18, 6, 'PVP May', 1, 0, 'R')
-                pdf.cell(18, 6, 'PVP Sug', 1, 0, 'R')
-                pdf.cell(22, 6, 'Ut. Normal', 1, 0, 'R')
-                pdf.cell(22, 6, 'Ut. Mayor', 1, 0, 'R')
-                pdf.cell(22, 6, 'Ut. Sug', 1, 0, 'R')
-                pdf.cell(22, 6, 'Ut. Total', 1, 1, 'R')
-                
-                pdf.set_font('helvetica', '', 8)
-                for _, row in df_para_pdf.iterrows():
-                    pdf.cell(45, 6, sanitize_text(str(row['Artículo'])[:22]), 1, 0, 'L')
-                    pdf.cell(18, 6, sanitize_text(str(row['PVP Normal ($)'])), 1, 0, 'R')
-                    pdf.cell(18, 6, sanitize_text(str(row['PVP Mayor ($)'])), 1, 0, 'R')
-                    pdf.cell(18, 6, sanitize_text(str(row['PVP Sugerido ($)'])), 1, 0, 'R')
-                    pdf.cell(22, 6, f"{row['Utilidad Normal ($)']:.2f}", 1, 0, 'R')
-                    pdf.cell(22, 6, f"{row['Utilidad Mayor ($)']:.2f}", 1, 0, 'R')
-                    pdf.cell(22, 6, f"{row['Utilidad Sugerida ($)']:.2f}", 1, 0, 'R')
-                    pdf.cell(22, 6, f"{row['Utilidad Total ($)']:.2f}", 1, 1, 'R')
-                    
-                salida = pdf.output(dest='S')
-                return salida.encode('latin1') if isinstance(salida, str) else bytes(salida)
-    
-            # Renderizado en pantalla del botón de descarga
-            st.markdown("---")
-            st.markdown("### 📄 Exportación de Reporte Ejecutivo")
-            st.download_button(
-                label="📥 Descargar Reporte Ejecutivo Oficial en PDF",
-                data=crear_pdf(),
-                file_name="Reporte_Ejecutivo_Importacion.pdf",
-                mime="application/pdf",
-                type="primary"
-            )
-    
-# =========================================================================
-# OPCIÓN C: INGRESO MANUAL RÁPIDO
-# =========================================================================
-elif modalidad.startswith("✍️ Opción C"):
-    st.info("ℹ️ **Ambiente Manual Activo:** Registro directo de productos y gastos del contenedor.")
+            pdf_bytes = generar_pdf_desde_html(reporte_html)
+            if pdf_bytes:
+                st.download_button(
+                    label="📄 Descargar Reporte en PDF",
+                    data=pdf_bytes,
+                    file_name=f"Reporte_{config.get('factura','SN')}.pdf",
+                    mime="application/pdf",
+                    type="primary"
+                )
         
-    st.markdown("### 💼 Gastos del contenedor (en USD)")
-    cols = st.columns(3)
-    gastos_ingresados = {}
-    # Asumo que GASTOS_CONTENEDOR está definida globalmente arriba en tu código
-    for i, (nombre, criterio) in enumerate(GASTOS_CONTENEDOR):
-        with cols[i % 3]:
-            val = st.number_input(f"{nombre} ({criterio})", min_value=0.0, value=0.0, step=10.0, key=f"g_{nombre}")
-            gastos_ingresados[nombre] = val
-                
-    # 👇🏼 Aquí puedes seguir agregando el resto del formulario manual de la Opción C
+        with tab_flujo:
+            mostrar_flujo_caja(proyectar_flujo_caja(productos, config), config)
+            
+        with tab_auditoria:
+            vista_auditoria_aduanera(productos)
+        
+        with tab_historial:
+            vista_historial(config)    
+        
+        pass
+    # Fin opción A ‼️
     
+    # =========================================================================
+    # OPCIÓN B: CARGA FRACCIONADA (LCL DDP)
+    # =========================================================================
+    elif modalidad.startswith("📦 Opción B"):
+        st.info("ℹ️ **Ambiente LCL DDP Activo:** Multicanal con márgenes diferenciados (Detal, Mayorista y Sugerido) y control de bache de inventario.")
+            
+        # --- PARÁMETROS GLOBALES Y MÁRGENES ---
+        c_cols1, c_cols2 = st.columns(2)
+        with c_cols1:
+            fob_total_c = st.number_input("Valor FOB Total de la Mercancía ($)", min_value=0.0, value=2500.0, step=100.0)
+            volumen_m3_c = st.number_input("Volumen Total Ocupado (m³)", min_value=0.1, value=1.0, step=0.1)
+            tarifa_plana_m3 = st.number_input("Tarifa DDP por m³ ($/m³)", min_value=0.0, value=400.0, step=25.0)
+            fecha_embarque_c = st.date_input("Fecha Estimada de Embarque")
+        with c_cols2:
+            semanas_transito_c = st.number_input("Tiempo de Tránsito a Puerta (Semanas)", min_value=4, value=12, step=1)
+            margen_normal = st.number_input("Margen % PVP Normal (Detal)", min_value=0.0, max_value=999.0, value=150.0, step=5.0)
+            margen_mayor = st.number_input("Margen % PVP Mayorista", min_value=0.0, max_value=999.0, value=50.0, step=5.0)
+            margen_sugerido = st.number_input("Margen % PVP Sugerido", min_value=0.0, max_value=999.0, value=400.0, step=5.0)
+            reinversion_base_prox = st.number_input("Reinversión base para el próximo pedido ($)", min_value=100.0, value=700.0, step=50.0)
+            pct_perdida = st.number_input("% Estimado de Pérdida / Estancamiento", min_value=0.0, max_value=50.0, value=10.0, step=1.0)
+                       
+        st.markdown("##### 📝 Detalle de Artículos y Distribución por Canal de Venta:")
+        num_items_c = st.number_input("Cantidad de ítems diferentes", min_value=1, value=2, step=1, key="num_c")
+            
+        items_c_list = []
+        for ic in range(int(num_items_c)):
+            st.markdown(f"**📦 Artículo {ic+1}**")
+            f_cols1, f_cols2 = st.columns(2)
+            with f_cols1:
+                nom_i = st.text_input(f"Nombre Artículo {ic+1}", value=f"Modelo {ic+1}", key=f"c_nom_{ic}")
+                cantidad_i = st.number_input(f"Cantidad Total Unidades {ic+1}", min_value=1, value=100, step=1, key=f"c_cant_{ic}")
+                fob_i = st.number_input(f"FOB Unit. {ic+1} ($)", min_value=0.0, value=15.0, step=1.0, key=f"c_fob_{ic}")
+            with f_cols2:
+                vol_i = st.number_input(f"Vol. Unit. m³ {ic+1}", min_value=0.001, value=0.01, step=0.001, key=f"c_vol_{ic}")
+                stock_i = st.number_input(f"Stock Inicial (Unids) {ic+1}", min_value=0.0, value=20.0, step=1.0, key=f"c_stock_{ic}")
+                ventas_i = st.number_input(f"Ventas Semanales (Unids) {ic+1}", min_value=0.1, value=5.0, step=1.0, key=f"c_ventas_{ic}")
+                
+            st.markdown("*Distribución de unidades a comercializar:*")
+            d_cols = st.columns(3)
+            with d_cols[0]:
+                unidades_normal = st.number_input(f"Unidades PVP Normal", min_value=0, value=int(cantidad_i * 0.4), step=1, key=f"c_un_norm_{ic}")
+            with d_cols[1]:
+                unidades_mayor = st.number_input(f"Unidades PVP Mayor", min_value=0, value=int(cantidad_i * 0.4), step=1, key=f"c_un_may_{ic}")
+            with d_cols[2]:
+                unidades_sug = st.number_input(f"Unidades PVP Sugerido", min_value=0, value=int(cantidad_i * 0.2), step=1, key=f"c_un_sug_{ic}")
+                    
+            items_c_list.append({
+                "nombre": nom_i, "cantidad": cantidad_i, "precio_fob": fob_i,
+                "volumen_m3": vol_i, "stock_inicial": stock_i, "ventas_semanales": ventas_i,
+                "unidades_normal": unidades_normal, "unidades_mayor": unidades_mayor, "unidades_sugeridas": unidades_sug
+            })
+            st.markdown("---")
+                
+            # --- BOTÓN DE PROCESAR (AHORA SÍ, DENTRO DE LA OPCIÓN B) ---
+            if st.button("🚀 Procesar Importación Multicanal (DDP)", type="primary"):
+                df_temp_c = pd.DataFrame(items_c_list)
+                st.session_state["df_lcl"] = procesar_opcion_c_lcl(
+                    df_temp_c, volumen_m3_c, tarifa_plana_m3, fecha_embarque_c, semanas_transito_c,
+                    margen_normal, margen_mayor, margen_sugerido, reinversion_base_prox, pct_perdida 
+                )
+                st.success("✅ ¡Cálculo multicanal y cobertura procesados con éxito!")
+            
+            # --- RESULTADOS Y DESCARGA DE PDF ---
+            if "df_lcl" in st.session_state:
+                st.markdown("---")
+                st.markdown("### 📊 Reporte Ejecutivo y Cobertura de Inventario — Puerta a Puerta (DDP)")
+                st.dataframe(st.session_state["df_lcl"], use_container_width=True)
+                st.success("🎉 ¡Su análisis de costos en puerta y control de bache de inventario está listo!")
+        
+                # --- GENERACIÓN DE PDF (Diseño de 2 Tablas) ---
+                from fpdf import FPDF
+        
+                def sanitize_text(text):
+                    if not isinstance(text, str): text = str(text)
+                    replacements = {'\u2014': '-', '\u2013': '-', '\u2018': "'", '\u2019': "'", '\u201c': '"', '\u201d': '"', '\u2026': '...', '\u2022': '-'}
+                    for search, replace in replacements.items(): text = text.replace(search, replace)
+                    return text.encode('latin-1', 'replace').decode('latin-1')
+        
+                class PDFReporte(FPDF):
+                    def header(self):
+                        self.set_font('helvetica', 'B', 13)
+                        self.cell(0, 7, sanitize_text('Sistema Inteligente de Importación Marítima para Emprendedores'), 0, 1, 'C')
+                        self.set_font('helvetica', '', 10)
+                        self.cell(0, 5, sanitize_text('Reporte Ejecutivo y Cronograma de Operación (DDP)'), 0, 1, 'C')
+                        self.set_font('helvetica', 'I', 9)
+                        self.cell(0, 5, sanitize_text('Autoría y Administración por: Prof. Jesús Pulido — Asesor y Analista en Importación.'), 0, 1, 'C')
+                        self.ln(4)
+        
+                    def footer(self):
+                        self.set_y(-15)
+                        self.set_font('helvetica', 'I', 8)
+                        self.cell(0, 10, f'Página {self.page_no()}', 0, 0, 'C')
+        
+                def crear_pdf():
+                    pdf = PDFReporte()
+                    pdf.add_page()
+                    pdf.set_auto_page_break(auto=True, margin=15)
+                    
+                    # 1. Resumen Financiero
+                    pdf.set_font('helvetica', 'B', 11)
+                    pdf.cell(0, 6, sanitize_text('1. Resumen Financiero del Embarque'), 0, 1, 'L')
+                    pdf.set_font('helvetica', '', 10)
+                    pdf.cell(0, 6, sanitize_text(f"  * Ingreso Bruto x Vtas Operac.: ${st.session_state.get('res_ingreso_bruto', 0):,.2f}"), 0, 1)
+                    pdf.cell(0, 6, sanitize_text(f"  * Inversión General Embarque: ${st.session_state.get('res_inversion_total', 0):,.2f}"), 0, 1)
+                    pdf.cell(0, 6, sanitize_text(f"  * Meta Próximo Pedido (con Envío): ${st.session_state.get('res_meta_proximo', 0):,.2f}"), 0, 1)
+                    pdf.cell(0, 6, sanitize_text(f"  * Tiempo de Recuperación de Capital: {st.session_state.get('res_semanas_recap', 0):.1f} Semanas"), 0, 1)
+                    pdf.ln(3)
+                    
+                    # 2. Utilidades
+                    pdf.set_font('helvetica', 'B', 11)
+                    pdf.cell(0, 6, sanitize_text('2. Desglose de Utilidades por Canal'), 0, 1, 'L')
+                    pdf.set_font('helvetica', '', 10)
+                    pdf.cell(0, 6, sanitize_text(f"  * Utilidad Global: ${st.session_state.get('res_utilidad_global', 0):,.2f}"), 0, 1)
+                    pdf.cell(0, 6, sanitize_text(f"  * Utilidad Normal (Detal): ${st.session_state.get('res_utilidad_normal', 0):,.2f}"), 0, 1)
+                    pdf.cell(0, 6, sanitize_text(f"  * Utilidad Mayorista: ${st.session_state.get('res_utilidad_mayor', 0):,.2f}"), 0, 1)
+                    pdf.cell(0, 6, sanitize_text(f"  * Utilidad Sugerida (Crédito): ${st.session_state.get('res_utilidad_sug', 0):,.2f}"), 0, 1)
+                    pdf.ln(3)
+                    
+                    # 3. Cronograma
+                    pdf.set_font('helvetica', 'B', 11)
+                    pdf.cell(0, 6, sanitize_text('3. Cronograma de Hitos y Fechas Clave'), 0, 1, 'L')
+                    pdf.set_font('helvetica', '', 10)
+                    pdf.cell(0, 6, sanitize_text(f"  * a. Fecha pedido inicial: {st.session_state.get('res_f_pedido', 'N/A')}"), 0, 1)
+                    pdf.cell(0, 6, sanitize_text(f"  * b. Fecha estimada de entrega DDP Inicial: {st.session_state.get('res_f_entrega', 'N/A')}"), 0, 1)
+                    pdf.cell(0, 6, sanitize_text(f"  * c. Fecha estimada de recuperación de Capital: {st.session_state.get('res_f_recap', 'N/A')}"), 0, 1)
+                    pdf.cell(0, 6, sanitize_text(f"  * d. Fecha de Quiebre de inventario: {st.session_state.get('res_f_quiebre', 'N/A')}"), 0, 1)
+                    pdf.cell(0, 6, sanitize_text(f"  * e. Fecha estimada entrega DDP próximo: {st.session_state.get('res_f_entrega_prox', 'N/A')}"), 0, 1)
+                    pdf.ln(4)
+                    
+                    # 4. Tabla de Artículos (Dividida en dos tablas verticales)
+                    pdf.set_font('helvetica', 'B', 11)
+                    pdf.cell(0, 6, sanitize_text('4. Detalle de Artículos y Costos en Puerta'), 0, 1, 'L')
+                    pdf.set_font('helvetica', 'B', 8)
+                    
+                    # --- TABLA 1: COSTOS ---
+                    pdf.cell(45, 6, 'Artículo', 1, 0, 'L')
+                    pdf.cell(12, 6, 'Cant', 1, 0, 'C')
+                    pdf.cell(18, 6, 'FOB($)', 1, 0, 'R')
+                    pdf.cell(18, 6, 'Envío($)', 1, 0, 'R')
+                    pdf.cell(14, 6, 'Stock', 1, 0, 'C')
+                    pdf.cell(14, 6, 'Vtas/S', 1, 0, 'C')
+                    pdf.cell(14, 6, 'Cobert', 1, 0, 'C')
+                    pdf.cell(18, 6, 'C.Puerta', 1, 0, 'R')
+                    pdf.cell(18, 6, 'Inversión', 1, 1, 'R')
+                    
+                    pdf.set_font('helvetica', '', 8)
+                    df_para_pdf = st.session_state["df_lcl"]
+                    for _, row in df_para_pdf.iterrows():
+                        pdf.cell(45, 6, sanitize_text(str(row['Artículo'])[:22]), 1, 0, 'L')
+                        pdf.cell(12, 6, sanitize_text(str(row['Cant'])), 1, 0, 'C')
+                        pdf.cell(18, 6, f"{row['Precio FOB ($)']:.2f}", 1, 0, 'R')
+                        pdf.cell(18, 6, f"{row['Gastos de Envío ($)']:.2f}", 1, 0, 'R')
+                        pdf.cell(14, 6, sanitize_text(str(row['Stock Inicial'])), 1, 0, 'C')
+                        pdf.cell(14, 6, f"{row['Ventas/Sem']:.1f}", 1, 0, 'C')
+                        pdf.cell(14, 6, f"{row['Cobert. (Sem)']:.1f}", 1, 0, 'C')
+                        pdf.cell(18, 6, f"{row['Costo Puerta ($)']:.2f}", 1, 0, 'R')
+                        pdf.cell(18, 6, f"{row['Inversión ($)']:.2f}", 1, 1, 'R')
+                        
+                    pdf.ln(5)
+                    
+                    # --- TABLA 2: PRECIOS Y UTILIDADES ---
+                    pdf.set_font('helvetica', 'B', 8)
+                    pdf.cell(45, 6, 'Artículo', 1, 0, 'L')
+                    pdf.cell(18, 6, 'PVP Norm', 1, 0, 'R')
+                    pdf.cell(18, 6, 'PVP May', 1, 0, 'R')
+                    pdf.cell(18, 6, 'PVP Sug', 1, 0, 'R')
+                    pdf.cell(22, 6, 'Ut. Normal', 1, 0, 'R')
+                    pdf.cell(22, 6, 'Ut. Mayor', 1, 0, 'R')
+                    pdf.cell(22, 6, 'Ut. Sug', 1, 0, 'R')
+                    pdf.cell(22, 6, 'Ut. Total', 1, 1, 'R')
+                    
+                    pdf.set_font('helvetica', '', 8)
+                    for _, row in df_para_pdf.iterrows():
+                        pdf.cell(45, 6, sanitize_text(str(row['Artículo'])[:22]), 1, 0, 'L')
+                        pdf.cell(18, 6, sanitize_text(str(row['PVP Normal ($)'])), 1, 0, 'R')
+                        pdf.cell(18, 6, sanitize_text(str(row['PVP Mayor ($)'])), 1, 0, 'R')
+                        pdf.cell(18, 6, sanitize_text(str(row['PVP Sugerido ($)'])), 1, 0, 'R')
+                        pdf.cell(22, 6, f"{row['Utilidad Normal ($)']:.2f}", 1, 0, 'R')
+                        pdf.cell(22, 6, f"{row['Utilidad Mayor ($)']:.2f}", 1, 0, 'R')
+                        pdf.cell(22, 6, f"{row['Utilidad Sugerida ($)']:.2f}", 1, 0, 'R')
+                        pdf.cell(22, 6, f"{row['Utilidad Total ($)']:.2f}", 1, 1, 'R')
+                        
+                    salida = pdf.output(dest='S')
+                    return salida.encode('latin1') if isinstance(salida, str) else bytes(salida)
+        
+                # Renderizado en pantalla del botón de descarga
+                st.markdown("---")
+                st.markdown("### 📄 Exportación de Reporte Ejecutivo")
+                st.download_button(
+                    label="📥 Descargar Reporte Ejecutivo Oficial en PDF",
+                    data=crear_pdf(),
+                    file_name="Reporte_Ejecutivo_Importacion.pdf",
+                    mime="application/pdf",
+                    type="primary"
+                )
+                  
+            pass
+        # Fin opción B ‼️
+
+    # =========================================================================
+    # OPCIÓN C: INGRESO MANUAL RÁPIDO
+    # =========================================================================
+    elif modalidad.startswith("✍️ Opción C"):
+        st.info("ℹ️ **Ambiente Manual Activo:** Registro directo de productos y gastos del contenedor.")
+            
+        st.markdown("### 💼 Gastos del contenedor (en USD)")
+        cols = st.columns(3)
+        gastos_ingresados = {}
+        # Asumo que GASTOS_CONTENEDOR está definida globalmente arriba en tu código
+        for i, (nombre, criterio) in enumerate(GASTOS_CONTENEDOR):
+            with cols[i % 3]:
+                val = st.number_input(f"{nombre} ({criterio})", min_value=0.0, value=0.0, step=10.0, key=f"g_{nombre}")
+                gastos_ingresados[nombre] = val
+                    
+        # 👇🏼 Aquí puedes seguir agregando el resto del formulario manual de la Opción C
+        pass
+
+      # Fin de Opciones ‼️ 
           
 if __name__ == "__main__":
     main()
