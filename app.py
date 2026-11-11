@@ -1114,6 +1114,51 @@ def procesar_opcion_c_lcl(productos_c_df, volumen_m3_global, tarifa_plana_m3, fe
   
     return df_res
     
+def proyectar_flujo_caja(productos, config):
+    import pandas as pd
+    
+    # 1. Extraer parámetros base de configuración
+    capital_inicial = float(config.get("capital_inicial", 10000.0))
+    costo_fijo = float(config.get("costo_fijo_semanal", 250.0))
+    
+    # 2. Calcular ingreso semanal estimado a partir de los productos del inventario
+    ingreso_semanal_base = 0.0
+    if productos:
+        for p in productos:
+            # Soportar tanto objetos como diccionarios
+            if isinstance(p, dict):
+                ventas = float(p.get("ventas_semanales", p.get("ventas", 5)))
+                pvp = float(p.get("precio_venta", p.get("pvp_normal", 50.0)))
+            else:
+                ventas = float(getattr(p, "ventas_semanales", 5))
+                pvp = float(getattr(p, "pvp_normal", 50.0))
+            ingreso_semanal_base += ventas * pvp
+            
+    if ingreso_semanal_base <= 0:
+        ingreso_semanal_base = 3500.0  # Valor predeterminado seguro de respaldo
+
+    # 3. Construir la proyección de las 13 semanas
+    data = []
+    saldo = capital_inicial
+    
+    for sem in range(1, 14):
+        ingreso = ingreso_semanal_base
+        egreso = costo_fijo
+        
+        # Simular impacto de reposición en semanas clave (ej. semana 3)
+        if sem == 3 and "monto_proximo_pedido" in config:
+            egreso += float(config.get("monto_proximo_pedido", 0.0))
+            
+        saldo += (ingreso - egreso)
+        data.append({
+            "Semana": sem,
+            "Ingreso proyectado": ingreso,
+            "Egreso proyectado": egreso,
+            "Saldo acumulado": saldo
+        })
+        
+    return pd.DataFrame(data)
+    
 def mostrar_flujo_caja(df_flujo, config):
     st.subheader("📅 Proyección de flujo de caja — 13 semanas")
     
