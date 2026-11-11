@@ -2053,19 +2053,19 @@ def main():
         else: st.info("💾 Modo local (sin sheets_db.py)")
         st.markdown("---"); st.caption("📞 0424-728.3199 / 0416-291.6426"); st.caption("✉️ jeshua166@gmail.com")
         
-    # --- NUEVO SELECTOR MULTI-MODALIDAD ---
-    st.markdown("### 🏢 Seleccione la Modalidad de Gestión de Importación")
+# --- NUEVO SELECTOR MULTI-MODALIDAD ---
+st.markdown("### 🏢 Seleccione la Modalidad de Gestión de Importación")
     
-    modalidad = st.selectbox(
-        "Elija el tipo de operación logística:",
-        [
-            "📊 Opción A · Contenedor Completo (FCL - Tradicional / Aduana)",
-            "📦 Opción B · Carga Fraccionada Puerta a Puerta (LCL - DDP / Emprendedor)",
-            "✍️ Opción C · Ingreso Manual Rápido"
-        ],
-        index=0,
-        help="Seleccione el ambiente adaptado a la realidad operativa de su importación."
-    )
+modalidad = st.selectbox(
+    "Elija el tipo de operación logística:",
+    [
+        "📊 Opción A · Contenedor Completo (FCL - Tradicional / Aduana)",
+        "📦 Opción B · Carga Fraccionada Puerta a Puerta (LCL - DDP / Emprendedor)",
+        "✍️ Opción C · Ingreso Manual Rápido"
+    ],
+    index=0,
+    help="Seleccione el ambiente adaptado a la realidad operativa de su importación."
+)
     
 # =========================================================================
 # OPCIÓN A: CONTENEDOR COMPLETO (FCL)
