@@ -2101,7 +2101,7 @@ if modalidad.startswith("📊 Opción A"):
         try:
             productos = construir_productos_desde_df(df, mapeo)
             gastos_contenedor = calcular_costos(productos, gastos_ingresados, config)
-        except Exception as e: st.error(f"Error en cálculo: {e}"); return
+        except Exception as e: st.error(f"Error en cálculo: {e}"); st.stop()
             
         st.success(f"✅ Análisis completado para **{len(productos)}** productos.")
             
