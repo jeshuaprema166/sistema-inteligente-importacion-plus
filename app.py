@@ -2042,7 +2042,28 @@ def main():
                 mapeo = mapear_columnas(df)
             except Exception as e:
                 st.error(f"❌ Error al leer el archivo: {e}")
-    
+
+            st.markdown("### 💼 Gastos del contenedor (en USD)")
+            cols = st.columns(3); gastos_ingresados = {}
+            for i, (nombre, criterio) in enumerate(GASTOS_CONTENEDOR):
+                with cols[i % 3]:
+                    val = st.number_input(f"{nombre} ({criterio})", min_value=0.0, value=0.0, step=10.0, key=f"g_{nombre}")
+                    gastos_ingresados[nombre] = Decimal(str(val))
+                    
+            if not st.button("🚀 Calcular análisis completo", type="primary") and "productos_actuales" not in st.session_state:
+                return
+            
+            try:
+                productos = construir_productos_desde_df(df, mapeo)
+                gastos_contenedor = calcular_costos(productos, gastos_ingresados, config)
+            except Exception as e: st.error(f"Error en cálculo: {e}"); return
+            
+            st.success(f"✅ Análisis completado para **{len(productos)}** productos.")
+            
+            st.session_state["productos_actuales"] = productos
+            st.session_state["config_actual"] = config
+            st.session_state["gastos_contenedor"] = gastos_contenedor
+
     # =========================================================================
     # OPCIÓN B: CARGA FRACCIONADA (LCL DDP)
     # =========================================================================
@@ -2255,27 +2276,6 @@ def main():
                 gastos_ingresados[nombre] = val
                 
         # Aquí puedes seguir agregando el resto del formulario manual de la Opción C
-    
-    st.markdown("### 💼 Gastos del contenedor (en USD)")
-    cols = st.columns(3); gastos_ingresados = {}
-    for i, (nombre, criterio) in enumerate(GASTOS_CONTENEDOR):
-        with cols[i % 3]:
-            val = st.number_input(f"{nombre} ({criterio})", min_value=0.0, value=0.0, step=10.0, key=f"g_{nombre}")
-            gastos_ingresados[nombre] = Decimal(str(val))
-            
-    if not st.button("🚀 Calcular análisis completo", type="primary") and "productos_actuales" not in st.session_state:
-        return
-    
-    try:
-        productos = construir_productos_desde_df(df, mapeo)
-        gastos_contenedor = calcular_costos(productos, gastos_ingresados, config)
-    except Exception as e: st.error(f"Error en cálculo: {e}"); return
-    
-    st.success(f"✅ Análisis completado para **{len(productos)}** productos.")
-    
-    st.session_state["productos_actuales"] = productos
-    st.session_state["config_actual"] = config
-    st.session_state["gastos_contenedor"] = gastos_contenedor
     
     if SHEETS_DB_OK:
         if st.button("💾 Guardar esta importación en el historial", type="secondary"):
