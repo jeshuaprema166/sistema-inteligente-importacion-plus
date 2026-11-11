@@ -2189,7 +2189,7 @@ def main():
             st.markdown("---")
         
         # 1. El botón de cálculo de la Opción A
-        if not st.button("🚀 Calcular análisis completo", type="primary"):
+        if not st.button("🚀 Calcular análisis completo", type="primary", key="calcular_fcl"):
             st.stop() # <--- AQUÍ DETENEMOS EL FLUJO DE FORMA SILENCIOSA HASTA QUE PULSEN EL BOTÓN
     
         # 2. Si ya hicieron clic y se procesó el cálculo con éxito:
