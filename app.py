@@ -2108,9 +2108,31 @@ def main():
             st.session_state["productos_actuales"] = productos
             st.session_state["config_actual"] = config
             st.session_state["gastos_contenedor"] = gastos_contenedor
+
             st.markdown("---")
     
-    # 1. Primero, el bloque opcional de guardar en el historial (si Sheets DB está activo)
+    # 1. El botón de cálculo de la Opción A
+    if not st.button("🚀 Calcular análisis completo", type="primary"):
+        st.stop() # <--- AQUÍ DETENEMOS EL FLUJO DE FORMA SILENCIOSA HASTA QUE PULSEN EL BOTÓN
+
+    # 2. Si ya hicieron clic y se procesó el cálculo con éxito:
+    try:
+        productos = construir_productos_desde_df(df, mapeo)
+        gastos_contenedor = calcular_costos(productos, gastos_ingresos, config)
+    except Exception as e:
+        st.error(f"Error en cálculo: {e}")
+        st.stop()
+
+    st.success(f"✅ Análisis completado para **{len(productos)}** productos.")
+
+    # Guardamos en la sesión
+    st.session_state["productos_actuales"] = productos
+    st.session_state["config_actual"] = config
+    st.session_state["gastos_contenedor"] = gastos_contenedor
+
+    st.markdown("---")
+
+    # 3. AHORA SÍ: El botón de guardar en el historial (solo aparece después de calcular)
     if SHEETS_DB_OK:
         if st.button("💾 Guardar esta importación en el historial", type="secondary"):
             prods_guardar = st.session_state.get("productos_actuales", [])
@@ -2118,6 +2140,63 @@ def main():
             ok, msg = sheets_db.guardar_importacion(prods_guardar, conf_guardar)
             (st.success if ok else st.warning)(msg)
             sheets_db.guardar_alertas(generar_alertas_reposicion(prods_guardar, conf_guardar))
+
+    st.markdown("---")
+
+    # 4. Definición de pestañas y reportes ejecutivos
+    tab_costos, tab_carga, tab_reposicion, tab_salvavidas, tab_reporte, tab_flujo, tab_auditoria, tab_historial = st.tabs([
+        "📊 Análisis de costos",
+        "⚖️ Carga Pesada",
+        "📦 Reposición",
+        "🆘 Salvavidas",
+        "📄 Reporte completo",
+        "📈 Flujo de caja",
+        "🔍 Auditoría aduanera",
+        "📜 Historial"
+    ])
+
+    with tab_costos:
+        vista_analisis_costos(productos, config)   
+    # ... (demás pestañas with)
+
+    with tab_carga:
+        vista_carga_pesada(productos, config)
+    
+    with tab_reposicion:
+        mostrar_alertas_en_panel(generar_alertas_reposicion(productos, config))
+    
+    with tab_salvavidas:
+        renderizar_pestana_salvavidas(productos, config)
+    
+    with tab_reporte:
+        st.subheader("📄 Reporte Ejecutivo")
+        reporte_html = crear_reporte_html(productos, gastos_contenedor, config)
+        components.html(reporte_html, height=1500, scrolling=True)
+            
+        st.info("💡 Para guardar este reporte como PDF, presione el botón de 'Compartir' de su navegador y seleccione 'Imprimir' o 'Guardar como PDF'.")
+        st.divider()
+        boton_exportar_sheets(productos, config)
+            
+        st.markdown("---")
+        pdf_bytes = generar_pdf_desde_html(reporte_html)
+        if pdf_bytes:
+            st.download_button(
+                label="📄 Descargar Reporte en PDF",
+                data=pdf_bytes,
+                file_name=f"Reporte_{config.get('factura','SN')}.pdf",
+                mime="application/pdf",
+                type="primary"
+            )
+    
+    with tab_flujo:
+        mostrar_flujo_caja(proyectar_flujo_caja(productos, config), config)
+        
+    with tab_auditoria:
+        vista_auditoria_aduanera(productos)
+    
+    with tab_historial:
+        vista_historial(config)    
+
     
     # =========================================================================
     # OPCIÓN B: CARGA FRACCIONADA (LCL DDP)
@@ -2330,70 +2409,8 @@ def main():
                 val = st.number_input(f"{nombre} ({criterio})", min_value=0.0, value=0.0, step=10.0, key=f"g_{nombre}")
                 gastos_ingresados[nombre] = val
                 
-        # Aquí puedes seguir agregando el resto del formulario manual de la Opción C
+        # 👇🏼 Aquí puedes seguir agregando el resto del formulario manual de la Opción C
     
-    # 2. El candado principal para evitar el NameError (ALINEADO AL FLUJO PRINCIPAL, FUERA DE SHEETS_DB)
-    if "productos_actuales" not in st.session_state:
-        st.warning("⚠️ Por favor, configure sus datos y haga clic en **'Calcular análisis completo'** para habilitar los reportes ejecutivos.")
-        st.stop()
-
-    # Si ya existen los datos, los recuperamos con seguridad:
-    productos = st.session_state["productos_actuales"]
-    config = st.session_state.get("config_actual", {})
-    gastos_contenedor = st.session_state.get("gastos_contenedor", {})
-
-    # 3. Definición de pestañas (con su indentación limpia y natural)
-    tab_costos, tab_carga, tab_reposicion, tab_salvavidas, tab_reporte, tab_flujo, tab_auditoria, tab_historial = st.tabs([
-        "📊 Análisis de costos",
-        "⚖️ Carga Pesada",
-        "📦 Reposición",
-        "🆘 Salvavidas",
-        "📄 Reporte completo",
-        "📈 Flujo de caja",
-        "🔍 Auditoría aduanera",
-        "📜 Historial"
-    ])
-
-    with tab_costos:
-        vista_analisis_costos(productos, config)
-        
-    with tab_carga:
-        vista_carga_pesada(productos, config)
-    
-    with tab_reposicion:
-        mostrar_alertas_en_panel(generar_alertas_reposicion(productos, config))
-    
-    with tab_salvavidas:
-        renderizar_pestana_salvavidas(productos, config)
-    
-    with tab_reporte:
-        st.subheader("📄 Reporte Ejecutivo")
-        reporte_html = crear_reporte_html(productos, gastos_contenedor, config)
-        components.html(reporte_html, height=1500, scrolling=True)
-            
-        st.info("💡 Para guardar este reporte como PDF, presione el botón de 'Compartir' de su navegador y seleccione 'Imprimir' o 'Guardar como PDF'.")
-        st.divider()
-        boton_exportar_sheets(productos, config)
-            
-        st.markdown("---")
-        pdf_bytes = generar_pdf_desde_html(reporte_html)
-        if pdf_bytes:
-            st.download_button(
-                label="📄 Descargar Reporte en PDF",
-                data=pdf_bytes,
-                file_name=f"Reporte_{config.get('factura','SN')}.pdf",
-                mime="application/pdf",
-                type="primary"
-            )
-    
-    with tab_flujo:
-        mostrar_flujo_caja(proyectar_flujo_caja(productos, config), config)
-        
-    with tab_auditoria:
-        vista_auditoria_aduanera(productos)
-    
-    with tab_historial:
-        vista_historial(config)
           
 if __name__ == "__main__":
     main()
