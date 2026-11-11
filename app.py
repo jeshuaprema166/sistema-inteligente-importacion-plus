@@ -2096,7 +2096,7 @@ if modalidad.startswith("📊 Opción A"):
                 gastos_ingresados[nombre] = Decimal(str(val))
                     
         if not st.button("🚀 Calcular análisis completo", type="primary") and "productos_actuales" not in st.session_state:
-            ​st.stop()
+            st.stop()
             
         try:
             productos = construir_productos_desde_df(df, mapeo)
