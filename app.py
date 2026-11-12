@@ -324,76 +324,147 @@ def redondear_entero(valor):
     return valor.quantize(UNO, rounding=ROUND_HALF_UP)
 
 def verificar_acceso():
-    if "PASSWORD_ADMIN" not in st.secrets: return True
-    if st.session_state.get("autenticado", False):
+    if "PASSWORD_ADMIN" not in st.secrets: 
+        return True
         
-        # --- RECIBIMIENTO PREMIUM POST-LOGIN ---
-        
-        # 1. Portada reducida y perfectamente centrada con columnas
-        col_espacio1, col_img, col_espacio2 = st.columns([1, 2, 1])
-        with col_img:
-            try:
-                st.image("portada_sistema_premium.jpg", use_container_width=True)
-            except Exception:
-                st.markdown("<h3 style='text-align: center;'>🚢 Sistema de Gestión Inteligente Premium</h3>", unsafe_allow_html=True)
+    # --- SITUACIÓN 1: AÚN NO HA INGRESADO (MOSTRAR PORTADA 1 Y CONTRASEÑA) ---
+    if not st.session_state.get("autenticado", False):
+        try:
+            st.image("portada_sistema_premium.jpg", use_container_width=True)
+        except Exception:
+            st.markdown("<h3 style='text-align: center;'>🚢 Sistema de Gestión Inteligente Premium</h3>", unsafe_allow_html=True)
 
-        st.markdown("<h4 style='text-align: center;'>¡Bienvenido al Panel de Control Ejecutivo Premium!</h2>", unsafe_allow_html=True)
+        st.markdown("<h1 style='text-align: center;'>Bienvenidos 🚢</h1>", unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
-        
-        # 2. Indicación al menú de la izquierda
-        # Se muestra solo si aún no se ha configurado la empresa
-        # Verificación segura del estado de la empresa
-        empresa_registrada = False
-        if "config_empresa" in st.session_state:
-            empresa_registrada = st.session_state.config_empresa.get("empresa")
-    
-        if not empresa_registrada:
-            st.info("👈 **Primer paso:** Despliegue el menú de la barra superior izquierda **>>** para configurar los **Datos de su Empresa** y los Parámetros Avanzados, antes de cargar su archivo Excel.")
-        
-        # 3. Estilo personalizado para agrandar y poner en negrita los títulos de los expanders
+
+        st.markdown("<h3 style='text-align: center;'>¿Sabe cuánto le cuesta realmente traer los productos desde el exterior hasta su depósito?</h3>", unsafe_allow_html=True)
+        st.markdown("<h4 style='text-align: center;'>Este Sistema Inteligente le revela:</h4>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+
         st.markdown("""
-            <style>
-            /* Estilo general para el contenedor del expander */
-            div[data-testid="stExpander"] {
-                background-color: #fdf2f2 !important;
-                border: 1px solid #f5c6cb !important;
-                border-radius: 0.5rem !important;
-            }
-            /* Color, tamaño y negrita para el título del expander */
-            div[data-testid="stExpander"] summary p {
-                font-size: 1.05rem !important;
-                font-weight: 700 !important;
-                color: #8A1C14 !important; /* Rojo elegante / Vinotinto corporativo */
-            }
-            </style>
+        * **La verdad sobre sus costos de importación**, márgenes de utilidad y precios óptimos de venta.
+        * **Identificar los márgenes reales de ganancia** antes de nacionalizar, analizando la rentabilidad neta por producto prorrateando con precisión los costos según peso (kg) y volumen ($m^3$). Así sabrá qué productos le dejan ganancia real y cuáles no.
+        * **Optimizar el espacio de su contenedor** y evite pérdidas por costos ocultos.
+        * **Alarmas de reposición de inventario 🟢🟡🔴 por IA**, que permiten monitorear el comportamiento de las existencias, previniendo el desabastecimiento o sobrecompra, que redunda en estancamiento del Capital económico.
+        * **Ingresar de forma automática TODOS los datos** y detalles desde el Excel de su inventario al Sistema de Análisis Inteligente de Importación.
+        * **Definir fácilmente y con certeza** a qué proveedor del exterior debe comprar, o si es mejor hacerlo localmente.
+        """)
+
+        st.info("✨ **Todo eso y más, con la ayuda de nuestro Sistema de Importación con IA** 🤖")
+
+        st.markdown("""
+        <div style="background-color: #e8f4f8; color: #0b2545; padding: 15px; border-radius: 8px; text-align: center;">
+        <strong>"UN SISTEMA DE COMERCIALIZACIÓN DISEÑADO PARA PROTEGER SU CAPITAL Y ASEGURAR QUE EL NEGOCIO SIEMPRE CREZCA"</strong>
+        </div>
         """, unsafe_allow_html=True)
-    
-    
-        # 3. Pestaña desplegable informativa con lenguaje comercial optimizado
-        with st.expander("👇🏼✨📖 (TOQUE AQUÍ)\n\nConozca cómo el Sistema Premium protege y hace crecer su negocio."):
+
+        st.markdown("---")
+        
+        st.markdown("### 📋 Instrucciones:")
+        st.markdown("""
+        1. Una vez dentro, vaya al **menú desplegable de la izquierda** (⬅️) para configurar los **Datos de su empresa**: Razón Social, RIF, Propietario, márgenes de utilidad (%) y descuentos previstos, así como los datos del país y proveedor de origen.
+        2. Y además, le recomendamos conocer más a fondo todas las virtudes, capacidades técnicas y módulos avanzados que incorpora esta versión, **explore la pestaña desplegable (Expander)** que encontrará una vez dentro.
+        3. Para ingresar al Sistema, escriba más abajo la **contraseña** suministrada por su Asesor de Importación para comenzar el análisis.
+        """)
+
+        st.markdown("---")
+
+        col_i, col_c, col_d = st.columns([1, 1, 1])
+        with col_c:
             st.markdown(
                 """
-                🛡️ **¿Cómo este Sistema Premium 🐉 protege su inversión y maximiza sus ganancias?**
-        
-                Este software ha sido diseñado específicamente para la realidad comercial y aduanera de Venezuela, dotándole de herramientas corporativas que garantizan:
-        
-                * **Protección Total de su Inversión:** Cada dólar invertido en mercancía es analizado al detalle. El sistema prorratea con precisión matemática los costos por peso y volumen, revelando el costo real unitario en su depósito para fijar precios competitivos que aseguren un retorno seguro.
-                * **Control Estructural de Carga Pesada:** Evalúa la eficiencia del transporte marítimo calculando el impacto porcentual del flete frente al valor FOB en origen (clasificándolo en semáforos óptimos, moderados o críticos). Permite detectar sobrecostos logísticos a tiempo para decidir si se consolida carga o se ajustan rutas antes de nacionalizar.
-                * **Cero Gastos Sorpresa por Multas y Retrasos:** Gracias al módulo de Auditoría de Partidas Arancelarias, usted verifica de antemano el cumplimiento normativo, calculando los aranceles y tributos estimados antes de nacionalizar, evitando costosas retenciones o sanciones en aduana.
-                * **Simulación Gerencial de Flujo de Caja (What-If):** Permite modelar interactivamente el futuro financiero de la empresa mediante 6 variables críticas (capital, márgenes discretos, costos fijos, montos de pedidos, tiempos físicos de inventario y plazos de pago a proveedores). Esto garantiza una comercialización sana, proyectando 13 semanas de liquidez para asegurar una rentabilidad blindada y sin sorpresas de caja.
-                * **Fijación Inteligente del PVP Sugerido:** Implementa un modelo matemático basado en el costo real nacionalizado y el margen comercial deseado. Esto garantiza una comercialización sana, fungiendo como garantía de rentabilidad real, referencia técnica para negociaciones y escudo frente al riesgo inflacionario y cambiario.
-                * **Blindaje contra Fallas de Inventario:** Mediante las Alarmas Inteligentes por IA (🟢🟡🔴) y la Proyección de Flujo de Caja a 13 Semanas, el sistema anticipa cuándo se agotarán sus existencias y vigila que su capital de trabajo nunca caiga por debajo del límite seguro.
-                * **Búsqueda de Proveedores Locales (Módulo "Salvavidas"):** Si la cadena internacional sufre demoras, el sistema activa al instante un motor de búsqueda web y directorios locales especializados para cotizar con mayoristas nacionales, calcular rutas puente de auxilio y mantener su negocio abierto y facturando.
-                * **Historial Persistente en la Nube:** Respaldado de forma automática, permitiéndole tener acceso al Historial de Compras desde cualquier sitio en su celular personal, facilitando la auditoría de cada importación pasada y la toma de decisiones gerenciales en tiempo real.
-                * **Emisión de Informes Ejecutivos en PDF para Solicitudes Bancarias:** El sistema compila automáticamente toda la data analítica, contable y de proyecciones en un dossier en formato PDF de impecable factura profesional. Esto actúa como un excelente resumen administrativo y una elegante carta de presentación técnica y financiera ante la banca comercial para respaldar con total solidez cualquier solicitud de crédito.          
-                
-                ---
-                *(Puede cerrar esta sección haciendo clic > nuevamente en la parte superior del desplegable).*
-                """
+                <div style="text-align: center;">
+                    Diseñado y elaborado por<br>
+                    su Asesor de Importación Inteligente<br>
+                    <b>Prof. Jesús Pulido V.</b><br>
+                    <span style="font-size: 17px; color: #555;">0424-728.3199 / 0416-291.6426</span>
+                </div>
+                """, 
+                unsafe_allow_html=True
             )
-           
-        return True
-          
+
+            for nombre in ("profesor.jpg", "asesor.jpg"):
+                if os.path.exists(nombre):
+                    st.image(nombre, width=180)
+                    break
+
+        st.divider()
+
+        password = st.text_input("Contraseña de acceso", type="password")
+        if st.button("Ingresar", type="primary"):
+            if password == st.secrets["PASSWORD_ADMIN"]:
+                st.session_state["autenticado"] = True
+                st.rerun()
+            else:
+                st.error("❌ Contraseña incorrecta.")
+                
+        return False  # Detiene la ejecución aquí porque aún no ha ingresado la clave correcta
+
+    # --- SITUACIÓN 2: YA ESTÁ AUTENTICADO (MOSTRAR PORTADA 2 / RECIBIMIENTO PREMIUM) ---
+        # --- RECIBIMIENTO PREMIUM POST-LOGIN ---
+        # 1. Portada reducida y perfectamente centrada con columnas
+    col_espacio1, col_img, col_espacio2 = st.columns([1, 2, 1])
+    with col_img:
+        try:
+            st.image("portada_sistema_premium.jpg", use_container_width=True)
+        except Exception:
+            st.markdown("<h3 style='text-align: center;'>🚢 Sistema de Gestión Inteligente Premium</h3>", unsafe_allow_html=True)
+
+    st.markdown("<h4 style='text-align: center;'>¡Bienvenido al Panel de Control Ejecutivo Premium!</h4>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
+        # 2. Indicación al menú de la izquierda
+        # Se muestra sólo si aún no se ha configurado la empresa
+        # Verificación segura del estado de la empresa    
+    empresa_registrada = False
+    if "config_empresa" in st.session_state:
+        empresa_registrada = st.session_state.config_empresa.get("empresa")
+
+    if not empresa_registrada:
+        st.info("👈 **Primer paso:** Despliegue el menú de la barra superior izquierda **>>** para configurar los **Datos de su Empresa** y los Parámetros Avanzados, antes de cargar su archivo Excel.")
+    
+    # 3. Estilo personalizado para agrandar y poner en negrita los títulos de los expanders
+    st.markdown("""
+        <style>
+        /* Estilo general para el contenedor del expander */
+        div[data-testid="stExpander"] {
+            background-color: #fdf2f2 !important;
+            border: 1px solid #f5c6cb !important;
+            border-radius: 0.5rem !important;
+        }
+        /* Color, tamaño y negrita para el título del expander */
+        div[data-testid="stExpander"] summary p {
+            font-size: 1.05rem !important;
+            font-weight: 700 !important;
+            color: #8A1C14 !important; /* Rojo elegante / Vinotinto corporativo */
+        }
+        </style>
+    """, unsafe_allow_html=True)
+      
+    # 4. Pestaña desplegable informativa con lenguaje comercial optimizado
+    with st.expander("👇🏼✨📖 (TOQUE AQUÍ)\n\nConozca cómo el Sistema Premium protege y hace crecer su negocio."):
+        st.markdown(
+            """
+            🛡️ **¿Cómo este Sistema Premium 🐉 protege su inversión y maximiza sus ganancias?**
+        
+            Este software ha sido diseñado específicamente para la realidad comercial y aduanera de Venezuela, dotándole de herramientas corporativas que garantizan:
+        
+            * **Protección Total de su Inversión:** Cada dólar invertido en mercancía es analizado al detalle. El sistema prorratea con precisión matemática los costos por peso y volumen, revelando el costo real unitario en su depósito para fijar precios competitivos que aseguren un retorno seguro.
+            * **Control Estructural de Carga Pesada:** Evalúa la eficiencia del transporte marítimo calculando el impacto porcentual del flete frente al valor FOB en origen (clasificándolo en semáforos óptimos, moderados o críticos). Permite detectar sobrecostos logísticos a tiempo para decidir si se consolida carga o se ajustan rutas antes de nacionalizar.
+            * **Cero Gastos Sorpresa por Multas y Retrasos:** Gracias al módulo de Auditoría de Partidas Arancelarias, usted verifica de antemano el cumplimiento normativo, calculando los aranceles y tributos estimados antes de nacionalizar, evitando costosas retenciones o sanciones en aduana.
+            * **Simulación Gerencial de Flujo de Caja (What-If):** Permite modelar interactivamente el futuro financiero de la empresa mediante 6 variables críticas (capital, márgenes discretos, costos fijos, montos de pedidos, tiempos físicos de inventario y plazos de pago a proveedores). Esto garantiza una comercialización sana, proyectando 13 semanas de liquidez para asegurar una rentabilidad blindada y sin sorpresas de caja.
+            * **Fijación Inteligente del PVP Sugerido:** Implementa un modelo matemático basado en el costo real nacionalizado y el margen comercial deseado. Esto garantiza una comercialización sana, fungiendo como garantía de rentabilidad real, referencia técnica para negociaciones y escudo frente al riesgo inflacionario y cambiario.
+            * **Blindaje contra Fallas de Inventario:** Mediante las Alarmas Inteligentes por IA (🟢🟡🔴) y la Proyección de Flujo de Caja a 13 Semanas, el sistema anticipa cuándo se agotarán sus existencias y vigila que su capital de trabajo nunca caiga por debajo del límite seguro.
+            * **Búsqueda de Proveedores Locales (Módulo "Salvavidas"):** Si la cadena internacional sufre demoras, el sistema activa al instante un motor de búsqueda web y directorios locales especializados para cotizar con mayoristas nacionales, calcular rutas puente de auxilio y mantener su negocio abierto y facturando.
+            * **Historial Persistente en la Nube:** Respaldado de forma automática, permitiéndole tener acceso al Historial de Compras desde cualquier sitio en su celular personal, facilitando la auditoría de cada importación pasada y la toma de decisiones gerenciales en tiempo real.
+            * **Emisión de Informes Ejecutivos en PDF para Solicitudes Bancarias:** El sistema compila automáticamente toda la data analítica, contable y de proyecciones en un dossier en formato PDF de impecable factura profesional. Esto actúa como un excelente resumen administrativo y una elegante carta de presentación técnica y financiera ante la banca comercial para respaldar con total solidez cualquier solicitud de crédito.          
+                
+            ---
+            *(Puede cerrar esta sección haciendo clic > nuevamente en la parte superior del desplegable).*
+            """
+        )
+              
+    return True  # Permite que main() continúe hacia el selector de modalidades
+            
 def prorratear_gasto(monto, productos, campo_base):
     total_centavos = int(monto.quantize(CENTAVO, rounding=ROUND_HALF_UP) * 100)
     bases = [producto[campo_base] for producto in productos]
