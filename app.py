@@ -2172,17 +2172,18 @@ def main():
             mostrar_flujo_caja(proyectar_flujo_caja(productos, config), config)
         with tab_auditoria:
             vista_auditoria_aduanera(productos)
+        # (Aquí termina el bloque de la Opción A con sus pestañas)
         with tab_historial:
             vista_historial(config)
-    else:
+            
+    # Si aún no se ha calculado, mostramos el aviso (ya no usamos 'else', sino un 'if' limpio)
+    if not "productos_actuales" in st.session_state and modalidad.startswith("📊 Opción A"):
         st.warning("⚠️ Por favor, configure sus datos, cargue su Excel y haga clic en **'Calcular análisis completo'** para habilitar los reportes ejecutivos.")
 
-    # Fin opción A ‼️
-    
     # =========================================================================
     # OPCIÓN B: CARGA FRACCIONADA (LCL DDP)
     # =========================================================================
-    elif modalidad.startswith("📦 Opción B"):
+    if modalidad.startswith("📦 Opción B"):
         st.info("ℹ️ **Ambiente LCL DDP Activo:** Multicanal con márgenes diferenciados (Detal, Mayorista y Sugerido) y control de bache de inventario.")
             
         # --- PARÁMETROS GLOBALES Y MÁRGENES ---
@@ -2381,7 +2382,7 @@ def main():
     # =========================================================================
     # OPCIÓN C: INGRESO MANUAL RÁPIDO
     # =========================================================================
-    elif modalidad.startswith("✍️ Opción C"):
+    if modalidad.startswith("✍️ Opción C"):
         st.info("ℹ️ **Ambiente Manual Activo:** Registro directo de productos y gastos del contenedor.")
             
         st.markdown("### 💼 Gastos del contenedor (en USD)")
