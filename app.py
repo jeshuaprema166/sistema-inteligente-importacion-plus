@@ -2291,58 +2291,58 @@ def main():
             if not "productos_actuales" in st.session_state and modalidad.startswith("📊 Opción A"):
                 st.warning("⚠️ Por favor, configure sus datos, cargue su Excel y haga clic en **'Calcular análisis completo'** para habilitar los reportes ejecutivos.")
 
-        # =========================================================================
-        # OPCIÓN B: CARGA FRACCIONADA (LCL DDP)
-        # =========================================================================
-        if modalidad.startswith("📦 Opción B"):
-            st.info("ℹ️ **Ambiente LCL DDP Activo:** Multicanal con márgenes diferenciados (Detal, Mayorista y Sugerido) y control de bache de inventario.")
+    # =========================================================================
+    # OPCIÓN B: CARGA FRACCIONADA (LCL DDP)
+    # =========================================================================
+    if modalidad.startswith("📦 Opción B"):
+        st.info("ℹ️ **Ambiente LCL DDP Activo:** Multicanal con márgenes diferenciados (Detal, Mayorista y Sugerido) y control de bache de inventario.")
  
-            # --- PARÁMETROS GLOBALES Y MÁRGENES ---
-            c_cols1, c_cols2 = st.columns(2)
-            with c_cols1:
-                fob_total_c = st.number_input("Valor FOB Total de la Mercancía ($)", min_value=0.0, value=2500.0, step=100.0)
-                volumen_m3_c = st.number_input("Volumen Total Ocupado (m³)", min_value=0.1, value=1.0, step=0.1)
-                tarifa_plana_m3 = st.number_input("Tarifa DDP por m³ ($/m³)", min_value=0.0, value=400.0, step=25.0)
-                fecha_embarque_c = st.date_input("Fecha Estimada de Embarque")
-            with c_cols2:
-                semanas_transito_c = st.number_input("Tiempo de Tránsito a Puerta (Semanas)", min_value=4, value=12, step=1)
-                margen_normal = st.number_input("Margen % PVP Normal (Detal)", min_value=0.0, max_value=999.0, value=150.0, step=5.0)
-                margen_mayor = st.number_input("Margen % PVP Mayorista", min_value=0.0, max_value=999.0, value=50.0, step=5.0)
-                margen_sugerido = st.number_input("Margen % PVP Sugerido", min_value=0.0, max_value=999.0, value=400.0, step=5.0)
-                reinversion_base_prox = st.number_input("Reinversión base para el próximo pedido ($)", min_value=100.0, value=700.0, step=50.0)
-                pct_perdida = st.number_input("% Estimado de Pérdida / Estancamiento", min_value=0.0, max_value=50.0, value=10.0, step=1.0)
+        # --- PARÁMETROS GLOBALES Y MÁRGENES ---
+        c_cols1, c_cols2 = st.columns(2)
+        with c_cols1:
+            fob_total_c = st.number_input("Valor FOB Total de la Mercancía ($)", min_value=0.0, value=2500.0, step=100.0)
+            volumen_m3_c = st.number_input("Volumen Total Ocupado (m³)", min_value=0.1, value=1.0, step=0.1)
+            tarifa_plana_m3 = st.number_input("Tarifa DDP por m³ ($/m³)", min_value=0.0, value=400.0, step=25.0)
+            fecha_embarque_c = st.date_input("Fecha Estimada de Embarque")
+        with c_cols2:
+            semanas_transito_c = st.number_input("Tiempo de Tránsito a Puerta (Semanas)", min_value=4, value=12, step=1)
+            margen_normal = st.number_input("Margen % PVP Normal (Detal)", min_value=0.0, max_value=999.0, value=150.0, step=5.0)
+            margen_mayor = st.number_input("Margen % PVP Mayorista", min_value=0.0, max_value=999.0, value=50.0, step=5.0)
+            margen_sugerido = st.number_input("Margen % PVP Sugerido", min_value=0.0, max_value=999.0, value=400.0, step=5.0)
+            reinversion_base_prox = st.number_input("Reinversión base para el próximo pedido ($)", min_value=100.0, value=700.0, step=50.0)
+            pct_perdida = st.number_input("% Estimado de Pérdida / Estancamiento", min_value=0.0, max_value=50.0, value=10.0, step=1.0)
                            
-            st.markdown("##### 📝 Detalle de Artículos y Distribución por Canal de Venta:")
-            num_items_c = st.number_input("Cantidad de ítems diferentes", min_value=1, value=2, step=1, key="num_c")
+        st.markdown("##### 📝 Detalle de Artículos y Distribución por Canal de Venta:")
+        num_items_c = st.number_input("Cantidad de ítems diferentes", min_value=1, value=2, step=1, key="num_c")
                 
-            items_c_list = []
-            for ic in range(int(num_items_c)):
-                st.markdown(f"**📦 Artículo {ic+1}**")
-                f_cols1, f_cols2 = st.columns(2)
-                with f_cols1:
-                    nom_i = st.text_input(f"Nombre Artículo {ic+1}", value=f"Modelo {ic+1}", key=f"c_nom_{ic}")
-                    cantidad_i = st.number_input(f"Cantidad Total Unidades {ic+1}", min_value=1, value=100, step=1, key=f"c_cant_{ic}")
-                    fob_i = st.number_input(f"FOB Unit. {ic+1} ($)", min_value=0.0, value=15.0, step=1.0, key=f"c_fob_{ic}")
-                with f_cols2:
-                    vol_i = st.number_input(f"Vol. Unit. m³ {ic+1}", min_value=0.001, value=0.01, step=0.001, key=f"c_vol_{ic}")
-                    stock_i = st.number_input(f"Stock Inicial (Unids) {ic+1}", min_value=0.0, value=20.0, step=1.0, key=f"c_stock_{ic}")
-                    ventas_i = st.number_input(f"Ventas Semanales (Unids) {ic+1}", min_value=0.1, value=5.0, step=1.0, key=f"c_ventas_{ic}")
+        items_c_list = []
+        for ic in range(int(num_items_c)):
+            st.markdown(f"**📦 Artículo {ic+1}**")
+            f_cols1, f_cols2 = st.columns(2)
+            with f_cols1:
+                nom_i = st.text_input(f"Nombre Artículo {ic+1}", value=f"Modelo {ic+1}", key=f"c_nom_{ic}")
+                cantidad_i = st.number_input(f"Cantidad Total Unidades {ic+1}", min_value=1, value=100, step=1, key=f"c_cant_{ic}")
+                fob_i = st.number_input(f"FOB Unit. {ic+1} ($)", min_value=0.0, value=15.0, step=1.0, key=f"c_fob_{ic}")
+            with f_cols2:
+                vol_i = st.number_input(f"Vol. Unit. m³ {ic+1}", min_value=0.001, value=0.01, step=0.001, key=f"c_vol_{ic}")
+                stock_i = st.number_input(f"Stock Inicial (Unids) {ic+1}", min_value=0.0, value=20.0, step=1.0, key=f"c_stock_{ic}")
+                ventas_i = st.number_input(f"Ventas Semanales (Unids) {ic+1}", min_value=0.1, value=5.0, step=1.0, key=f"c_ventas_{ic}")
                     
-                st.markdown("*Distribución de unidades a comercializar:*")
-                d_cols = st.columns(3)
-                with d_cols[0]:
-                    unidades_normal = st.number_input(f"Unidades PVP Normal", min_value=0, value=int(cantidad_i * 0.4), step=1, key=f"c_un_norm_{ic}")
-                with d_cols[1]:
-                    unidades_mayor = st.number_input(f"Unidades PVP Mayor", min_value=0, value=int(cantidad_i * 0.4), step=1, key=f"c_un_may_{ic}")
-                with d_cols[2]:
-                    unidades_sug = st.number_input(f"Unidades PVP Sugerido", min_value=0, value=int(cantidad_i * 0.2), step=1, key=f"c_un_sug_{ic}")
+            st.markdown("*Distribución de unidades a comercializar:*")
+            d_cols = st.columns(3)
+            with d_cols[0]:
+                unidades_normal = st.number_input(f"Unidades PVP Normal", min_value=0, value=int(cantidad_i * 0.4), step=1, key=f"c_un_norm_{ic}")
+            with d_cols[1]:
+                unidades_mayor = st.number_input(f"Unidades PVP Mayor", min_value=0, value=int(cantidad_i * 0.4), step=1, key=f"c_un_may_{ic}")
+            with d_cols[2]:
+                unidades_sug = st.number_input(f"Unidades PVP Sugerido", min_value=0, value=int(cantidad_i * 0.2), step=1, key=f"c_un_sug_{ic}")
                         
-                items_c_list.append({
-                    "nombre": nom_i, "cantidad": cantidad_i, "precio_fob": fob_i,
-                    "volumen_m3": vol_i, "stock_inicial": stock_i, "ventas_semanales": ventas_i,
-                    "unidades_normal": unidades_normal, "unidades_mayor": unidades_mayor, "unidades_sugeridas": unidades_sug
-                })
-                st.markdown("---")
+            items_c_list.append({
+                "nombre": nom_i, "cantidad": cantidad_i, "precio_fob": fob_i,
+                "volumen_m3": vol_i, "stock_inicial": stock_i, "ventas_semanales": ventas_i,
+                "unidades_normal": unidades_normal, "unidades_mayor": unidades_mayor, "unidades_sugeridas": unidades_sug
+            })
+            st.markdown("---")
                     
     # --- BOTÓN DE PROCESAR (AHORA SÍ, DENTRO DE LA OPCIÓN B) ---
     if st.button("🚀 Procesar Importación Multicanal (DDP)", type="primary", key="procesar_lcl"):     
@@ -2360,7 +2360,7 @@ def main():
         st.dataframe(st.session_state["df_lcl"], use_container_width=True)
         st.success("🎉 ¡Su análisis de costos en puerta y control de bache de inventario está listo!")
                        
-        # --- RENDERIZADO EN PANTALLA DEL BOTÓN DE DESCARGA ---
+    # --- RENDERIZADO EN PANTALLA DEL BOTÓN DE DESCARGA ---
         st.markdown("---")
         st.markdown("### 📄 Exportación de Reporte Ejecutivo")
         st.download_button(
