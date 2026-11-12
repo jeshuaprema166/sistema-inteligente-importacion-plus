@@ -393,83 +393,6 @@ def verificar_acceso():
             )
            
         return True
-            
-    # --- CARGA DE PORTADA LOCAL DESDE GITHUB (PANTALLA DE ACCESO) ---
-    try:
-        st.image("portada_sistema_premium.jpg", use_container_width=True)
-    except Exception:
-        st.markdown("<h3 style='text-align: center;'>🚢 Sistema de Gestión Inteligente Premium</h3>", unsafe_allow_html=True)
-
-    # --- BIENVENIDA Y TÍTULOS CENTRADOS ---
-    st.markdown("<h1 style='text-align: center;'>Bienvenidos 🚢</h1>", unsafe_allow_html=True)
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    st.markdown("<h3 style='text-align: center;'>¿Sabe cuánto le cuesta realmente traer los productos desde el exterior hasta su depósito?</h3>", unsafe_allow_html=True)
-    st.markdown("<h4 style='text-align: center;'>Este Sistema Inteligente le revela:</h4>", unsafe_allow_html=True)
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # --- LISTADO DE BENEFICIOS ---
-    st.markdown("""
-    * **La verdad sobre sus costos de importación**, márgenes de utilidad y precios óptimos de venta.
-    * **Identificar los márgenes reales de ganancia** antes de nacionalizar, analizando la rentabilidad neta por producto prorrateando con precisión los costos según peso (kg) y volumen ($m^3$). Así sabrá qué productos le dejan ganancia real y cuáles no.
-    * **Optimizar el espacio de su contenedor** y evite pérdidas por costos ocultos.
-    * **Alarmas de reposición de inventario 🟢🟡🔴 por IA**, que permiten monitorear el comportamiento de las existencias, previniendo el desabastecimiento o sobrecompra, que redunda en estancamiento del Capital económico.
-    * **Ingresar de forma automática TODOS los datos** y detalles desde el Excel de su inventario al Sistema de Análisis Inteligente de Importación.
-    * **Definir fácilmente y con certeza** a qué proveedor del exterior debe comprar, o si es mejor hacerlo localmente.
-    """)
-
-    st.info("✨ **Todo eso y más, con la ayuda de nuestro Sistema de Importación con IA** 🤖")
-
-    st.markdown("""
-    <div style="background-color: #e8f4f8; color: #0b2545; padding: 15px; border-radius: 8px; text-align: center;">
-    <strong>"UN SISTEMA DE COMERCIALIZACIÓN DISEÑADO PARA PROTEGER SU CAPITAL Y ASEGURAR QUE EL NEGOCIO SIEMPRE CREZCA"</strong>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("---")
-    
-    # --- INSTRUCCIONES RÁPIDAS ---
-    st.markdown("### 📋 Instrucciones:")
-    st.markdown("""
-    1. Una vez dentro, vaya al **menú desplegable de la izquierda** (⬅️) para configurar los **Datos de su empresa**: Razón Social, RIF, Propietario, márgenes de utilidad (%) y descuentos previstos, así como los datos del país y proveedor de origen.
-    2. Y además, le recomendamos conocer más a fondo todas las virtudes, capacidades técnicas y módulos avanzados que incorpora esta versión, **explore la pestaña desplegable (Expander)** que encontrará una vez dentro.
-    3. Para ingresar al Sistema, escriba más abajo la **contraseña** suministrada por su Asesor de Importación para comenzar el análisis.
-    """)
-
-    st.markdown("---")
-
-    # --- SECCIÓN DE AUTORÍA Y FOTOGRAFÍA ---
-    col_i, col_c, col_d = st.columns([1, 1, 1])
-    with col_c:
-        st.markdown(
-            """
-            <div style="text-align: center;">
-                Diseñado y elaborado por<br>
-                su Asesor de Importación Inteligente<br>
-                <b>Prof. Jesús Pulido V.</b><br>
-                <span style="font-size: 17px; color: #555;">0424-728.3199 / 0416-291.6426</span>
-            </div>
-            """, 
-            unsafe_allow_html=True
-        )
-
-        for nombre in ("profesor.jpg", "asesor.jpg"):
-            if os.path.exists(nombre):
-                st.image(nombre, width=180)
-                break
-
-    st.divider()
-
-    # --- CAMPO DE CONTRASEÑA ---
-    password = st.text_input("Contraseña de acceso", type="password")
-    if st.button("Ingresar", type="primary"):
-        if password == st.secrets["PASSWORD_ADMIN"]:
-            st.session_state["autenticado"] = True
-            st.rerun()
-        else:
-            st.error("❌ Contraseña incorrecta.")
-            
-    return False
           
 def prorratear_gasto(monto, productos, campo_base):
     total_centavos = int(monto.quantize(CENTAVO, rounding=ROUND_HALF_UP) * 100)
@@ -2165,62 +2088,50 @@ def main():
             except Exception as e:
                 st.error(f"❌ Error al leer el archivo: {e}")
     
-            st.markdown("### 💼 Gastos del contenedor (en USD)")
-            cols = st.columns(3); gastos_ingresados = {}
-            for i, (nombre, criterio) in enumerate(GASTOS_CONTENEDOR):
-                with cols[i % 3]:
-                    val = st.number_input(f"{nombre} ({criterio})", min_value=0.0, value=0.0, step=10.0, key=f"g_{nombre}")
-                    gastos_ingresados[nombre] = Decimal(str(val))
-                        
-            if not st.button("🚀 Calcular análisis completo", type="primary") and "productos_actuales" not in st.session_state:
-                st.stop()
-                
-            try:
-                productos = construir_productos_desde_df(df, mapeo)
-                gastos_contenedor = calcular_costos(productos, gastos_ingresados, config)
-            except Exception as e: st.error(f"Error en cálculo: {e}"); st.stop()
-                
-            st.success(f"✅ Análisis completado para **{len(productos)}** productos.")
-                
-            st.session_state["productos_actuales"] = productos
-            st.session_state["config_actual"] = config
-            st.session_state["gastos_contenedor"] = gastos_contenedor
-    
-            st.markdown("---")
-        
-        # 1. El botón de cálculo de la Opción A
-        if not st.button("🚀 Calcular análisis completo", type="primary") and "productos_actuales" not in st.session_state:
-            st.stop() # <--- AQUÍ DETENEMOS EL FLUJO DE FORMA SILENCIOSA HASTA QUE PULSEN EL BOTÓN
-    
-        # 2. Si ya hicieron clic y se procesó el cálculo con éxito:
+    # --- GASTOS DEL CONTENEDOR ---
+    st.markdown("### 📦 Gastos del contenedor (en USD)")
+    cols = st.columns(3)
+    gastos_ingresos = {}
+    for i, (nombre, criterio) in enumerate(GASTOS_CONTENEDOR):
+        with cols[i % 3]:
+            val = st.number_input(f"{nombre} ({criterio})", min_value=0.0, value=0.0, step=10.0, key=f"g_{nombre}")
+            gastos_ingresos[nombre] = Decimal(str(val))
+
+    st.markdown("---")
+
+    # --- BOTÓN DE CÁLCULO PRINCIPAL ---
+    if st.button("🚀 Calcular análisis completo", type="primary", key="calcular_fcl"):
         try:
             productos = construir_productos_desde_df(df, mapeo)
             gastos_contenedor = calcular_costos(productos, gastos_ingresos, config)
+            
+            # Guardamos los resultados de forma persistente en la sesión
+            st.session_state["productos_actuales"] = productos
+            st.session_state["config_actual"] = config
+            st.session_state["gastos_contenedor"] = gastos_contenedor
+            
+            st.success(f"✅ Análisis completado para **{len(productos)}** productos.")
         except Exception as e:
             st.error(f"Error en cálculo: {e}")
-            st.stop()
-    
-        st.success(f"✅ Análisis completado para **{len(productos)}** productos.")
-    
-        # Guardamos en la sesión
-        st.session_state["productos_actuales"] = productos
-        st.session_state["config_actual"] = config
-        st.session_state["gastos_contenedor"] = gastos_contenedor
-    
+
+    # --- DESPLIEGUE AUTOMÁTICO DE REPORTES SI YA EXISTEN DATOS EN SESIÓN ---
+    if "productos_actuales" in st.session_state:
+        productos = st.session_state["productos_actuales"]
+        config = st.session_state["config_actual"]
+        gastos_contenedor = st.session_state["gastos_contenedor"]
+
         st.markdown("---")
-    
-        # 3. AHORA SÍ: El botón de guardar en el historial (solo aparece después de calcular)
+
+        # Botón opcional de historial en Sheets
         if SHEETS_DB_OK:
-            if st.button("💾 Guardar esta importación en el historial", type="secondary"):
-                prods_guardar = st.session_state.get("productos_actuales", [])
-                conf_guardar = st.session_state.get("config_actual", {})
-                ok, msg = sheets_db.guardar_importacion(prods_guardar, conf_guardar)
+            if st.button("💾 Guardar esta importación en el historial", type="secondary", key="guardar_hist_fcl"):
+                ok, msg = sheets_db.guardar_importacion(productos, config)
                 (st.success if ok else st.warning)(msg)
-                sheets_db.guardar_alertas(generar_alertas_reposicion(prods_guardar, conf_guardar))
-    
+                sheets_db.guardar_alertas(generar_alertas_reposicion(productos, config))
+
         st.markdown("---")
-    
-        # 4. Definición de pestañas y reportes ejecutivos
+
+        # Pestañas gerenciales
         tab_costos, tab_carga, tab_reposicion, tab_salvavidas, tab_reporte, tab_flujo, tab_auditoria, tab_historial = st.tabs([
             "📊 Análisis de costos",
             "⚖️ Carga Pesada",
@@ -2231,50 +2142,41 @@ def main():
             "🔍 Auditoría aduanera",
             "📜 Historial"
         ])
-    
+
         with tab_costos:
-            vista_analisis_costos(productos, config)   
-        # ... (demás pestañas with)
-    
+            vista_analisis_costos(productos, config)
         with tab_carga:
             vista_carga_pesada(productos, config)
-        
         with tab_reposicion:
-            mostrar_alertas_en_panel(generar_alertas_reposicion(productos, config))
-        
+            mostrar_alertas_en_panel(generar_alertas_reposicion(productos, config), productos, config)
         with tab_salvavidas:
             renderizar_pestana_salvavidas(productos, config)
-        
         with tab_reporte:
             st.subheader("📄 Reporte Ejecutivo")
             reporte_html = crear_reporte_html(productos, gastos_contenedor, config)
             components.html(reporte_html, height=1500, scrolling=True)
-                
-            st.info("💡 Para guardar este reporte como PDF, presione el botón de 'Compartir' de su navegador y seleccione 'Imprimir' o 'Guardar como PDF'.")
+            st.info("💡 Para guardar este reporte como PDF, presione el botón de abajo.")
             st.divider()
             boton_exportar_sheets(productos, config)
-                
             st.markdown("---")
             pdf_bytes = generar_pdf_desde_html(reporte_html)
             if pdf_bytes:
                 st.download_button(
-                    label="📄 Descargar Reporte en PDF",
+                    label="📥 Descargar Reporte Ejecutivo Oficial en PDF",
                     data=pdf_bytes,
-                    file_name=f"Reporte_{config.get('factura','SN')}.pdf",
+                    file_name=f"Reporte_{config.get('factura', 'SN')}.pdf",
                     mime="application/pdf",
                     type="primary"
                 )
-        
         with tab_flujo:
             mostrar_flujo_caja(proyectar_flujo_caja(productos, config), config)
-            
         with tab_auditoria:
             vista_auditoria_aduanera(productos)
-        
         with tab_historial:
-            vista_historial(config)    
-        
-        pass
+            vista_historial(config)
+    else:
+        st.warning("⚠️ Por favor, configure sus datos, cargue su Excel y haga clic en **'Calcular análisis completo'** para habilitar los reportes ejecutivos.")
+
     # Fin opción A ‼️
     
     # =========================================================================
