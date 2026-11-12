@@ -2148,7 +2148,7 @@ def main():
         with tab_carga:
             vista_carga_pesada(productos, config)
         with tab_reposicion:
-            mostrar_alertas_en_panel(generar_alertas_reposicion(productos, config), productos, config)
+            mostrar_alertas_en_panel(generar_alertas_reposicion(productos, config))
         with tab_salvavidas:
             renderizar_pestana_salvavidas(productos, config)
         with tab_reporte:
