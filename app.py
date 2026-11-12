@@ -1978,6 +1978,121 @@ def vista_generador_sintetico():
                 type="primary"
             )
 
+from fpdf import FPDF
+
+def sanitize_text(text):
+    if not isinstance(text, str): text = str(text)
+    replacements = {'\u2014': '-', '\u2013': '-', '\u2018': "'", '\u2019': "'", '\u201c': '"', '\u201d': '"', '\u2026': '...', '\u2022': '-'}
+    for search, replace in replacements.items(): text = text.replace(search, replace)
+    return text.encode('latin-1', 'replace').decode('latin-1')
+
+class PDFReporteLCL(FPDF):
+    def header(self):
+        self.set_font('helvetica', 'B', 13)
+        self.cell(0, 7, sanitize_text('Sistema Inteligente de Importación Marítima para Emprendedores'), 0, 1, 'C')
+        self.set_font('helvetica', '', 10)
+        self.cell(0, 5, sanitize_text('Reporte Ejecutivo y Cronograma de Operación (DDP)'), 0, 1, 'C')
+        self.set_font('helvetica', 'I', 9)
+        self.cell(0, 5, sanitize_text('Autoría y Administración por: Prof. Jesús Pulido — Asesor y Analista en Importación.'), 0, 1, 'C')
+        self.ln(4)
+
+    def footer(self):
+        self.set_y(-15)
+        self.set_font('helvetica', 'I', 8)
+        self.cell(0, 10, f'Página {self.page_no()}', 0, 0, 'C')
+
+def crear_pdf_lcl():
+    pdf = PDFReporteLCL()
+    pdf.add_page()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    
+    # 1. Resumen Financiero
+    pdf.set_font('helvetica', 'B', 11)
+    pdf.cell(0, 6, sanitize_text('1. Resumen Financiero del Embarque'), 0, 1, 'L')
+    pdf.set_font('helvetica', '', 10)
+    pdf.cell(0, 6, sanitize_text(f"  * Ingreso Bruto x Vtas Operac.: ${st.session_state.get('res_ingreso_bruto', 0):,.2f}"), 0, 1)
+    pdf.cell(0, 6, sanitize_text(f"  * Inversión General Embarque: ${st.session_state.get('res_inversion_total', 0):,.2f}"), 0, 1)
+    pdf.cell(0, 6, sanitize_text(f"  * Meta Próximo Pedido (con Envío): ${st.session_state.get('res_meta_proximo', 0):,.2f}"), 0, 1)
+    pdf.cell(0, 6, sanitize_text(f"  * Tiempo de Recuperación de Capital: {st.session_state.get('res_semanas_recap', 0):.1f} Semanas"), 0, 1)
+    pdf.ln(3)
+    
+    # 2. Utilidades
+    pdf.set_font('helvetica', 'B', 11)
+    pdf.cell(0, 6, sanitize_text('2. Desglose de Utilidades por Canal'), 0, 1, 'L')
+    pdf.set_font('helvetica', '', 10)
+    pdf.cell(0, 6, sanitize_text(f"  * Utilidad Global: ${st.session_state.get('res_utilidad_global', 0):,.2f}"), 0, 1)
+    pdf.cell(0, 6, sanitize_text(f"  * Utilidad Normal (Detal): ${st.session_state.get('res_utilidad_normal', 0):,.2f}"), 0, 1)
+    pdf.cell(0, 6, sanitize_text(f"  * Utilidad Mayorista: ${st.session_state.get('res_utilidad_mayor', 0):,.2f}"), 0, 1)
+    pdf.cell(0, 6, sanitize_text(f"  * Utilidad Sugerida (Crédito): ${st.session_state.get('res_utilidad_sug', 0):,.2f}"), 0, 1)
+    pdf.ln(3)
+    
+    # 3. Cronograma
+    pdf.set_font('helvetica', 'B', 11)
+    pdf.cell(0, 6, sanitize_text('3. Cronograma de Hitos y Fechas Clave'), 0, 1, 'L')
+    pdf.set_font('helvetica', '', 10)
+    pdf.cell(0, 6, sanitize_text(f"  * a. Fecha pedido inicial: {st.session_state.get('res_f_pedido', 'N/A')}"), 0, 1)
+    pdf.cell(0, 6, sanitize_text(f"  * b. Fecha estimada de entrega DDP Inicial: {st.session_state.get('res_f_entrega', 'N/A')}"), 0, 1)
+    pdf.cell(0, 6, sanitize_text(f"  * c. Fecha estimada de recuperación de Capital: {st.session_state.get('res_f_recap', 'N/A')}"), 0, 1)
+    pdf.cell(0, 6, sanitize_text(f"  * d. Fecha de Quiebre de inventario: {st.session_state.get('res_f_quiebre', 'N/A')}"), 0, 1)
+    pdf.cell(0, 6, sanitize_text(f"  * e. Fecha estimada entrega DDP próximo: {st.session_state.get('res_f_entrega_prox', 'N/A')}"), 0, 1)
+    pdf.ln(4)
+    
+    # 4. Tabla de Artículos
+    pdf.set_font('helvetica', 'B', 11)
+    pdf.cell(0, 6, sanitize_text('4. Detalle de Artículos y Costos en Puerta'), 0, 1, 'L')
+    pdf.set_font('helvetica', 'B', 8)
+    
+    # --- TABLA 1: COSTOS ---
+    pdf.cell(45, 6, 'Artículo', 1, 0, 'L')
+    pdf.cell(12, 6, 'Cant', 1, 0, 'C')
+    pdf.cell(18, 6, 'FOB($)', 1, 0, 'R')
+    pdf.cell(18, 6, 'Envío($)', 1, 0, 'R')
+    pdf.cell(14, 6, 'Stock', 1, 0, 'C')
+    pdf.cell(14, 6, 'Vtas/S', 1, 0, 'C')
+    pdf.cell(14, 6, 'Cobert', 1, 0, 'C')
+    pdf.cell(18, 6, 'C.Puerta', 1, 0, 'R')
+    pdf.cell(18, 6, 'Inversión', 1, 1, 'R')
+    
+    pdf.set_font('helvetica', '', 8)
+    df_para_pdf = st.session_state["df_lcl"]
+    for _, row in df_para_pdf.iterrows():
+        pdf.cell(45, 6, sanitize_text(str(row['Artículo'])[:22]), 1, 0, 'L')
+        pdf.cell(12, 6, sanitize_text(str(row['Cant'])), 1, 0, 'C')
+        pdf.cell(18, 6, f"{row['Precio FOB ($)']:.2f}", 1, 0, 'R')
+        pdf.cell(18, 6, f"{row['Gastos de Envío ($)']:.2f}", 1, 0, 'R')
+        pdf.cell(14, 6, sanitize_text(str(row['Stock Inicial'])), 1, 0, 'C')
+        pdf.cell(14, 6, f"{row['Ventas/Sem']:.1f}", 1, 0, 'C')
+        pdf.cell(14, 6, f"{row['Cobert. (Sem)']:.1f}", 1, 0, 'C')
+        pdf.cell(18, 6, f"{row['Costo Puerta ($)']:.2f}", 1, 0, 'R')
+        pdf.cell(18, 6, f"{row['Inversión ($)']:.2f}", 1, 1, 'R')
+        
+    pdf.ln(5)
+    
+    # --- TABLA 2: PRECIOS Y UTILIDADES ---
+    pdf.set_font('helvetica', 'B', 8)
+    pdf.cell(45, 6, 'Artículo', 1, 0, 'L')
+    pdf.cell(18, 6, 'PVP Norm', 1, 0, 'R')
+    pdf.cell(18, 6, 'PVP May', 1, 0, 'R')
+    pdf.cell(18, 6, 'PVP Sug', 1, 0, 'R')
+    pdf.cell(22, 6, 'Ut. Normal', 1, 0, 'R')
+    pdf.cell(22, 6, 'Ut. Mayor', 1, 0, 'R')
+    pdf.cell(22, 6, 'Ut. Sug', 1, 0, 'R')
+    pdf.cell(22, 6, 'Ut. Total', 1, 1, 'R')
+    
+    pdf.set_font('helvetica', '', 8)
+    for _, row in df_para_pdf.iterrows():
+        pdf.cell(45, 6, sanitize_text(str(row['Artículo'])[:22]), 1, 0, 'L')
+        pdf.cell(18, 6, sanitize_text(str(row['PVP Normal ($)'])), 1, 0, 'R')
+        pdf.cell(18, 6, sanitize_text(str(row['PVP Mayor ($)'])), 1, 0, 'R')
+        pdf.cell(18, 6, sanitize_text(str(row['PVP Sugerido ($)'])), 1, 0, 'R')
+        pdf.cell(22, 6, f"{row['Utilidad Normal ($)']:.2f}", 1, 0, 'R')
+        pdf.cell(22, 6, f"{row['Utilidad Mayor ($)']:.2f}", 1, 0, 'R')
+        pdf.cell(22, 6, f"{row['Utilidad Sugerida ($)']:.2f}", 1, 0, 'R')
+        pdf.cell(22, 6, f"{row['Utilidad Total ($)']:.2f}", 1, 1, 'R')
+        
+    salida = pdf.output(dest='S')
+    return salida.encode('latin1') if isinstance(salida, str) else bytes(salida)
+    
 def main():
     st.set_page_config(page_title="Sistema de Importación Inteligente Premium", page_icon="🛳️", layout="wide")
     
@@ -2229,150 +2344,33 @@ def main():
                 })
                 st.markdown("---")
                     
-                # --- BOTÓN DE PROCESAR (AHORA SÍ, DENTRO DE LA OPCIÓN B) ---
-                if st.button("🚀 Procesar Importación Multicanal (DDP)", type="primary", key="procesar_lcl"):
-     
-                    df_temp_c = pd.DataFrame(items_c_list)
-                    st.session_state["df_lcl"] = procesar_opcion_c_lcl(
-                        df_temp_c, volumen_m3_c, tarifa_plana_m3, fecha_embarque_c, semanas_transito_c,
-                        margen_normal, margen_mayor, margen_sugerido, reinversion_base_prox, pct_perdida 
-                    )
-                    st.success("✅ ¡Cálculo multicanal y cobertura procesados con éxito!")
+    # --- BOTÓN DE PROCESAR (AHORA SÍ, DENTRO DE LA OPCIÓN B) ---
+    if st.button("🚀 Procesar Importación Multicanal (DDP)", type="primary", key="procesar_lcl"):     
+        df_temp_c = pd.DataFrame(items_c_list)
+        st.session_state["df_lcl"] = procesar_opcion_c_lcl(
+            df_temp_c, volumen_m3_c, tarifa_plana_m3, fecha_embarque_c, semanas_transito_c,
+            margen_normal, margen_mayor, margen_sugerido, reinversion_base_prox, pct_perdida 
+        )
+        st.success("✅ ¡Cálculo multicanal y cobertura procesados con éxito!")
                 
-                # --- RESULTADOS Y DESCARGA DE PDF ---
-                if "df_lcl" in st.session_state:
-                    st.markdown("---")
-                    st.markdown("### 📊 Reporte Ejecutivo y Cobertura de Inventario — Puerta a Puerta (DDP)")
-                    st.dataframe(st.session_state["df_lcl"], use_container_width=True)
-                    st.success("🎉 ¡Su análisis de costos en puerta y control de bache de inventario está listo!")
-            
-                    # --- GENERACIÓN DE PDF (Diseño de 2 Tablas) ---
-                    from fpdf import FPDF
-            
-                    def sanitize_text(text):
-                        if not isinstance(text, str): text = str(text)
-                        replacements = {'\u2014': '-', '\u2013': '-', '\u2018': "'", '\u2019': "'", '\u201c': '"', '\u201d': '"', '\u2026': '...', '\u2022': '-'}
-                        for search, replace in replacements.items(): text = text.replace(search, replace)
-                        return text.encode('latin-1', 'replace').decode('latin-1')
-            
-                    class PDFReporte(FPDF):
-                        def header(self):
-                            self.set_font('helvetica', 'B', 13)
-                            self.cell(0, 7, sanitize_text('Sistema Inteligente de Importación Marítima para Emprendedores'), 0, 1, 'C')
-                            self.set_font('helvetica', '', 10)
-                            self.cell(0, 5, sanitize_text('Reporte Ejecutivo y Cronograma de Operación (DDP)'), 0, 1, 'C')
-                            self.set_font('helvetica', 'I', 9)
-                            self.cell(0, 5, sanitize_text('Autoría y Administración por: Prof. Jesús Pulido — Asesor y Analista en Importación.'), 0, 1, 'C')
-                            self.ln(4)
-            
-                        def footer(self):
-                            self.set_y(-15)
-                            self.set_font('helvetica', 'I', 8)
-                            self.cell(0, 10, f'Página {self.page_no()}', 0, 0, 'C')
-            
-                    def crear_pdf():
-                        pdf = PDFReporte()
-                        pdf.add_page()
-                        pdf.set_auto_page_break(auto=True, margin=15)
-                        
-                        # 1. Resumen Financiero
-                        pdf.set_font('helvetica', 'B', 11)
-                        pdf.cell(0, 6, sanitize_text('1. Resumen Financiero del Embarque'), 0, 1, 'L')
-                        pdf.set_font('helvetica', '', 10)
-                        pdf.cell(0, 6, sanitize_text(f"  * Ingreso Bruto x Vtas Operac.: ${st.session_state.get('res_ingreso_bruto', 0):,.2f}"), 0, 1)
-                        pdf.cell(0, 6, sanitize_text(f"  * Inversión General Embarque: ${st.session_state.get('res_inversion_total', 0):,.2f}"), 0, 1)
-                        pdf.cell(0, 6, sanitize_text(f"  * Meta Próximo Pedido (con Envío): ${st.session_state.get('res_meta_proximo', 0):,.2f}"), 0, 1)
-                        pdf.cell(0, 6, sanitize_text(f"  * Tiempo de Recuperación de Capital: {st.session_state.get('res_semanas_recap', 0):.1f} Semanas"), 0, 1)
-                        pdf.ln(3)
-                        
-                        # 2. Utilidades
-                        pdf.set_font('helvetica', 'B', 11)
-                        pdf.cell(0, 6, sanitize_text('2. Desglose de Utilidades por Canal'), 0, 1, 'L')
-                        pdf.set_font('helvetica', '', 10)
-                        pdf.cell(0, 6, sanitize_text(f"  * Utilidad Global: ${st.session_state.get('res_utilidad_global', 0):,.2f}"), 0, 1)
-                        pdf.cell(0, 6, sanitize_text(f"  * Utilidad Normal (Detal): ${st.session_state.get('res_utilidad_normal', 0):,.2f}"), 0, 1)
-                        pdf.cell(0, 6, sanitize_text(f"  * Utilidad Mayorista: ${st.session_state.get('res_utilidad_mayor', 0):,.2f}"), 0, 1)
-                        pdf.cell(0, 6, sanitize_text(f"  * Utilidad Sugerida (Crédito): ${st.session_state.get('res_utilidad_sug', 0):,.2f}"), 0, 1)
-                        pdf.ln(3)
-                        
-                        # 3. Cronograma
-                        pdf.set_font('helvetica', 'B', 11)
-                        pdf.cell(0, 6, sanitize_text('3. Cronograma de Hitos y Fechas Clave'), 0, 1, 'L')
-                        pdf.set_font('helvetica', '', 10)
-                        pdf.cell(0, 6, sanitize_text(f"  * a. Fecha pedido inicial: {st.session_state.get('res_f_pedido', 'N/A')}"), 0, 1)
-                        pdf.cell(0, 6, sanitize_text(f"  * b. Fecha estimada de entrega DDP Inicial: {st.session_state.get('res_f_entrega', 'N/A')}"), 0, 1)
-                        pdf.cell(0, 6, sanitize_text(f"  * c. Fecha estimada de recuperación de Capital: {st.session_state.get('res_f_recap', 'N/A')}"), 0, 1)
-                        pdf.cell(0, 6, sanitize_text(f"  * d. Fecha de Quiebre de inventario: {st.session_state.get('res_f_quiebre', 'N/A')}"), 0, 1)
-                        pdf.cell(0, 6, sanitize_text(f"  * e. Fecha estimada entrega DDP próximo: {st.session_state.get('res_f_entrega_prox', 'N/A')}"), 0, 1)
-                        pdf.ln(4)
-                        
-                        # 4. Tabla de Artículos (Dividida en dos tablas verticales)
-                        pdf.set_font('helvetica', 'B', 11)
-                        pdf.cell(0, 6, sanitize_text('4. Detalle de Artículos y Costos en Puerta'), 0, 1, 'L')
-                        pdf.set_font('helvetica', 'B', 8)
-                        
-                        # --- TABLA 1: COSTOS ---
-                        pdf.cell(45, 6, 'Artículo', 1, 0, 'L')
-                        pdf.cell(12, 6, 'Cant', 1, 0, 'C')
-                        pdf.cell(18, 6, 'FOB($)', 1, 0, 'R')
-                        pdf.cell(18, 6, 'Envío($)', 1, 0, 'R')
-                        pdf.cell(14, 6, 'Stock', 1, 0, 'C')
-                        pdf.cell(14, 6, 'Vtas/S', 1, 0, 'C')
-                        pdf.cell(14, 6, 'Cobert', 1, 0, 'C')
-                        pdf.cell(18, 6, 'C.Puerta', 1, 0, 'R')
-                        pdf.cell(18, 6, 'Inversión', 1, 1, 'R')
-                        
-                        pdf.set_font('helvetica', '', 8)
-                        df_para_pdf = st.session_state["df_lcl"]
-                        for _, row in df_para_pdf.iterrows():
-                            pdf.cell(45, 6, sanitize_text(str(row['Artículo'])[:22]), 1, 0, 'L')
-                            pdf.cell(12, 6, sanitize_text(str(row['Cant'])), 1, 0, 'C')
-                            pdf.cell(18, 6, f"{row['Precio FOB ($)']:.2f}", 1, 0, 'R')
-                            pdf.cell(18, 6, f"{row['Gastos de Envío ($)']:.2f}", 1, 0, 'R')
-                            pdf.cell(14, 6, sanitize_text(str(row['Stock Inicial'])), 1, 0, 'C')
-                            pdf.cell(14, 6, f"{row['Ventas/Sem']:.1f}", 1, 0, 'C')
-                            pdf.cell(14, 6, f"{row['Cobert. (Sem)']:.1f}", 1, 0, 'C')
-                            pdf.cell(18, 6, f"{row['Costo Puerta ($)']:.2f}", 1, 0, 'R')
-                            pdf.cell(18, 6, f"{row['Inversión ($)']:.2f}", 1, 1, 'R')
-                            
-                        pdf.ln(5)
-                        
-                        # --- TABLA 2: PRECIOS Y UTILIDADES ---
-                        pdf.set_font('helvetica', 'B', 8)
-                        pdf.cell(45, 6, 'Artículo', 1, 0, 'L')
-                        pdf.cell(18, 6, 'PVP Norm', 1, 0, 'R')
-                        pdf.cell(18, 6, 'PVP May', 1, 0, 'R')
-                        pdf.cell(18, 6, 'PVP Sug', 1, 0, 'R')
-                        pdf.cell(22, 6, 'Ut. Normal', 1, 0, 'R')
-                        pdf.cell(22, 6, 'Ut. Mayor', 1, 0, 'R')
-                        pdf.cell(22, 6, 'Ut. Sug', 1, 0, 'R')
-                        pdf.cell(22, 6, 'Ut. Total', 1, 1, 'R')
-                        
-                        pdf.set_font('helvetica', '', 8)
-                        for _, row in df_para_pdf.iterrows():
-                            pdf.cell(45, 6, sanitize_text(str(row['Artículo'])[:22]), 1, 0, 'L')
-                            pdf.cell(18, 6, sanitize_text(str(row['PVP Normal ($)'])), 1, 0, 'R')
-                            pdf.cell(18, 6, sanitize_text(str(row['PVP Mayor ($)'])), 1, 0, 'R')
-                            pdf.cell(18, 6, sanitize_text(str(row['PVP Sugerido ($)'])), 1, 0, 'R')
-                            pdf.cell(22, 6, f"{row['Utilidad Normal ($)']:.2f}", 1, 0, 'R')
-                            pdf.cell(22, 6, f"{row['Utilidad Mayor ($)']:.2f}", 1, 0, 'R')
-                            pdf.cell(22, 6, f"{row['Utilidad Sugerida ($)']:.2f}", 1, 0, 'R')
-                            pdf.cell(22, 6, f"{row['Utilidad Total ($)']:.2f}", 1, 1, 'R')
-                            
-                        salida = pdf.output(dest='S')
-                        return salida.encode('latin1') if isinstance(salida, str) else bytes(salida)
-            
-                    # Renderizado en pantalla del botón de descarga
-                    st.markdown("---")
-                    st.markdown("### 📄 Exportación de Reporte Ejecutivo")
-                    st.download_button(
-                        label="📥 Descargar Reporte Ejecutivo Oficial en PDF",
-                        data=crear_pdf(),
-                        file_name="Reporte_Ejecutivo_Importacion.pdf",
-                        mime="application/pdf",
-                        type="primary"
-                    )
-                                
+    # --- RESULTADOS Y DESCARGA DE PDF ---
+    if "df_lcl" in st.session_state:
+        st.markdown("---")
+        st.markdown("### 📊 Reporte Ejecutivo y Cobertura de Inventario — Puerta a Puerta (DDP)")
+        st.dataframe(st.session_state["df_lcl"], use_container_width=True)
+        st.success("🎉 ¡Su análisis de costos en puerta y control de bache de inventario está listo!")
+                       
+                # --- RENDERIZADO EN PANTALLA DEL BOTÓN DE DESCARGA ---
+                st.markdown("---")
+                st.markdown("### 📄 Exportación de Reporte Ejecutivo")
+                st.download_button(
+                    label="📥 Descargar Reporte Ejecutivo Oficial en PDF",
+                    data=crear_pdf_lcl(),
+                    file_name="Reporte_Ejecutivo_Importacion.pdf",
+                    mime="application/pdf",
+                    type="primary"
+                )
+                                    
             # Fin opción B ‼️
 
     # =========================================================================
