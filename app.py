@@ -2230,7 +2230,8 @@ def main():
                 st.markdown("---")
                     
                 # --- BOTÓN DE PROCESAR (AHORA SÍ, DENTRO DE LA OPCIÓN B) ---
-                if st.button("🚀 Procesar Importación Multicanal (DDP)", type="primary"):
+                if st.button("🚀 Procesar Importación Multicanal (DDP)", type="primary", key="procesar_lcl"):
+     
                     df_temp_c = pd.DataFrame(items_c_list)
                     st.session_state["df_lcl"] = procesar_opcion_c_lcl(
                         df_temp_c, volumen_m3_c, tarifa_plana_m3, fecha_embarque_c, semanas_transito_c,
@@ -2371,7 +2372,7 @@ def main():
                         mime="application/pdf",
                         type="primary"
                     )
-            if st.button("🚀 Procesar Importación Multicanal (DDP)", type="primary", key="procesar_lcl"):                     
+                                
                 pass
             # Fin opción B ‼️
 
