@@ -2360,18 +2360,18 @@ def main():
         st.dataframe(st.session_state["df_lcl"], use_container_width=True)
         st.success("🎉 ¡Su análisis de costos en puerta y control de bache de inventario está listo!")
                        
-                # --- RENDERIZADO EN PANTALLA DEL BOTÓN DE DESCARGA ---
-                st.markdown("---")
-                st.markdown("### 📄 Exportación de Reporte Ejecutivo")
-                st.download_button(
-                    label="📥 Descargar Reporte Ejecutivo Oficial en PDF",
-                    data=crear_pdf_lcl(),
-                    file_name="Reporte_Ejecutivo_Importacion.pdf",
-                    mime="application/pdf",
-                    type="primary"
-                )
+        # --- RENDERIZADO EN PANTALLA DEL BOTÓN DE DESCARGA ---
+        st.markdown("---")
+        st.markdown("### 📄 Exportación de Reporte Ejecutivo")
+        st.download_button(
+            label="📥 Descargar Reporte Ejecutivo Oficial en PDF",
+            data=crear_pdf_lcl(),
+            file_name="Reporte_Ejecutivo_Importacion.pdf",
+            mime="application/pdf",
+            type="primary"
+        )
                                     
-            # Fin opción B ‼️
+        # Fin opción B ‼️
 
     # =========================================================================
     # OPCIÓN C: INGRESO MANUAL RÁPIDO
