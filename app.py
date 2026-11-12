@@ -1981,8 +1981,9 @@ def vista_generador_sintetico():
 def main():
     st.set_page_config(page_title="Sistema de Importación Inteligente Premium", page_icon="🛳️", layout="wide")
     
-    # --- VERIFICACIÓN DE SESIÓN / AUTENTICACIÓN ---
-    if not st.session_state.get("autenticado", False):
+    # Llamamos a la portera única de acceso
+    if not verificar_acceso():
+        return  # Si no ha colocado la clave, se detiene ordenadamente aquí
 
     # =========================================================================
     # ÁREA INTERNA (UNA VEZ INGRESADA LA CLAVE CORRECTA)
