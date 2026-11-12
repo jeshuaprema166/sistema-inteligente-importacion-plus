@@ -2371,7 +2371,7 @@ def main():
                         mime="application/pdf",
                         type="primary"
                     )
-                if st.button("🚀 Procesar Importación Multicanal (DDP)", type="primary", key="procesar_lcl"):                     
+            if st.button("🚀 Procesar Importación Multicanal (DDP)", type="primary", key="procesar_lcl"):                     
                 pass
             # Fin opción B ‼️
 
