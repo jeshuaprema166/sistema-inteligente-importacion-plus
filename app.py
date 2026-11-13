@@ -2439,7 +2439,8 @@ def main():
                     productos_manual.append({
                         "nombre": nombre, 
                         "cantidad": cantidad,
-                        "precio_china": precio,
+                        "precio_china": precio,  # Clave principal del sistema
+                        "precio_fob": precio,    # Clave de respaldo por si algún módulo la busca
                         "peso_total": peso * cantidad,
                         "volumen_total": vol * cantidad,
                         "gastos": {},
