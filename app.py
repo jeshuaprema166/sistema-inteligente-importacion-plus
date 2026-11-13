@@ -2431,9 +2431,9 @@ def main():
                     nombre = d["nombre"].strip()
                     if not nombre: 
                         raise ValueError(f"Indica el nombre del producto {i}.")
-                    precio = leer_decimal(d["precio"], f"precio producto {i}", es_dinero=True)
-                    peso = leer_decimal(d["peso"], f"peso producto {i}", permitir_cero=False)
-                    vol = leer_decimal(d["volumen"], f"volumen producto {i}", permitir_cero=False)
+                    precio = Decimal(str(d["precio"]).strip().replace(",", ".") or "0")
+                    peso = Decimal(str(d["peso"]).strip().replace(",", ".") or "0")
+                    vol = Decimal(str(d["volumen"]).strip().replace(",", ".") or "0")
                     cantidad = d["cantidad"]
                     
                     productos_manual.append({
