@@ -2334,14 +2334,15 @@ def generar_pdf_c(productos, gastos_contenedor, config):
 def main():
     st.set_page_config(page_title="Sistema de Importación Inteligente Premium", page_icon="🛳️", layout="wide")
     
-    # Llamamos a la portera única de acceso
+    # 1. PORTERA ÚNICA DE ACCESO (SEGURIDAD)
     if not verificar_acceso():
-        return  # Si no ha colocado la clave, se detiene ordenadamente aquí
+        return  # Si no ha colocado la clave correcta, se detiene ordenadamente aquí
 
     # =========================================================================
-    # ÁREA INTERNA (UNA VEZ INGRESADA LA CLAVE CORRECTA)
+    # 2. ÁREA INTERNA (UNA VEZ INGRESADA LA CLAVE CORRECTA)
     # =========================================================================
-    inicializar_estado(); inicializar_monedas()
+    inicializar_estado()
+    inicializar_monedas()
     panel_perfil_sidebar()
     config = st.session_state.config_empresa.copy()
     
@@ -2349,8 +2350,77 @@ def main():
     if modo_demo:
         vista_generador_sintetico()
         
-    panel_configuracion_avanzada(config); panel_monedas_sidebar(config)
+    panel_configuracion_avanzada(config)
+    panel_monedas_sidebar(config)
     
+    # =========================================================================
+    # 3. SALA DE ENTRADA (BIENVENIDA LIMPIA Y ACOGEDORA)
+    # =========================================================================
+    try:
+        st.image("IMG-20261021-WA0005.jpg", use_container_width=True)
+    except Exception:
+        pass
+
+    st.markdown("<h2 style='text-align: center; color: #1f4e78;'>¡Bienvenido al Panel de Control Ejecutivo Premium!</h2>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Recuadro azul de instrucciones iniciales
+    st.markdown("""
+    <div style="background-color: #e8f4f8; color: #0b2545; padding: 15px; border-radius: 8px; border-left: 5px solid #2196F3; margin-bottom: 15px;">
+    👉 <strong>Primer paso:</strong> Despliegue el menú de la barra superior izquierda (⏪) para configurar los <strong>Datos de su Empresa</strong> y los <strong>Parámetros Avanzados</strong>, antes de cargar su archivo o registrar productos.
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Recuadro fucsia / expansible con el texto institucional completo
+    with st.expander("📌 ✨📖 (TOQUE AQUÍ) Conozca cómo el Sistema Premium protege y hace crecer su negocio."):
+        st.markdown("""
+        #### 🛡️ ¿Cómo este Sistema Premium 🐉 protege su inversión y maximiza sus ganancias?
+        
+        Este software ha sido diseñado específicamente para la realidad comercial y aduanera de Venezuela, dotándole de herramientas corporativas que garantizan:
+        
+        * **Protección Total de su Inversión:** Cada dólar invertido en mercancía es analizado al detalle. El sistema prorratea con precisión matemática los costos por peso y volumen, revelando el costo real unitario en su depósito para fijar precios competitivos que aseguren un retorno seguro.
+        * **Control Estructural de Carga Pesada:** Evalúa la eficiencia del transporte marítimo calculando el impacto porcentual del flete frente al valor FOB en origen (clasificándolo en semáforos óptimos, moderados o críticos). Permite detectar sobrecostos logísticos a tiempo para decidir si se consolida carga o se ajustan rutas antes de nacionalizar.
+        * **Cero Gastos Sorpresa por Multas y Retrasos:** Gracias al módulo de Auditoría de Partidas Arancelarias, usted verifica de antemano el cumplimiento normativo, calculando los aranceles y tributos estimados antes de nacionalizar, evitando costosas retenciones o sanciones en aduana.
+        * **Simulación Gerencial de Flujo de Caja (What-If):** Permite modelar interactivamente el futuro financiero de la empresa mediante 6 variables críticas (capital, márgenes discretos, costos fijos, montos de pedidos, tiempos físicos de inventario y plazos de pago a proveedores). Esto garantiza una comercialización sana, proyectando 13 semanas de liquidez para asegurar una rentabilidad blindada y sin sorpresas de caja.
+        * **Fijación Inteligente del PVP Sugerido:** Implementa un modelo matemático basado en el costo real nacionalizado y el margen comercial deseado. Esto garantiza una comercialización sana, fungiendo como garantía de rentabilidad real, referencia técnica para negociaciones y escudo frente al riesgo inflacionario y cambiario.
+        * **Blindaje contra Fallas de Inventario:** Mediante las Alarmas Inteligentes por IA (🟢🟡🔴) y la Proyección de Flujo de Caja a 13 Semanas, el sistema anticipa cuándo se agotarán sus existencias y vigila que su capital de trabajo nunca caiga por debajo del límite seguro.
+        * **Búsqueda de Proveedores Locales (Módulo "Salvavidas"):** Si la cadena internacional sufre demoras, el sistema activa al instante un motor de búsqueda web y directorios locales especializados para cotizar con mayoristas nacionales, calcular rutas puente de auxilio y mantener su negocio abierto y facturando.
+        * **Historial Persistente en la Nube:** Respaldado de forma automática, permitiéndole tener acceso al Historial de Compras desde cualquier sitio en su celular personal, facilitando la auditoría de cada importación pasada y la toma de decisiones gerenciales en tiempo real.
+        * **Emisión de Informes Ejecutivos en PDF para Solicitudes Bancarias:** El sistema compila automáticamente toda la data analítica, contable y de proyecciones en un dossier en formato PDF de impecable factura profesional. Esto actúa como un excelente resumen administrativo y una elegante carta de presentación técnica y financiera ante la banca comercial para respaldar con total solidez cualquier solicitud de crédito.
+        
+        *(Puede cerrar esta sección haciendo clic nuevamente en la parte superior del desplegable).*
+        """)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # =========================================================================
+    # 4. PUERTA DE ACCESO AL ÁREA DE TRABAJO (VERIFICACIÓN DE EMPRESA)
+    # =========================================================================
+    empresa_valida = config.get('empresa') and config.get('empresa').strip() not in ["", "Empresa Principal", "Nueva empresa"]
+
+    if not empresa_valida:
+        st.info("ℹ️ *Por favor, configure o seleccione su empresa en el menú lateral izquierdo para habilitar el selector de modalidades de importación y las herramientas de análisis.*")
+        
+        # Información de contacto en el sidebar incluso en la sala de entrada
+        with st.sidebar:
+            st.markdown("---")
+            if SHEETS_DB_OK:
+                est = sheets_db.estado_conexion()
+                if est["modo"] == "nube": 
+                    st.success(f"☁️ {est['mensaje']}")
+                else: 
+                    st.info(f"💾 {est['mensaje']}")
+            else: 
+                st.info("💾 Modo local (sin sheets_db.py)")
+            st.markdown("---")
+            st.caption("📞 0424-728.3199 / 0416-291.6426")
+            st.caption("✉️ jeshua166@gmail.com")
+            
+        return  # <--- ¡STOP! Aquí se detiene la sala de entrada. Cero elementos sueltos abajo.
+
+    # =========================================================================
+    # 5. ÁREA DE TRABAJO EJECUTIVA (SE DESBLOQUEA AL CONFIGURAR LA EMPRESA)
+    # =========================================================================
     st.markdown("<h2 style='text-align: center; color: #1f4e78;'>🚢 Sistema de Análisis de Importación Inteligente Premium 🐉</h2>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -2383,34 +2453,44 @@ def main():
     )
 
     st.markdown(
-    "<div style='text-align: center; font-size: 14px; color: #1f4e78; margin-bottom: 20px;'>"
-    "Ingeniería con IA: <b>Prof. Jesús Pulido V.</b> · Asesor de Importación Inteligente"
-    "</div>",
-    unsafe_allow_html=True
+        "<div style='text-align: center; font-size: 14px; color: #1f4e78; margin-bottom: 20px;'>"
+        "Ingeniería con IA: <b>Prof. Jesús Pulido V.</b> · Asesor de Importación Inteligente"
+        "</div>",
+        unsafe_allow_html=True
     )
-  
-    with st.sidebar:
-        st.markdown("---")
-        if SHEETS_DB_OK:
-            est = sheets_db.estado_conexion()
-            if est["modo"] == "nube": st.success(f"☁️ {est['mensaje']}")
-            else: st.info(f"💾 {est['mensaje']}")
-        else: st.info("💾 Modo local (sin sheets_db.py)")
-        st.markdown("---"); st.caption("📞 0424-728.3199 / 0416-291.6426"); st.caption("✉️ jeshua166@gmail.com")
-        
-    # --- SELECTOR MULTI-MODALIDAD ---
-    st.markdown("### 🏢 Seleccione la Modalidad de Gestión de Importación")
-    
+
+    # Selector de Modalidad (Opciones A, B, C)
+    st.markdown("---")
+    st.markdown("### 🗂️ Seleccione la Modalidad de Gestión de Importación")
     modalidad = st.selectbox(
         "Elija el tipo de operación logística:",
         [
             "📊 Opción A · Contenedor Completo (FCL - Tradicional / Aduana)",
             "📦 Opción B · Carga Fraccionada Puerta a Puerta (LCL - DDP / Emprendedor)",
-            "✍️ Opción C · Ingreso Manual Rápido"
+            "🔥 Opción C · Ingreso Manual Rápido"
         ],
         index=0,
         help="Seleccione el ambiente adaptado a la realidad operativa de su importación."
     )
+
+    st.markdown("---")
+    
+    # Barra lateral con estado de base de datos y contactos
+    with st.sidebar:
+        st.markdown("---")
+        if SHEETS_DB_OK:
+            est = sheets_db.estado_conexion()
+            if est["modo"] == "nube": 
+                st.success(f"☁️ {est['mensaje']}")
+            else: 
+                st.info(f"💾 {est['mensaje']}")
+        else: 
+            st.info("💾 Modo local (sin sheets_db.py)")
+        st.markdown("---")
+        st.caption("📞 0424-728.3199 / 0416-291.6426")
+        st.caption("✉️ jeshua166@gmail.com")
+
+    # A partir de aquí continúan sus bloques de Opción A, Opción B y Opción C...
     
     # =========================================================================
     # 4. INICIO DE LAS OPCIONES (A, B y C)
