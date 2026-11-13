@@ -2713,16 +2713,34 @@ def main():
                 except Exception as e:
                     st.error(f"Error en el cálculo: {e}")
 
-        # --- DESPLIEGUE DE RESULTADOS MANUALES ---
+        # --- DESPLIEGUE DE RESULTADOS MANUALES (INTERFAZ COMPLETA) ---
         if "productos_actuales_c" in st.session_state:
             p_m = st.session_state["productos_actuales_c"]
             c_m = st.session_state["config_actual_c"]
             g_m = st.session_state["gastos_contenedor_c"]
             
             st.markdown("---")
-            st.markdown("### 📊 Resultados del Análisis Manual")
+            st.markdown("### 📊 Resultados del Análisis Manual y Control de Inventario")
             
-            # Tabla resumen interactiva
+            # Llamamos a la interfaz visual completa de tarjetas KPI, tabla y expanders individualizados
+            # (Asegúrese de que la función mostrar_resultado utilice internamente generar_pdf_c para la Opción C, 
+            # o invoque los componentes visuales tal como los tiene el sistema básico).
+            
+            # Si prefiere renderizar el bloque interactivo completo directamente aquí:
+            total_unidades = sum(p["cantidad"] for p in p_m)
+            gasto_total_contenedor = sum(sum(p["gastos"].values()) for p in p_m)
+            costo_total_fob = sum(p.get("precio_china", p.get("precio_fob", 0)) * p["cantidad"] for p in p_m)
+            
+            # 1. Tarjetas KPIs Superiores
+            col_k1, col_k2, col_k3, col_k4 = st.columns(4)
+            col_k1.metric("📦 Ítems", f"{len(p_m)} productos")
+            col_k2.metric("🔢 Cant. Unidades", f"{total_unidades:,} unds")
+            col_k3.metric("💰 Costo Mercancía", f"$ {costo_total_fob:,.2f}")
+            col_k4.metric("🚢 Gastos Arribo", f"$ {gasto_total_contenedor:,.2f}")
+            
+            st.markdown("---")
+            st.markdown("#### 📋 Resumen General de Costos y Precios de Venta")
+            
             datos_resumen_m = []
             for p in p_m:
                 color, mensaje, sug_ahora, sug_futuro, riesgo = evaluar_semaforo(
@@ -2731,31 +2749,65 @@ def main():
                 datos_resumen_m.append({
                     "Producto": p["nombre"],
                     "Cant.": p["cantidad"],
-                    "Costo U.": formato_dinero(p["costo_unitario"]),
-                    "PVP Normal": formato_dinero(p["pvp_normal"]),
-                    "PVP Mayorista": formato_dinero(p["pvp_mayorista"]),
-                    "PVP Especial": formato_dinero(p["pvp_especial"]),
+                    "Costo U.": f"$ {p['costo_unitario']:.2f}",
+                    "PVP Normal": f"$ {p['pvp_normal']:.2f}",
+                    "PVP Mayorista": f"$ {p['pvp_mayorista']:.2f}",
+                    "PVP Especial": f"$ {p['pvp_especial']:.2f}",
                     "Semáforo IA": f"{color} {mensaje}",
                     "Pedir (Unds)": sug_ahora
                 })
             st.dataframe(pd.DataFrame(datos_resumen_m), use_container_width=True, hide_index=True)
+            
+            st.markdown("---")
+            st.markdown("#### 🔍 Desglose Individual y Prorrateo de Gastos")
+            
+            for i, p in enumerate(p_m, start=1):
+                color, mensaje, sug_ahora, sug_futuro, riesgo = evaluar_semaforo(
+                    p.get("stock_actual", 0), p.get("ventas_semanales", 0), p.get("dias_entrega", 0), c_m.get("fecha_proximo_pedido")
+                )
+                p_origen = p.get("precio_china", p.get("precio_fob", 0))
+                
+                with st.expander(f"📦 {p['nombre']} | {color} {mensaje} (Pedir: {sug_ahora} unds)", expanded=(i == 1)):
+                    c_left, c_right = st.columns(2)
+                    with c_left:
+                        st.markdown("##### 📌 Datos Físicos y de Origen")
+                        st.metric("Cantidad de Unidades", f"{p['cantidad']:,} unds")
+                        st.metric("Precio Origen (Unidad)", f"$ {p_origen:.2f}")
+                        st.metric("Peso Total", f"{p['peso_total']:.2f} kg")
+                        st.metric("Volumen Total", f"{p['volumen_total']:.3f} m³")
+                        
+                    with c_right:
+                        st.markdown("##### 🏷️ Costo Real y Precios Sugeridos")
+                        st.metric("COSTO REAL EN ESTANTE", f"$ {p['costo_unitario']:.2f}", delta=f"Origen: $ {p_origen:.2f}", delta_color="off")
+                        st.metric("PVP Normal (Sugerido)", f"$ {p['pvp_normal']:.2f}")
+                        st.metric("PVP Mayorista", f"$ {p['pvp_mayorista']:.2f}")
+                        st.metric("PVP Especial", f"$ {p['pvp_especial']:.2f}")
 
-            # --- BOTÓN DE DESCARGA PDF PARA LA OPCIÓN C ---
+                    st.markdown("---")
+                    st.markdown("##### 🚢 Gastos de Arribo Asignados (Prorrateo)")
+                    g_col1, g_col2, g_col3 = st.columns(3)
+                    gastos_items = list(p["gastos"].items())
+                    for idx, (nombre_gasto, monto_asig) in enumerate(gastos_items):
+                        por_und = monto_asig / p["cantidad"]
+                        col_target = g_col1 if idx % 3 == 0 else (g_col2 if idx % 3 == 1 else g_col3)
+                        col_target.metric(label=nombre_gasto, value=formato_dinero(monto_asig), delta=f"{formato_dinero(por_und)} /und", delta_color="off")
+
+            # Botón de Descarga PDF Corporativo con la función limpia generar_pdf_c
             st.markdown("---")
             try:
                 pdf_bytes_m = generar_pdf_c(p_m, g_m, c_m)
                 st.download_button(
-                    label="📄 Descargar Reporte Ejecutivo Manual en PDF",
+                    label="📄 Descargar Reporte Ejecutivo Oficial en PDF",
                     data=pdf_bytes_m,
                     file_name=f"Reporte_Manual_{c_m.get('empresa', 'Empresa')}.pdf",
                     mime="application/pdf",
                     type="primary",
                     use_container_width=True,
-                    key="descargar_pdf_manual_premium"
+                    key="descargar_pdf_manual_premium_final"
                 )
             except Exception as e:
                 st.error(f"❌ Error al generar PDF manual: {str(e)}")
-                                           
+                                                            
       # Fin de Opciones ‼️ 
           
 if __name__ == "__main__":
