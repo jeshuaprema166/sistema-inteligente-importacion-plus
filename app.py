@@ -2376,7 +2376,7 @@ def main():
     # =========================================================================
     # OPCIÓN C: INGRESO MANUAL RÁPIDO
     # =========================================================================
-    if modalidad.startswith("🔥 Opción C"):
+    if "Opción C" in modalidad:
         st.info("ℹ️ **Ambiente Manual Activo:** Registro directo de productos y gastos de contenedor sin necesidad de archivos externos.")
         
         cantidad_productos = st.number_input("Cantidad de productos diferentes", min_value=1, max_value=50, value=3, step=1, key="num_manual")
