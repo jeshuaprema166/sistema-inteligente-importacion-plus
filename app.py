@@ -2433,7 +2433,7 @@ def main():
         [
             "📊 Opción A · Contenedor Completo (FCL - Tradicional / Aduana)",
             "📦 Opción B · Carga Fraccionada Puerta a Puerta (LCL - DDP / Emprendedor)",
-            "🔥 Opción C · Ingreso Manual Rápido"
+            "⚡ Opción C · Ingreso Manual Rápido"
         ],
         index=0,
         help="Seleccione el ambiente adaptado a la realidad operativa de su importación."
@@ -2470,7 +2470,7 @@ def main():
         st.info("ℹ️ **Ambiente FCL Activo:** Gestión corporativa completa con prorrateo de peso/volumen, auditoría arancelaria y flujo de caja a 13 semanas.")
         archivo = st.file_uploader("", type=["xlsx", "xls", "csv"], label_visibility="collapsed")
         if archivo is None:
-            st.info("📦 Suba su archivo Excel o CSV para comenzar el análisis o activa el **Modo Demostración** en la barra lateral.")
+            st.info("💾 Suba su archivo Excel o CSV para comenzar el análisis o activa el **Modo Demostración** en la barra lateral.")
             with st.expander("❓ Columnas esperadas"): # <--- ¡Aquí vive feliz y seguro!
                 st.markdown("- Producto / Descripción\n- Cantidad\n- Precio FOB\n- Peso unitario\n- Volumen unitario\n- Ventas Semanales\n- PVP Sugerido")
         else:
