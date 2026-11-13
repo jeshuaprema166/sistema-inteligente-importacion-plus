@@ -346,8 +346,10 @@ def verificar_acceso():
         * **Identificar los márgenes reales de ganancia** antes de nacionalizar, analizando la rentabilidad neta por producto prorrateando con precisión los costos según peso (kg) y volumen ($m^3$). Así sabrá qué productos le dejan ganancia real y cuáles no.
         * **Optimizar el espacio de su contenedor** y evitar pérdidas por costos ocultos.
         * **Alarmas de reposición de inventario 🟢🟡🔴 por IA**, que permiten monitorear el comportamiento de las existencias, previniendo el desabastecimiento o sobrecompra, que redunda en estancamiento del Capital económico.
-        * **Ingresar de forma automática TODOS los datos** y detalles desde el Excel de su inventario al Sistema de Análisis Inteligente de Importación.
-        * **Definir fácilmente y con certeza** a qué proveedor del exterior debe comprar, o si es mejor hacerlo localmente.
+        * **Evaluar y Controlar el efecto de Carga Pesada**, calculando el impacto porcentual del flete frente al valor FOB antes de salir del origen.
+        * **Auditar las Partidas Arancelarias**, para verifica de antemano el cumplimiento normativo, cálculo de aranceles y tributos estimados antes de nacionalizar.
+        * **Analizar y Simular el Flujo de Caja**, permitiendo modelar y ajustar el futuro financiero de la empresa mediante 6 variables críticas, garantizando una comercialización sana, proyectada a 13 semanas de liquidez. 
+        * **Acceder permanentemente al Sistema e Historial desde la Nube** con su celular personal, ya que todo el proceso de importación se respalda de forma automática en Google Sheets.
         """)
 
         st.info("✨ **Todo eso y más, con la ayuda de nuestro Sistema de Importación con IA** 🤖")
