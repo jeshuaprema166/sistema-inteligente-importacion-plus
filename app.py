@@ -344,7 +344,7 @@ def verificar_acceso():
         st.markdown("""
         * **La verdad sobre sus costos de importación**, márgenes de utilidad y precios óptimos de venta.
         * **Identificar los márgenes reales de ganancia** antes de nacionalizar, analizando la rentabilidad neta por producto prorrateando con precisión los costos según peso (kg) y volumen ($m^3$). Así sabrá qué productos le dejan ganancia real y cuáles no.
-        * **Optimizar el espacio de su contenedor** y evite pérdidas por costos ocultos.
+        * **Optimizar el espacio de su contenedor** y evitar pérdidas por costos ocultos.
         * **Alarmas de reposición de inventario 🟢🟡🔴 por IA**, que permiten monitorear el comportamiento de las existencias, previniendo el desabastecimiento o sobrecompra, que redunda en estancamiento del Capital económico.
         * **Ingresar de forma automática TODOS los datos** y detalles desde el Excel de su inventario al Sistema de Análisis Inteligente de Importación.
         * **Definir fácilmente y con certeza** a qué proveedor del exterior debe comprar, o si es mejor hacerlo localmente.
@@ -362,9 +362,9 @@ def verificar_acceso():
         
         st.markdown("### 📋 Instrucciones:")
         st.markdown("""
-        1. Una vez dentro, vaya al **menú desplegable de la izquierda** (⬅️) para configurar los **Datos de su empresa**: Razón Social, RIF, Propietario, márgenes de utilidad (%) y descuentos previstos, así como los datos del país y proveedor de origen.
-        2. Y además, le recomendamos conocer más a fondo todas las virtudes, capacidades técnicas y módulos avanzados que incorpora esta versión, **explore la pestaña desplegable (Expander)** que encontrará una vez dentro.
-        3. Para ingresar al Sistema, escriba más abajo la **contraseña** suministrada por su Asesor de Importación para comenzar el análisis.
+        1. Una vez dentro, vaya al **menú desplegable de la izquierda** (⬅️) para configurar los **Datos de su empresa**: Razón Social, RIF, Propietario, márgenes de utilidad (%) y descuentos previstos, los datos del país y proveedor de origen, así como los demás Ajustes Avanzados.
+        2. Además, le recomendamos **explorar la pestaña desplegable 👇🏼✨** para conocer a fondo todas las virtudes, capacidades técnicas y módulos avanzados que incorpora esta versión Premium.
+        3. Para ingresar al Sistema, escriba más abajo la **contraseña**🔑 suministrada por su Asesor de Importación para comenzar el Análisis.
         """)
 
         st.markdown("---")
