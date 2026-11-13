@@ -2501,22 +2501,24 @@ def main():
                     "Pedir (Unds)": sug_ahora
                 })
             st.dataframe(pd.DataFrame(datos_resumen_m), use_container_width=True, hide_index=True)
-            
-            # Botón de descarga PDF adaptado para la Opción C
+
+            # --- BOTÓN DE DESCARGA PDF PARA LA OPCIÓN C ---
             st.markdown("---")
             try:
+                # Llamamos directamente a la función 'generar_pdf' corporativa con los datos manuales
                 pdf_bytes_m = generar_pdf(p_m, g_m, c_m)
                 st.download_button(
-                    label="📥 Descargar Reporte Ejecutivo Manual en PDF",
+                    label="📄 Descargar Reporte Ejecutivo (PDF)",
                     data=pdf_bytes_m,
                     file_name=f"Reporte_Manual_{c_m.get('empresa', 'Empresa')}.pdf",
                     mime="application/pdf",
                     type="primary",
-                    key="descargar_pdf_manual"
+                    use_container_width=True,
+                    key="descargar_pdf_manual_premium"
                 )
             except Exception as e:
-                st.error(f"Error generando PDF manual: {e}")
-                
+                st.error(f"❌ Error al generar PDF manual: {str(e)}")
+                           
       # Fin de Opciones ‼️ 
           
 if __name__ == "__main__":
