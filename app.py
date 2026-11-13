@@ -2376,21 +2376,141 @@ def main():
     # =========================================================================
     # OPCIÓN C: INGRESO MANUAL RÁPIDO
     # =========================================================================
-    if modalidad.startswith("✍️ Opción C"):
-        st.info("ℹ️ **Ambiente Manual Activo:** Registro directo de productos y gastos del contenedor.")
+    if modalidad.startswith("🔥 Opción C"):
+        st.info("ℹ️ **Ambiente Manual Activo:** Registro directo de productos y gastos de contenedor sin necesidad de archivos externos.")
+        
+        cantidad_productos = st.number_input("Cantidad de productos diferentes", min_value=1, max_value=50, value=3, step=1, key="num_manual")
+        
+        with st.form("form_manual_premium"):
+            st.subheader("📦 Detalle de Artículos del Contenedor")
+            datos_productos = []
+            for i in range(int(cantidad_productos)):
+                st.markdown(f"**Producto {i+1}**")
+                c1, c2 = st.columns(2)
+                nombre = c1.text_input("Nombre del producto", key=f"n_m_{i}", placeholder="Ej.: Taladro Percutor")
+                cantidad = c2.number_input("Cantidad de unidades", min_value=1, value=100, step=1, key=f"c_m_{i}")
+                
+                c3, c4, c5 = st.columns(3)
+                precio = c3.text_input("Precio Origen Unitario ($)", key=f"p_m_{i}", placeholder="Ej.: 15.00")
+                peso = c4.text_input("Peso unitario (kg)", key=f"pe_m_{i}", placeholder="Ej.: 1.5")
+                vol = c5.text_input("Volumen unitario (m³)", key=f"v_m_{i}", placeholder="Ej.: 0.01")
+                
+                st.markdown("**Parámetros para el Semáforo de Reposición (IA)**")
+                c6, c7, c8 = st.columns(3)
+                stock_actual = c6.number_input("Stock actual (unids)", min_value=0, value=20, step=1, key=f"s_m_{i}")
+                ventas_semanales = c7.number_input("Ventas por semana", min_value=0, value=5, step=1, key=f"vs_m_{i}")
+                dias_entrega = c8.number_input("Días de entrega estimados", min_value=1, value=60, step=1, key=f"d_m_{i}")
+                
+                datos_productos.append({
+                    "nombre": nombre, 
+                    "cantidad": int(cantidad), 
+                    "precio": precio, 
+                    "peso": peso, 
+                    "volumen": vol,
+                    "stock_actual": int(stock_actual),
+                    "ventas_semanales": int(ventas_semanales),
+                    "dias_entrega": int(dias_entrega)
+                })
+                st.markdown("---")
             
-        st.markdown("### 💼 Gastos del contenedor (en USD)")
-        cols = st.columns(3)
-        gastos_ingresados = {}
-        # Asumo que GASTOS_CONTENEDOR está definida globalmente arriba en tu código
-        for i, (nombre, criterio) in enumerate(GASTOS_CONTENEDOR):
-            with cols[i % 3]:
-                val = st.number_input(f"{nombre} ({criterio})", min_value=0.0, value=0.0, step=10.0, key=f"g_{nombre}")
-                gastos_ingresados[nombre] = val
+            # Panel de Gastos del Contenedor específico para el formulario manual
+            st.markdown("### 🚢 Gastos de Arribo del Contenedor (en USD)")
+            datos_gastos_manual = {}
+            for i in range(0, len(GASTOS_CONTENEDOR), 2):
+                cols = st.columns(2)
+                for col, (nombre_gasto, criterio) in zip(cols, GASTOS_CONTENEDOR[i:i+2]):
+                    datos_gastos_manual[nombre_gasto] = col.text_input(f"{nombre_gasto} ({criterio}) · total ($)", value="0.00", key=f"manual_g_{nombre_gasto}")
+            
+            submit_manual = st.form_submit_button("🚀 Calcular análisis manual completo", type="primary", use_container_width=True)
+  
+        if submit_manual:
+            errores = []
+            productos_manual = []
+            for i, d in enumerate(datos_productos, start=1):
+                try:
+                    nombre = d["nombre"].strip()
+                    if not nombre: 
+                        raise ValueError(f"Indica el nombre del producto {i}.")
+                    precio = leer_decimal(d["precio"], f"precio producto {i}", es_dinero=True)
+                    peso = leer_decimal(d["peso"], f"peso producto {i}", permitir_cero=False)
+                    vol = leer_decimal(d["volumen"], f"volumen producto {i}", permitir_cero=False)
+                    cantidad = d["cantidad"]
                     
-        # 👇🏼 Aquí puedes seguir agregando el resto del formulario manual de la Opción C
-        pass
+                    productos_manual.append({
+                        "nombre": nombre, 
+                        "cantidad": cantidad,
+                        "precio_china": precio,
+                        "peso_total": peso * cantidad,
+                        "volumen_total": vol * cantidad,
+                        "gastos": {},
+                        "stock_actual": d["stock_actual"],
+                        "ventas_semanales": d["ventas_semanales"],
+                        "dias_entrega": d["dias_entrega"]
+                    })
+                except ValueError as e:
+                    errores.append(str(e))
+                    
+            gastos_validados, errores_g = validar_gastos(datos_gastos_manual)
+            errores.extend(errores_g)
+            
+            if errores:
+                for e in errores: 
+                    st.error(e)
+            else:
+                try:
+                    gastos_contenedor_m = calcular_costos(productos_manual, gastos_validados, config)
+                    
+                    # Guardamos en session_state para mantener la persistencia igual que A y B
+                    st.session_state["productos_actuales_c"] = productos_manual
+                    st.session_state["config_actual_c"] = config
+                    st.session_state["gastos_contenedor_c"] = gastos_contenedor_m
+                    
+                    st.success(f"✅ ¡Análisis manual completado con éxito para **{len(productos_manual)}** productos!")
+                except Exception as e:
+                    st.error(f"Error en el cálculo: {e}")
 
+        # --- DESPLIEGUE DE RESULTADOS MANUALES ---
+        if "productos_actuales_c" in st.session_state:
+            p_m = st.session_state["productos_actuales_c"]
+            c_m = st.session_state["config_actual_c"]
+            g_m = st.session_state["gastos_contenedor_c"]
+            
+            st.markdown("---")
+            st.markdown("### 📊 Resultados del Análisis Manual")
+            
+            # Tabla resumen interactiva
+            datos_resumen_m = []
+            for p in p_m:
+                color, mensaje, sug_ahora, sug_futuro, riesgo = evaluar_semaforo(
+                    p.get("stock_actual", 0), p.get("ventas_semanales", 0), p.get("dias_entrega", 0), c_m.get("fecha_proximo_pedido")
+                )
+                datos_resumen_m.append({
+                    "Producto": p["nombre"],
+                    "Cant.": p["cantidad"],
+                    "Costo U.": formato_dinero(p["costo_unitario"]),
+                    "PVP Normal": formato_dinero(p["pvp_normal"]),
+                    "PVP Mayorista": formato_dinero(p["pvp_mayorista"]),
+                    "PVP Especial": formato_dinero(p["pvp_especial"]),
+                    "Semáforo IA": f"{color} {mensaje}",
+                    "Pedir (Unds)": sug_ahora
+                })
+            st.dataframe(pd.DataFrame(datos_resumen_m), use_container_width=True, hide_index=True)
+            
+            # Botón de descarga PDF adaptado para la Opción C
+            st.markdown("---")
+            try:
+                pdf_bytes_m = generar_pdf(p_m, g_m, c_m)
+                st.download_button(
+                    label="📥 Descargar Reporte Ejecutivo Manual en PDF",
+                    data=pdf_bytes_m,
+                    file_name=f"Reporte_Manual_{c_m.get('empresa', 'Empresa')}.pdf",
+                    mime="application/pdf",
+                    type="primary",
+                    key="descargar_pdf_manual"
+                )
+            except Exception as e:
+                st.error(f"Error generando PDF manual: {e}")
+                
       # Fin de Opciones ‼️ 
           
 if __name__ == "__main__":
