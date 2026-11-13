@@ -2425,6 +2425,7 @@ def main():
     )
 
     # Selector de Modalidad (Opciones A, B, C)
+    modalidad = st.selectbox("Elija el tipo de operación logística:", [...])
     st.markdown("---")
     st.markdown("### 🗂️ Seleccione la Modalidad de Gestión de Importación")
     modalidad = st.selectbox(
@@ -2464,13 +2465,13 @@ def main():
     # =========================================================================
     # OPCIÓN A: CONTENEDOR COMPLETO (FCL)
     # =========================================================================
-    if modalidad.startswith("📊 Opción A"):    
+    # --- COMPARTIMENTO EXCLUSIVO DE LA OPCIÓN A ---
+    if modalidad.startswith("📊 Opción A") or "Opción A" in modalidad:
         st.info("ℹ️ **Ambiente FCL Activo:** Gestión corporativa completa con prorrateo de peso/volumen, auditoría arancelaria y flujo de caja a 13 semanas.")
-            
         archivo = st.file_uploader("", type=["xlsx", "xls", "csv"], label_visibility="collapsed")
         if archivo is None:
             st.info("📦 Suba su archivo Excel o CSV para comenzar el análisis o activa el **Modo Demostración** en la barra lateral.")
-            with st.expander("❓ Columnas esperadas"):
+            with st.expander("❓ Columnas esperadas"): # <--- ¡Aquí vive feliz y seguro!
                 st.markdown("- Producto / Descripción\n- Cantidad\n- Precio FOB\n- Peso unitario\n- Volumen unitario\n- Ventas Semanales\n- PVP Sugerido")
         else:
             try:
@@ -2577,7 +2578,7 @@ def main():
     # =========================================================================
     # OPCIÓN B: CARGA FRACCIONADA (LCL DDP)
     # =========================================================================
-    if modalidad.startswith("📦 Opción B"):
+    elif modalidad.startswith("📦 Opción B") or "Opción B" in modalidad:
         st.info("ℹ️ **Ambiente LCL DDP Activo:** Multicanal con márgenes diferenciados (Detal, Mayorista y Sugerido) y control de bache de inventario.")
  
         # --- PARÁMETROS GLOBALES Y MÁRGENES ---
@@ -2627,39 +2628,39 @@ def main():
             })
             st.markdown("---")
                     
-    # --- BOTÓN DE PROCESAR (AHORA SÍ, DENTRO DE LA OPCIÓN B) ---
-    if st.button("🚀 Procesar Importación Multicanal (DDP)", type="primary", key="procesar_lcl"):     
-        df_temp_c = pd.DataFrame(items_c_list)
-        st.session_state["df_lcl"] = procesar_opcion_c_lcl(
-            df_temp_c, volumen_m3_c, tarifa_plana_m3, fecha_embarque_c, semanas_transito_c,
-            margen_normal, margen_mayor, margen_sugerido, reinversion_base_prox, pct_perdida 
-        )
-        st.success("✅ ¡Cálculo multicanal y cobertura procesados con éxito!")
-                
-    # --- RESULTADOS Y DESCARGA DE PDF ---
-    if "df_lcl" in st.session_state:
-        st.markdown("---")
-        st.markdown("### 📊 Reporte Ejecutivo y Cobertura de Inventario — Puerta a Puerta (DDP)")
-        st.dataframe(st.session_state["df_lcl"], use_container_width=True)
-        st.success("🎉 ¡Su análisis de costos en puerta y control de bache de inventario está listo!")
-                       
-    # --- RENDERIZADO EN PANTALLA DEL BOTÓN DE DESCARGA ---
-        st.markdown("---")
-        st.markdown("### 📄 Exportación de Reporte Ejecutivo")
-        st.download_button(
-            label="📥 Descargar Reporte Ejecutivo Oficial en PDF",
-            data=crear_pdf_lcl(),
-            file_name="Reporte_Ejecutivo_Importacion.pdf",
-            mime="application/pdf",
-            type="primary"
-        )
-                                    
+        # --- BOTÓN DE PROCESAR (AHORA SÍ, DENTRO DE LA OPCIÓN B) ---
+        if st.button("🚀 Procesar Importación Multicanal (DDP)", type="primary", key="procesar_lcl"):     
+            df_temp_c = pd.DataFrame(items_c_list)
+            st.session_state["df_lcl"] = procesar_opcion_c_lcl(
+                df_temp_c, volumen_m3_c, tarifa_plana_m3, fecha_embarque_c, semanas_transito_c,
+                margen_normal, margen_mayor, margen_sugerido, reinversion_base_prox, pct_perdida 
+            )
+            st.success("✅ ¡Cálculo multicanal y cobertura procesados con éxito!")
+                    
+        # --- RESULTADOS Y DESCARGA DE PDF ---
+        if "df_lcl" in st.session_state:
+            st.markdown("---")
+            st.markdown("### 📊 Reporte Ejecutivo y Cobertura de Inventario — Puerta a Puerta (DDP)")
+            st.dataframe(st.session_state["df_lcl"], use_container_width=True)
+            st.success("🎉 ¡Su análisis de costos en puerta y control de bache de inventario está listo!")
+                           
+        # --- RENDERIZADO EN PANTALLA DEL BOTÓN DE DESCARGA ---
+            st.markdown("---")
+            st.markdown("### 📄 Exportación de Reporte Ejecutivo")
+            st.download_button(
+                label="📥 Descargar Reporte Ejecutivo Oficial en PDF",
+                data=crear_pdf_lcl(),
+                file_name="Reporte_Ejecutivo_Importacion.pdf",
+                mime="application/pdf",
+                type="primary"
+            )
+                                        
         # Fin opción B ‼️
 
     # =========================================================================
     # OPCIÓN C: INGRESO MANUAL RÁPIDO
     # =========================================================================
-    if "Opción C" in modalidad:
+    elif modalidad.startswith("🔥 Opción C") or "Opción C" in modalidad:
         st.info("ℹ️ **Ambiente Manual Activo:** Registro directo de productos y gastos de contenedor sin necesidad de archivos externos.")
         
         cantidad_productos = st.number_input("Cantidad de productos diferentes", min_value=1, max_value=50, value=3, step=1, key="num_manual")
