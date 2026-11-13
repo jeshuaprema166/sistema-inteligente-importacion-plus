@@ -2450,8 +2450,13 @@ def main():
                 except ValueError as e:
                     errores.append(str(e))
                     
-            gastos_validados, errores_g = validar_gastos(datos_gastos_manual)
-            errores.extend(errores_g)
+            gastos_validados = {}
+            for nombre_gasto, criterio in GASTOS_CONTENEDOR:
+                valor_str = datos_gastos_manual.get(nombre_gasto, "0").strip().replace(",", ".")
+                try:
+                    gastos_validados[nombre_gasto] = Decimal(valor_str or "0").quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+                except Exception:
+                    gastos_validados[nombre_gasto] = Decimal("0.00")
             
             if errores:
                 for e in errores: 
