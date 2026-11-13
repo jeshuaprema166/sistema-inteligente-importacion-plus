@@ -2093,6 +2093,11 @@ def crear_pdf_lcl():
     salida = pdf.output(dest='S')
     return salida.encode('latin1') if isinstance(salida, str) else bytes(salida)
 
+def limpiar_emojis(texto):
+    if not isinstance(texto, str):
+        texto = str(texto)
+    return texto.replace("🟢", "[VERDE]").replace("🟡", "[AMARILLO]").replace("🔴", "[ROJO]")
+    
 def generar_pdf_c(productos, gastos_contenedor, config):
     pdf = FPDF()
     pdf.add_page()
@@ -2244,8 +2249,8 @@ def generar_pdf_c(productos, gastos_contenedor, config):
         pdf.cell(35, 5, "  Estado de Alerta:", border="L")
         
         pdf.set_text_color(r_col, g_col, b_col)
-        pdf.cell(130, 5, f"{txt_semaforo} - {mensaje}", border="")
-        
+        pdf.cell(130, 5, limpiar_emojis(f"{txt_semaforo} - {mensaje}"), border="")
+           
         pdf.set_font("Helvetica", "B", 10) 
         pdf.set_text_color(200, 0, 0)      
         pdf.cell(25, 5, f"=====> (Pedir: {sug_ahora} unds)", border="R", align="R") 
