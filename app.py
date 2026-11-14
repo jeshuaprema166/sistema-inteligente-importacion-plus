@@ -1112,37 +1112,65 @@ def procesar_opcion_c_lcl(productos_c_df, volumen_m3_global, tarifa_plana_m3, fe
     
 def proyectar_flujo_caja(productos, config):
     import pandas as pd
-    
-    # 1. Extraer parámetros base de configuración
+    from datetime import date, datetime, timedelta
+
     capital_inicial = float(config.get("capital_inicial", 10000.0))
     costo_fijo = float(config.get("costo_fijo_semanal", 250.0))
     
-    # 2. Calcular ingreso semanal estimado a partir de los productos del inventario
-    ingreso_semanal_base = 0.0
-    if productos:
-        for p in productos:
-            # Soportar tanto objetos como diccionarios
-            if isinstance(p, dict):
-                ventas = float(p.get("ventas_semanales", p.get("ventas", 5)))
-                pvp = float(p.get("precio_venta", p.get("pvp_normal", 50.0)))
-            else:
-                ventas = float(getattr(p, "ventas_semanales", 5))
-                pvp = float(getattr(p, "pvp_normal", 50.0))
-            ingreso_semanal_base += ventas * pvp
-            
-    if ingreso_semanal_base <= 0:
-        ingreso_semanal_base = 3500.0  # Valor predeterminado seguro de respaldo
+    # 1. Sincronización de Fechas (Única fuente de verdad)
+    fecha_embarque_str = str(config.get("fecha_proximo_pedido", "2027-01-20"))
+    try:
+        dt_emb = datetime.strptime(fecha_embarque_str, "%Y-%m-%d")
+        dt_arr = dt_emb + timedelta(days=60)
+        fecha_arribo_str = dt_arr.strftime("%Y-%m-%d")
+        
+        hoy = date.today()
+        dias_diff = (dt_emb.date() - hoy).days
+        semana_emision = max(1, min(13, (dias_diff // 7) + 1))
+        semana_arribo = semana_emision + 8  # 60 días ≈ 8.5 semanas
+    except Exception:
+        fecha_arribo_str = "Por definir"
+        semana_emision = 3
+        semana_arribo = 11
 
-    # 3. Construir la proyección de las 13 semanas
+    # 2. Preparar datos de inventario y ventas
     data = []
     saldo = capital_inicial
     
+    # Extraer variables de los productos
+    stock_actual = {}
+    ventas_semanales = {}
+    precios = {}
+    for i, p in enumerate(productos):
+        if isinstance(p, dict):
+            stock_actual[i] = float(p.get("stock_actual", 100))
+            ventas_semanales[i] = float(p.get("ventas_semanales", 5))
+            precios[i] = float(p.get("pvp_normal", p.get("precio_venta", 50.0)))
+        else:
+            stock_actual[i] = float(getattr(p, "stock_actual", 100))
+            ventas_semanales[i] = float(getattr(p, "ventas_semanales", 5))
+            precios[i] = float(getattr(p, "pvp_normal", 50.0))
+
+    # 3. Proyección de 13 semanas
     for sem in range(1, 14):
-        ingreso = ingreso_semanal_base
-        egreso = costo_fijo
+        ingreso = 0.0
         
-        # Simular impacto de reposición en semanas clave (ej. semana 3)
-        if sem == 3 and "monto_proximo_pedido" in config:
+        # Simular ventas y stock
+        if productos:
+            for i in range(len(productos)):
+                # Si es la semana de arribo, el inventario se reabastece (asumimos pedido de 8 semanas)
+                if sem == semana_arribo:
+                    stock_actual[i] += ventas_semanales[i] * 8
+                
+                # Ventas reales (no puedes vender más de lo que tienes)
+                venta_real = min(ventas_semanales[i], stock_actual[i])
+                stock_actual[i] -= venta_real
+                ingreso += venta_real * precios[i]
+        else:
+            ingreso = 3500.0 # Fallback si no hay productos
+            
+        egreso = costo_fijo
+        if sem == semana_emision and "monto_proximo_pedido" in config:
             egreso += float(config.get("monto_proximo_pedido", 0.0))
             
         saldo += (ingreso - egreso)
@@ -1153,12 +1181,13 @@ def proyectar_flujo_caja(productos, config):
             "Saldo acumulado": saldo
         })
         
-    return pd.DataFrame(data)
+    df = pd.DataFrame(data)
+    # Retornamos el DF y los metadatos para que la UI esté sincronizada
+    return df, fecha_embarque_str, fecha_arribo_str, semana_emision, semana_arribo
     
-def mostrar_flujo_caja(df_flujo, config):
+def mostrar_flujo_caja(df_flujo, fecha_embarque_str, fecha_arribo_str, semana_emision_base, semana_arribo_base, config, productos):
     st.subheader("📅 Proyección de flujo de caja — 13 semanas")
     
-    # Texto del switch en negrita y fucsia corporativo (#c71585)
     st.markdown(
         '<p style="color: #c71585; font-weight: bold; font-size: 15px; margin-bottom: 4px;">👉🏼 🎛️ Activar Simulador Gerencial de Escenarios (What-If)</p>',
         unsafe_allow_html=True
@@ -1167,33 +1196,16 @@ def mostrar_flujo_caja(df_flujo, config):
     
     df_activo = df_flujo.copy()
     
-    # 1) Extracción de fecha de embarque desde config y cálculo automático del arribo (+60 días)
-    fecha_embarque = config.get("fecha_proximo_pedido", "2027-01-20")
-    try:
-        from datetime import datetime, timedelta
-        dt_emb = datetime.strptime(str(fecha_embarque), "%Y-%m-%d")
-        dt_arr = dt_emb + timedelta(days=60)
-        fecha_arribo = dt_arr.strftime("%Y-%m-%d")
-        
-        # Cálculo automático de la semana de emisión basada en la fecha real para sincronizar con el reporte
-        hoy = date.today()
-        dias_diff = (dt_emb.date() - hoy).days
-        semana_defecto_emision = max(1, min(13, (dias_diff // 7) + 1))
-    except Exception:
-        fecha_arribo = "Por definir (60 días)"
-        semana_defecto_emision = 1
-
     if modo_simulacion:
         st.markdown(
             """
             <div style="background-color: #f8f9fa; padding: 6px 10px; border-radius: 6px; border: 1px solid #b8d4e5; margin-bottom: 8px; font-size: 12px; color: #0b2545;">
-                💡 <b>Modo Simulación Activo:</b> Ajuste los parámetros abajo. Las métricas y la gráfica se actualizan instantáneamente.
+                💡 <b>Modo Simulación Activo:</b> Si adelanta el pedido o cambia el crédito, el sistema recalculará cuándo se agota su stock real.
             </div>
             """,
             unsafe_allow_html=True
         )
         
-        # Estructura compacta: Izquierda (Inputs reducidos) / Derecha (Métricas verticales y Fechas)
         col_sim_izq, col_sim_der = st.columns([1.2, 1])
         
         with col_sim_izq:
@@ -1205,15 +1217,16 @@ def mostrar_flujo_caja(df_flujo, config):
                 sim_cfijo = st.number_input("Costo Fijo ($)", value=float(config.get("costo_fijo_semanal", 250.0)), step=50.0, key="sim_cf_s")
             with sub_c2:
                 sim_pedido = st.number_input("Próx. Pedido ($)", value=float(config.get("monto_proximo_pedido", 15000.0)), step=1000.0, key="sim_ped_s")
-                sem_emision = st.number_input("Sem. Emisión", min_value=1, max_value=13, value=int(semana_defecto_emision), step=1, key="sim_sem_num_s")
+                sem_emision = st.number_input("Sem. Emisión", min_value=1, max_value=13, value=int(semana_emision_base), step=1, key="sim_sem_num_s")
                 estrategia_pago = st.selectbox("Cond. Pago", ["Contado", "Crédito a 30 días (+4sem)", "Crédito a 60 días (+8sem)"], key="sim_pago_s")
         
         with col_sim_der:
-            # Factor de ajuste por margen
             margen_base = float(config.get("margen", 30.0))
             factor_m = (1.0 + (sim_margen / 100.0)) / (1.0 + (margen_base / 100.0)) if margen_base > 0 else 1.0
             
+            # Lógica de simulación de stock y saldo
             saldos_simulados = []
+            ingresos_simulados = []
             capital_inicial_base = float(config.get("capital_inicial", 0.0)) + sim_cap
             acumulado = capital_inicial_base
             
@@ -1224,10 +1237,40 @@ def mostrar_flujo_caja(df_flujo, config):
             else:
                 semana_pago = int(sem_emision) + 8
                 
-            for idx, row in df_activo.iterrows():
-                sem = int(row["Semana"])
-                ingreso_original = float(row.get("Ingreso proyectado", 3500.0))
-                ingreso_nuevo = ingreso_original * factor_m
+            # Calcular cuándo llega el nuevo stock con la nueva fecha de emisión
+            sim_semana_arribo = int(sem_emision) + 8
+            
+            # Copia del stock para simular
+            stock_sim = {}
+            for i, p in enumerate(productos):
+                if isinstance(p, dict): stock_sim[i] = float(p.get("stock_actual", 100))
+                else: stock_sim[i] = float(getattr(p, "stock_actual", 100))
+
+            for sem in range(1, 14):
+                ingreso_nuevo = 0.0
+                
+                # Simulamos ventas reales con el stock agotándose
+                if productos:
+                    for i in range(len(productos)):
+                        if isinstance(productos[i], dict):
+                            vtas = float(productos[i].get("ventas_semanales", 5))
+                            prc = float(productos[i].get("pvp_normal", 50.0))
+                        else:
+                            vtas = float(getattr(productos[i], "ventas_semanales", 5))
+                            prc = float(getattr(productos[i], "pvp_normal", 50.0))
+                            
+                        # Reabastecer
+                        if sem == sim_semana_arribo:
+                            stock_sim[i] += vtas * 8
+                            
+                        venta_real = min(vtas, stock_sim[i])
+                        stock_sim[i] -= venta_real
+                        ingreso_nuevo += venta_real * prc
+                else:
+                    ingreso_nuevo = 3500.0
+                    
+                ingreso_nuevo = ingreso_nuevo * factor_m
+                ingresos_simulados.append(ingreso_nuevo)
                 
                 egreso_nuevo = sim_cfijo
                 if sem == semana_pago:
@@ -1237,16 +1280,14 @@ def mostrar_flujo_caja(df_flujo, config):
                 saldos_simulados.append(acumulado)
                 
             df_activo["Saldo acumulado"] = saldos_simulados
-            if "Ingreso proyectado" in df_activo.columns:
-                df_activo["Ingreso proyectado"] = df_activo["Ingreso proyectado"] * factor_m
+            df_activo["Ingreso proyectado"] = ingresos_simulados
 
-            ingreso_total_val = df_activo['Ingreso proyectado'].sum() if 'Ingreso proyectado' in df_activo.columns else df_activo['Saldo acumulado'].iloc[-1]
+            ingreso_total_val = sum(ingresos_simulados)
             saldo_final_val = df_activo['Saldo acumulado'].iloc[-1]
             minimo_val = df_activo["Saldo acumulado"].min()
 
             st.markdown("<p style='font-size: 11px; font-weight: bold; color: #1f4e78; margin-bottom: 2px;'>📊 Resultados y Fechas Clave:</p>", unsafe_allow_html=True)
             
-            # Métricas apiladas verticalmente para evitar cortes horizontales
             st.metric("Ingreso total", f"${ingreso_total_val:,.0f}")
             st.metric("Saldo final", f"${saldo_final_val:,.0f}")
             st.metric("Saldo mínimo", f"${minimo_val:,.0f}", delta=None if minimo_val >= 0 else "Riesgo de Déficit")
@@ -1254,15 +1295,16 @@ def mostrar_flujo_caja(df_flujo, config):
             st.markdown(
                 f"""
                 <div style="background-color: #e8f4f8; padding: 6px 10px; border-radius: 5px; border: 1px solid #b8d4e5; font-size: 12px; color: #0b2545; margin-top: 6px;">
-                    🚢 <b>Fecha prox. Embarque:</b> {fecha_embarque}<br>
-                    🏁 <b>Fecha estimada de Arribo (+60 días):</b> {fecha_arribo}
+                    🚢 <b>Embarque:</b> {fecha_embarque_str}<br>
+                    🏁 <b>Arribo (+60 días):</b> {fecha_arribo_str}<br>
+                    ⚠️ <b>Quiebre de Stock:</b> Semana {sim_semana_arribo} (si no llega antes)
                 </div>
                 """,
                 unsafe_allow_html=True
             )
     else:
-        # Modo Normal: Métricas apiladas verticalmente y fechas clave debajo
-        ingreso_total_val = df_activo['Ingreso proyectado'].sum() if 'Ingreso proyectado' in df_activo.columns else df_activo['Saldo acumulado'].iloc[-1]
+        # MODO NORMAL
+        ingreso_total_val = df_activo['Ingreso proyectado'].sum()
         saldo_final_val = df_activo['Saldo acumulado'].iloc[-1]
         minimo_val = df_activo["Saldo acumulado"].min()
 
@@ -1273,7 +1315,7 @@ def mostrar_flujo_caja(df_flujo, config):
         st.markdown(
             f"""
             <div style="background-color: #f8f9fa; padding: 8px 12px; border-radius: 6px; border: 1px solid #dcdcdc; font-size: 13px; color: #1f4e78; margin-top: 8px; margin-bottom: 10px;">
-                👉🏼 🚢 <b>Fecha prox. Embarque:</b> {fecha_embarque} &nbsp;&nbsp;|&nbsp;&nbsp; 🏁 <b>Fecha estimada de Arribo (+60 días):</b> {fecha_arribo}
+                👉🏼 🚢 <b>Fecha prox. Embarque:</b> {fecha_embarque_str} &nbsp;&nbsp;|&nbsp;&nbsp; 🏁 <b>Fecha estimada de Arribo (+60 días):</b> {fecha_arribo_str}
             </div>
             """,
             unsafe_allow_html=True
@@ -1290,14 +1332,14 @@ def mostrar_flujo_caja(df_flujo, config):
     ax.grid(alpha=0.3)
     st.pyplot(fig)
 
-    # --- MÓDULO DE INTERPRETACIÓN Y DIAGNÓSTICO FINANCIERO DINÁMICO ---
+    # --- DIAGNÓSTICO ---
     st.markdown("---")
     st.markdown("### 🧠 Interpretación y Diagnóstico Financiero")
     
     st.markdown(
         """
         **¿Qué es la Proyección de Flujo de Caja a 13 Semanas?**  
-        Es un modelo financiero dinámico de alta precisión que simula semana a semana la entrada de ingresos por ventas y la salida de compromisos operativos y de reposición, vigilando permanentemente que el capital de trabajo de la empresa **nunca caiga por debajo del límite seguro**.
+        Es un modelo financiero dinámico que simula la entrada de ingresos por ventas y la salida de compromisos operativos. **Nota importante:** El modelo ahora es realista y asume que las ventas caen a cero si el inventario se agota antes de que llegue el próximo contenedor (Semana de arribo).
         """
     )
 
@@ -1305,21 +1347,21 @@ def mostrar_flujo_caja(df_flujo, config):
         st.success(
             f"""
             **🟢 Diagnóstico Financiero Óptimo (Saludable):**  
-            El flujo de caja proyectado muestra una tendencia de crecimiento sólido y constante. El saldo mínimo de caja es de **$ {minimo_val:,.0f}**, superando holgadamente el umbral de riesgo. La combinación de tiempos de emisión y pago protege la liquidez y asegura el inventario.
+            El flujo de caja proyectado muestra una tendencia de crecimiento sólido. El saldo mínimo de caja es de **$ {minimo_val:,.0f}**, superando holgadamente el umbral de riesgo. La combinación de tiempos de emisión y pago protege la liquidez.
             """
         )
     elif minimo_val >= 0:
         st.warning(
             f"""
             **🟡 Diagnóstico de Liquidez Ajustada (En Observación):**  
-            El flujo proyectado presenta un margen ajustado (Saldo Mínimo: **$ {minimo_val:,.0f}**). Su capital de trabajo se acerca al límite de seguridad. Considere negociar mayor plazo de pago con el proveedor para desahogar la caja operativa sin alterar su fecha de inventario.
+            El flujo proyectado presenta un margen ajustado (Saldo Mínimo: **$ {minimo_val:,.0f}**). Su capital de trabajo se acerca al límite de seguridad. Considere negociar mayor plazo de pago con el proveedor o aumentar el capital inicial.
             """
         )
     else:
         st.error(
             f"""
             **🔴 Diagnóstico de Alerta Roja por Déficit (Riesgo Crítico):**  
-            ¡Atención gerencial! El modelo detecta un saldo mínimo negativo (**$ {minimo_val:,.0f}**). Los compromisos superan el ritmo de ingresos previstos en la semana crítica. Aplazar la condición de pago a crédito resolverá este déficit de inmediato.
+            ¡Atención gerencial! El modelo detecta un saldo mínimo negativo (**$ {minimo_val:,.0f}**). Los compromisos superan el ritmo de ingresos previstos. Además, si se agota el stock, las ventas caerán y el déficit será mayor. Aplazar la condición de pago a crédito o inyectar capital es urgente.
             """
         )
        
