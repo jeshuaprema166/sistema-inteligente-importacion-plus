@@ -2432,9 +2432,9 @@ def main():
     modalidad = st.selectbox(
         "Elija el tipo de operación logística:",
         [
-            "📊 Opción A · Contenedor Completo (FCL - Tradicional / Aduana)",
-            "📦 Opción B · Carga Fraccionada Puerta a Puerta (LCL - DDP / Emprendedor)",
-            "⚡ Opción C · Ingreso Manual Rápido"
+            "📊 **Opción A · Contenedor Completo** (FCL - Tradicional / Aduana)",
+            "📦 **Opción B · Carga Fraccionada Puerta a Puerta** (LCL - DDP / Emprendedor)",
+            "⚡ **Opción C · Ingreso Manual Rápido**"
         ],
         index=0,
         help="Seleccione el ambiente adaptado a la realidad operativa de su importación."
