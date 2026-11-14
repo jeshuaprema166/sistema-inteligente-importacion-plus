@@ -2436,7 +2436,7 @@ def main():
             "📦 𝗢𝗽𝗰𝗶ó𝗻 𝗕 · 𝗖𝗮𝗿𝗴𝗮 𝗙𝗿𝗮𝗰𝗰𝗶𝗼𝗻𝗮𝗱𝗮 𝗣𝘂𝗲𝗿𝘁𝗮 𝗮 𝗣𝘂𝗲𝗿𝘁𝗮 (LCL - DDP / Emprendedor)",
             "⚡ 𝗢𝗽𝗰𝗶ó𝗻 𝗖 · 𝗜𝗻𝗴𝗿𝗲𝘀𝗼 𝗠𝗮𝗻𝘂𝗮𝗹 𝗥á𝗽𝗶𝗱𝗼"
         ],
-        index=0
+        index=0,
         help="Seleccione el ambiente adaptado a la realidad operativa de su importación."
     )
 
