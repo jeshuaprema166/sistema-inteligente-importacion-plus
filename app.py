@@ -349,7 +349,7 @@ def verificar_acceso():
         * **Evaluar y Controlar el efecto de Carga Pesada**, calculando el impacto porcentual del flete frente al valor FOB antes de salir del origen.
         * **Auditar las Partidas Arancelarias**, para verifica de antemano el cumplimiento normativo, cálculo de aranceles y tributos estimados antes de nacionalizar.
         * **Analizar y Simular el Flujo de Caja**, permitiendo modelar y ajustar el futuro financiero de la empresa mediante 6 variables críticas, garantizando una comercialización sana, proyectada a 13 semanas de liquidez. 
-        * **Acceder permanentemente al Sistema e Historial desde la Nube** con su celular personal, ya que todo el proceso de importación se respalda de forma automática en Google Sheets.
+        * **Acceder permanentemente al Sistema e Historial desde la Nube** desde su celular personal, ya que todo el proceso de importación se respalda de forma encriptada y automática en Google Sheets.
         """)
 
         st.info("✨ **Todo eso y más, con la ayuda de nuestro Sistema de Importación con IA** 🤖")
