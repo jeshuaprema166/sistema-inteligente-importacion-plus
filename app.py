@@ -2467,7 +2467,7 @@ def main():
     # OPCIÓN A: CONTENEDOR COMPLETO (FCL)
     # =========================================================================
     # --- COMPARTIMENTO EXCLUSIVO DE LA OPCIÓN A ---
-    if modalidad.startswith("📊 Opción A") or "Opción A" in modalidad:
+    if modalidad.startswith("📊") or "Opción A" in modalidad:
         st.info("🌎 **Ambiente FCL Activo:** 🏗 Gestión corporativa completa con prorrateo de peso/volumen, auditoría arancelaria y flujo de caja a 13 semanas.")
         archivo = st.file_uploader("", type=["xlsx", "xls", "csv"], label_visibility="collapsed")
         if archivo is None:
@@ -2579,7 +2579,7 @@ def main():
     # =========================================================================
     # OPCIÓN B: CARGA FRACCIONADA (LCL DDP)
     # =========================================================================
-    elif modalidad.startswith("📦 Opción B") or "Opción B" in modalidad:
+    elif modalidad.startswith("📦") or "Opción B" in modalidad:
         st.info("ℹ️ **Ambiente LCL DDP Activo:** Multicanal con márgenes diferenciados (Detal, Mayorista y Sugerido) y control de bache de inventario.")
  
         # --- PARÁMETROS GLOBALES Y MÁRGENES ---
@@ -2661,7 +2661,7 @@ def main():
     # =========================================================================
     # OPCIÓN C: INGRESO MANUAL RÁPIDO
     # =========================================================================
-    elif modalidad.startswith("🔥 Opción C") or "Opción C" in modalidad:
+    elif modalidad.startswith("⚡") or "Opción C" in modalidad:
         st.info("ℹ️ **Ambiente Manual Activo:** Registro directo de productos y gastos de contenedor sin necesidad de archivos externos.")
         
         cantidad_productos = st.number_input("Cantidad de productos diferentes", min_value=1, max_value=50, value=3, step=1, key="num_manual")
