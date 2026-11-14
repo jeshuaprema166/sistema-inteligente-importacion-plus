@@ -352,7 +352,7 @@ def verificar_acceso():
         * **Acceder permanentemente al Sistema e Historial desde la Nube** desde su celular personal, ya que todo el proceso de importación se respalda de forma encriptada y automática en Google Sheets.
         """)
 
-        st.info("✨ **Todo eso y más, con la ayuda de nuestro Sistema de Importación con IA** 🤖")
+        st.info("**Todo eso y más, con la ayuda de nuestro Sistema de Importación con IA**✨🧠")
 
         st.markdown("""
         <div style="background-color: #e8f4f8; color: #0b2545; padding: 15px; border-radius: 8px; text-align: center;">
@@ -366,7 +366,7 @@ def verificar_acceso():
         st.markdown("""
         1. Una vez dentro, vaya al **menú desplegable de la izquierda** (⬅️) para configurar los **Datos de su empresa**: Razón Social, RIF, Propietario, márgenes de utilidad (%) y descuentos previstos, los datos del país y proveedor de origen, así como los demás Ajustes Avanzados.
         2. Además, le recomendamos **explorar la pestaña desplegable 👇🏼✨** para conocer a fondo todas las virtudes, capacidades técnicas y módulos avanzados que incorpora esta versión Premium.
-        3. Para ingresar al Sistema, escriba más abajo la **contraseña**🔑 suministrada por su Asesor de Importación para comenzar el Análisis.
+        3. Para ingresar al Sistema, escriba más abajo la **contraseña** 🔑 suministrada por su Asesor de Importación para comenzar el Análisis.
         """)
 
         st.markdown("---")
