@@ -2366,7 +2366,7 @@ def main():
     empresa_valida = config.get('empresa') and config.get('empresa').strip() not in ["", "Empresa Principal", "Nueva empresa"]
 
     if not empresa_valida:
-        st.info("ℹ️ *Por favor, configure o seleccione su empresa en el menú lateral izquierdo para habilitar el selector de modalidades de importación y las herramientas de análisis.*")
+        st.info("🫲🏼 *Por favor, configure o seleccione su empresa en el menú lateral izquierdo para habilitar el selector de modalidades de importación y las herramientas de análisis.*")
         
         # Información de contacto en el sidebar incluso en la sala de entrada
         with st.sidebar:
@@ -2472,7 +2472,7 @@ def main():
         st.info("ℹ️ **Ambiente FCL Activo:** Gestión corporativa completa con prorrateo de peso/volumen, auditoría arancelaria y flujo de caja a 13 semanas.")
         archivo = st.file_uploader("", type=["xlsx", "xls", "csv"], label_visibility="collapsed")
         if archivo is None:
-            st.info("💾 Suba su archivo Excel o CSV para comenzar el análisis o activa el **Modo Demostración** en la barra lateral.")
+            st.info("💾 **Suba su archivo Excel** o CSV para comenzar el análisis o active el **Modo Demostración** en la barra lateral >>.")
             with st.expander("❓ Columnas esperadas"): # <--- ¡Aquí vive feliz y seguro!
                 st.markdown("- Producto / Descripción\n- Cantidad\n- Precio FOB\n- Peso unitario\n- Volumen unitario\n- Ventas Semanales\n- PVP Sugerido")
         else:
