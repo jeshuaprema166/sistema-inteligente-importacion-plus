@@ -2468,7 +2468,7 @@ def main():
     # =========================================================================
     # --- COMPARTIMENTO EXCLUSIVO DE LA OPCIÓN A ---
     if modalidad.startswith("📊 Opción A") or "Opción A" in modalidad:
-        st.info("ℹ️ **Ambiente FCL Activo:** Gestión corporativa completa con prorrateo de peso/volumen, auditoría arancelaria y flujo de caja a 13 semanas.")
+        st.info("🌎 **Ambiente FCL Activo:** 🏗 Gestión corporativa completa con prorrateo de peso/volumen, auditoría arancelaria y flujo de caja a 13 semanas.")
         archivo = st.file_uploader("", type=["xlsx", "xls", "csv"], label_visibility="collapsed")
         if archivo is None:
             st.info("💾 **Suba su archivo Excel** o CSV para comenzar el análisis o active el **Modo Demostración** en la barra lateral >>.")
