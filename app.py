@@ -2427,7 +2427,6 @@ def main():
     )
 
     # Selector de Modalidad (Opciones A, B, C)
-    modalidad = st.selectbox("Elija el tipo de operación logística:", [...])
     st.markdown("---")
     st.markdown("### 🗂️ Seleccione la Modalidad de Gestión de Importación")
     modalidad = st.selectbox(
