@@ -2428,15 +2428,15 @@ def main():
 
     # Selector de Modalidad (Opciones A, B, C)
     st.markdown("---")
-    st.markdown("### 🗂️ Seleccione la Modalidad de Gestión de Importación")
+    st.markdown("### 🗂️ Seleccione la Modalidad de Gestión de Importación")    
     modalidad = st.selectbox(
         "Elija el tipo de operación logística:",
         [
-            "📊 **Opción A · Contenedor Completo** (FCL - Tradicional / Aduana)",
-            "📦 **Opción B · Carga Fraccionada Puerta a Puerta** (LCL - DDP / Emprendedor)",
-            "⚡ **Opción C · Ingreso Manual Rápido**"
+            "📊 𝗢𝗽𝗰𝗶ó𝗻 𝗔 · 𝗖𝗼𝗻𝘁𝗲𝗻𝗲𝗱𝗼𝗿 𝗖𝗼𝗺𝗽𝗹𝗲𝘁𝗼 (FCL - Tradicional / Aduana)",
+            "📦 𝗢𝗽𝗰𝗶ó𝗻 𝗕 · 𝗖𝗮𝗿𝗴𝗮 𝗙𝗿𝗮𝗰𝗰𝗶𝗼𝗻𝗮𝗱𝗮 𝗣𝘂𝗲𝗿𝘁𝗮 𝗮 𝗣𝘂𝗲𝗿𝘁𝗮 (LCL - DDP / Emprendedor)",
+            "⚡ 𝗢𝗽𝗰𝗶ó𝗻 𝗖 · 𝗜𝗻𝗴𝗿𝗲𝘀𝗼 𝗠𝗮𝗻𝘂𝗮𝗹 𝗥á𝗽𝗶𝗱𝗼"
         ],
-        index=0,
+        index=0
         help="Seleccione el ambiente adaptado a la realidad operativa de su importación."
     )
 
