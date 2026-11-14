@@ -1364,7 +1364,37 @@ def mostrar_flujo_caja(df_flujo, fecha_embarque_str, fecha_arribo_str, semana_em
             ¡Atención gerencial! El modelo detecta un saldo mínimo negativo (**$ {minimo_val:,.0f}**). Los compromisos superan el ritmo de ingresos previstos. Además, si se agota el stock, las ventas caerán y el déficit será mayor. Aplazar la condición de pago a crédito o inyectar capital es urgente.
             """
         )
-       
+
+    # --- MÓDULO DE RECOMENDACIONES AUTOMÁTICAS DEL ASESOR IA ---
+    st.markdown("---")
+    st.markdown("### 💡 Recomendaciones Automáticas del Asesor IA")
+    
+    # Calcular cuánto capital falta si estamos en déficit
+    faltante = abs(minimo_val) if minimo_val < 0 else 0
+    capital_sugerido = (faltante + 1500) if minimo_val < 1000 else 0 # Colchón de seguridad de $1500
+    
+    if minimo_val < 0:
+        st.error(f"""
+        **🚨 Plan de Acción Inmediato (Alerta de Quiebre):**
+        1. **Inyección de Capital:** Su punto más bajo es de **${minimo_val:,.0f}**. Le recomendamos inyectar al menos **${capital_sugerido:,.0f}** para cubrir el déficit y tener un colchón de $1,500. Esto lo puede lograr a través una solicitud de adelanto con descuento a clientes o préstamo bancario.
+        2. **Negociación con Proveedor:** Vaya a la simulación, cambie "Cond. Pago" a **Crédito a 30 o 60 días**. Como vio en la gráfica, esto desplaza el pago del contenedor a las semanas donde ya ha vendido la mercancía. 
+        3. **Aplazar Pedido:** Si no consigue crédito ni capital, considere atrasar la "Sem. Emisión del Pedido" 2 ó 3 semanas más para acumular más efectivo de las ventas generales actuales.
+        """)
+    elif 0 <= minimo_val < 1000:
+        st.warning(f"""
+        **⚠️ Plan de Acción Preventivo (Liquidez Ajustada):**
+        1. Su flujo es positivo, pero su colchón de seguridad es muy bajo (**${minimo_val:,.0f}**).
+        2. **Recomendación:** Reduzca sus "Gastos Fijos" temporales, o **inyecte un capital adicional de ${capital_sugerido:,.0f}** tal y como lo indica el Simulador para dormir tranquilo!
+        3. **Oportunidad:** Si tiene la posibilidad de negociar un crédito de 30 días con su proveedor, hágalo. Le dará un respiro operativo.
+        """)
+    else:
+        st.success(f"""
+        **✅ Plan de Acción de Crecimiento (Flujo Saludable):**
+        1. **¡Felicidades!** Su flujo de caja es sólido, con un colchón mínimo de **${minimo_val:,.0f}**.
+        2. **Recomendación Estratégica:** Tiene la solidez para **aumentar el tamaño de su próximo pedido** en un 10% a 20%. Aproveche los descuentos por volumen.
+        3. **Inversión:** Considere destinar un porcentaje del excedente a marketing o a la compra de un nuevo producto de alta rotación.
+        """)
+
 def exportar_csv_para_sheets(productos, config):
     filas = []
     for p in productos:
