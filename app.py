@@ -2607,7 +2607,8 @@ def main():
                             type="primary"
                         )
                 with tab_flujo:
-                    mostrar_flujo_caja(proyectar_flujo_caja(productos, config), config)
+                    df_flujo, f_emb, f_arr, sem_base, arribo_base = proyectar_flujo_caja(productos, config)
+                    mostrar_flujo_caja(df_flujo, f_emb, f_arr, sem_base, arribo_base, config, productos)
                 with tab_auditoria:
                     vista_auditoria_aduanera(productos)
                 # (Aquí termina el bloque de la Opción A con sus pestañas)
