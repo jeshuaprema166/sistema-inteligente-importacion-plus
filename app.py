@@ -2693,6 +2693,8 @@ def main():
                     renderizar_pestana_salvavidas(productos, config)
                 with tab_reporte:
                     st.subheader("📄 Reporte Ejecutivo")
+                    if st.button("🔄 Actualizar Reporte con los últimos cambios", type="secondary"):
+                        st.rerun()
                     reporte_html = crear_reporte_html(productos, gastos_contenedor, config)
                     components.html(reporte_html, height=1500, scrolling=True)
                     st.info("💡 Para guardar este reporte como PDF, presione el botón de abajo.")
