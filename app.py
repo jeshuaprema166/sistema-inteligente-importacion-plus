@@ -1941,7 +1941,7 @@ def vista_analisis_costos(productos, config):
     st.markdown("---")
     st.info(
         """
-        **Precio Sugerido:** dentro de una comercialización sana, es un modelo matemático que parte del Costo Real Unitario (Costo FOB + Gastos de Arribo prorrateados) y aplica la fórmula de fijación de precios basada en el margen deseado sobre el costo o precio de venta, frecuentemente alineado con el precio de referencia óptimo o de equilibrio del mercado) cumple tres funciones vitales:
+        **Precio Sugerido:** dentro de una comercialización sana, es un modelo matemático que parte del Costo Real Unitario (Costo FOB + Gastos de Arribo prorrateados) y aplica la fórmula de fijación de precios basada en el margen deseado sobre el costo o precio de venta, frecuentemente alineado con el precio de referencia óptimo o de equilibrio del mercado, cumple tres funciones vitales:
         * **Garantía de Rentabilidad Real**
         * **Punto de Referencia Técnico para Negociaciones**
         * **Mitigación del Riesgo Inflacionario y Cambiario**
