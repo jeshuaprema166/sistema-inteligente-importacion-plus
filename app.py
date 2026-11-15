@@ -1648,54 +1648,55 @@ def crear_reporte_html(productos, gastos_contenedor, config):
             </div>
         </div>
         """
-
-        # --- SECCIÓN DE FLUJO DE CAJA PARA EL REPORTE ---
-        if "flujo_img" in st.session_state:
-            saldo_final = st.session_state.get("flujo_saldo_final", 0)
-            saldo_minimo = st.session_state.get("flujo_saldo_minimo", 0)
-            ingreso_total = st.session_state.get("flujo_ingreso_total", 0)
-            recomendacion = st.session_state.get("flujo_recomendacion", "")
-            color_alerta = st.session_state.get("flujo_color", "#333")
-            img_b64 = st.session_state["flujo_img"]
         
-            html += f"""
-            <h3 style="color: #1f4e78; margin-top: 30px; font-size: 16px;">📅 Anexo: Proyección de Flujo de Caja (13 Semanas)</h3>
-            
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; page-break-inside: avoid;">
-                <tr style="background-color: #1f4e78; color: white;">
-                    <th style="padding: 6px; border: 1px solid #ddd;">Ingreso Total Proyectado</th>
-                    <th style="padding: 6px; border: 1px solid #ddd;">Saldo Final Proyectado</th>
-                    <th style="padding: 6px; border: 1px solid #ddd;">Saldo Mínimo (Punto Crítico)</th>
-                </tr>
-                <tr>
-                    <td style="padding: 6px; border: 1px solid #ddd; text-align: center; font-weight: bold;">&#36; {float(ingreso_total):,.2f}</td>
-                    <td style="padding: 6px; border: 1px solid #ddd; text-align: center; font-weight: bold;">&#36; {float(saldo_final):,.2f}</td>
-                    <td style="padding: 6px; border: 1px solid #ddd; text-align: center; font-weight: bold; color: {color_alerta};">&#36; {float(saldo_minimo):,.2f}</td>
-                </tr>
-            </table>
+    # --- SECCIÓN DE FLUJO DE CAJA (FUERA DEL BUCLE DE PRODUCTOS) ---
+    if "flujo_img" in st.session_state:
+        saldo_final = st.session_state.get("flujo_saldo_final", 0)
+        saldo_minimo = st.session_state.get("flujo_saldo_minimo", 0)
+        ingreso_total = st.session_state.get("flujo_ingreso_total", 0)
+        recomendacion = st.session_state.get("flujo_recomendacion", "")
+        color_alerta = st.session_state.get("flujo_color", "#333")
+        img_b64 = st.session_state["flujo_img"]
+    
+        html += f"""
+        <h3 style="color: #1f4e78; margin-top: 30px; font-size: 16px;">📅 Anexo: Proyección de Flujo de Caja (13 Semanas)</h3>
         
-            <div style="page-break-inside: avoid; background-color: #f8f9fa; border-left: 4px solid {color_alerta}; padding: 10px; margin-bottom: 20px;">
-                <p style="margin: 0; font-size: 12px; color: #333;"><b>Diagnóstico del Asesor IA:</b> {recomendacion}</p>
-            </div>
-        
-            <div style="text-align: center; page-break-inside: avoid;">
-                <img src="data:image/png;base64,{img_b64}" style="width: 100%; max-width: 600px; border: 1px solid #ddd; border-radius: 5px; padding: 5px;" alt="Gráfica de Flujo de Caja" />
-            </div>
-            """
-        # --- FIN SECCIÓN FLUJO DE CAJA ---
-        html += """
-        <h3 style="color: #1f4e78; margin-top: 30px;">Apéndice: Glosario Técnico</h3>
-        <ul style="font-size: 12px; color: #555; line-height: 1.6;">
-            <li><b>Valor FOB:</b> Costo neto de la mercancía en origen (fábrica o puerto de embarque).</li>
-            <li><b>Factor Multiplicador:</b> Coeficiente global para determinar el costo real puesto en bodega por cada dólar invertido.</li>
-            <li><b>Impacto Flete/FOB:</b> Relación porcentual entre el costo del flete y el FOB; mide si la carga es ligera o pesada.</li>
-            <li><b>Costo Final Unitario:</b> Costo real de cada unidad ya nacionalizada (incluye flete, seguro, aranceles y gastos locales).</li>
-            <li><b>Precio Sugerido:</b> Modelo matemático que parte del Costo Real Unitario y aplica la fórmula de fijación de precios basada en el margen deseado sobre el costo o precio de venta, buscando alinearse con el precio de equilibrio del mercado.</li>
-            <li><b>Rentabilidad:</b> Porcentaje de ganancia neta estimada respecto al costo final unitario del producto.</li>
-            <li><b>Flujo de Caja (Cash Flow):</b> Proyección financiera que registra el ingreso y egreso de efectivo semana a semana. Permite anticipar crisis de liquidez, evaluar el impacto de las condiciones de pago con proveedores y determinar el momento exacto en que se agota el inventario.</li>
-        </ul>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; page-break-inside: avoid;">
+            <tr style="background-color: #1f4e78; color: white;">
+                <th style="padding: 6px; border: 1px solid #ddd;">Ingreso Total Proyectado</th>
+                <th style="padding: 6px; border: 1px solid #ddd;">Saldo Final Proyectado</th>
+                <th style="padding: 6px; border: 1px solid #ddd;">Saldo Mínimo (Punto Crítico)</th>
+            </tr>
+            <tr>
+                <td style="padding: 6px; border: 1px solid #ddd; text-align: center; font-weight: bold;">&#36; {float(ingreso_total):,.2f}</td>
+                <td style="padding: 6px; border: 1px solid #ddd; text-align: center; font-weight: bold;">&#36; {float(saldo_final):,.2f}</td>
+                <td style="padding: 6px; border: 1px solid #ddd; text-align: center; font-weight: bold; color: {color_alerta};">&#36; {float(saldo_minimo):,.2f}</td>
+            </tr>
+        </table>
+    
+        <div style="page-break-inside: avoid; background-color: #f8f9fa; border-left: 4px solid {color_alerta}; padding: 10px; margin-bottom: 20px;">
+            <p style="margin: 0; font-size: 12px; color: #333;"><b>Diagnóstico del Asesor IA:</b> {recomendacion}</p>
+        </div>
+    
+        <div style="text-align: center; page-break-inside: avoid;">
+            <img src="data:image/png;base64,{img_b64}" style="width: 100%; max-width: 600px; border: 1px solid #ddd; border-radius: 5px; padding: 5px;" alt="Gráfica de Flujo de Caja" />
+        </div>
         """
-
+    
+    # --- GLOSARIO TÉCNICO (FUERA DEL BUCLE DE PRODUCTOS) ---
+    html += """
+    <h3 style="color: #1f4e78; margin-top: 30px;">Apéndice: Glosario Técnico</h3>
+    <ul style="font-size: 12px; color: #555; line-height: 1.6;">
+        <li><b>Valor FOB:</b> Costo neto de la mercancía en origen (fábrica o puerto de embarque).</li>
+        <li><b>Factor Multiplicador:</b> Coeficiente global para determinar el costo real puesto en bodega por cada dólar invertido.</li>
+        <li><b>Impacto Flete/FOB:</b> Relación porcentual entre el costo del flete y el FOB; mide si la carga es ligera o pesada.</li>
+        <li><b>Costo Final Unitario:</b> Costo real de cada unidad ya nacionalizada (incluye flete, seguro, aranceles y gastos locales).</li>
+        <li><b>Precio Sugerido:</b> Modelo matemático que parte del Costo Real Unitario y aplica la fórmula de fijación de precios basada en el margen deseado sobre el costo o precio de venta, buscando alinearse con el precio de equilibrio del mercado.</li>
+        <li><b>Rentabilidad:</b> Porcentaje de ganancia neta estimada respecto al costo final unitario del producto.</li>
+        <li><b>Flujo de Caja (Cash Flow):</b> Proyección financiera que registra el ingreso y egreso de efectivo semana a semana. Permite anticipar crisis de liquidez, evaluar el impacto de las condiciones de pago con proveedores y determinar el momento exacto en que se agota el inventario.</li>
+    </ul>
+    """
+    
     # Pie de página corporativo (Autoría de JPV)
     html += f"""
     <div style="margin-top: 30px; page-break-inside: avoid; border: 1px solid #1f4e78; padding: 15px; background-color: #f8f9fa; border-radius: 8px; text-align: center;">
