@@ -1189,7 +1189,7 @@ def mostrar_flujo_caja(df_flujo, fecha_embarque_str, fecha_arribo_str, semana_em
     st.subheader("📅 Proyección de flujo de caja — 13 semanas")
     
     st.markdown(
-        '<p style="color: #c71585; font-weight: bold; font-size: 15px; margin-bottom: 4px;">👉🏼 🎛️ Activar Simulador Gerencial de Escenarios (What-If)</p>',
+        '<p style="color: #c71585; font-weight: bold; font-size: 15px; margin-bottom: 4px;">👇🏼🎛️ Activar Simulador Gerencial de Escenarios (What-If)</p>',
         unsafe_allow_html=True
     )
     modo_simulacion = st.toggle("Habilite para ajustar variables en tiempo real", value=False, label_visibility="collapsed")
