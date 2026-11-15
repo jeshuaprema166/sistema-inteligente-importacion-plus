@@ -1686,7 +1686,7 @@ def crear_reporte_html(productos, gastos_contenedor, config):
             </div>
             """
         # --- FIN SECCIÓN FLUJO DE CAJA ---
-
+        html += """
         <h3 style="color: #1f4e78; margin-top: 30px;">Apéndice: Glosario Técnico</h3>
         <ul style="font-size: 12px; color: #555; line-height: 1.6;">
             <li><b>Valor FOB:</b> Costo neto de la mercancía en origen (fábrica o puerto de embarque).</li>
@@ -1697,8 +1697,7 @@ def crear_reporte_html(productos, gastos_contenedor, config):
             <li><b>Rentabilidad:</b> Porcentaje de ganancia neta estimada respecto al costo final unitario del producto.</li>
             <li><b>Flujo de Caja (Cash Flow):</b> Proyección financiera que registra el ingreso y egreso de efectivo semana a semana. Permite anticipar crisis de liquidez, evaluar el impacto de las condiciones de pago con proveedores y determinar el momento exacto en que se agota el inventario.</li>
         </ul>
-    </div>
-    """
+        """
 
     # Pie de página corporativo (Autoría de JPV)
     html += f"""
