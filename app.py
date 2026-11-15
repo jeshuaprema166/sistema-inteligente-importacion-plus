@@ -2717,7 +2717,7 @@ def main():
                         </style>
                     """, unsafe_allow_html=True)
                     
-                    if st.button("🔁 ACTUALIZAR Reporte con los últimos cambios"):
+                    if st.button("🔁 ACTUALIZAR Reporte del FLUJO de CAJA con los últimos cambios"):
                         st.rerun()
                     
                     reporte_html = crear_reporte_html(productos, gastos_contenedor, config)
