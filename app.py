@@ -1514,41 +1514,38 @@ def crear_reporte_html(productos, gastos_contenedor, config):
 
         <!-- Resumen General de Costos y Precios de Venta -->
         <h3 style="color: #1f4e78; margin-bottom: 5px;">Resumen General de Costos y Precios de Venta</h3>
-        <table style="page-break-inside: avoid; width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 30px;">
+        <table style="page-break-inside: avoid; width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 20px;">
             <tr style="background-color: #1f4e78; color: white;">
-                <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Producto</th>
-                <th style="padding: 8px; border: 1px solid #ddd;">Cant.</th>
-                <th style="padding: 8px; border: 1px solid #ddd;">Costo U.</th>
-                <th style="padding: 8px; border: 1px solid #ddd;">PVP Norm.</th>
-                <th style="padding: 8px; border: 1px solid #ddd;">PVP May.</th>
-                <th style="padding: 8px; border: 1px solid #ddd;">PVP Esp.</th>
-                <th style="padding: 8px; border: 1px solid #ddd;">Semáforo</th>
+                <th style="padding: 4px; border: 1px solid #ddd; text-align: left;">Producto</th>
+                <th style="padding: 4px; border: 1px solid #ddd;">Cant.</th>
+                <th style="padding: 4px; border: 1px solid #ddd;">Costo U.</th>
+                <th style="padding: 4px; border: 1px solid #ddd;">PVP Norm.</th>
+                <th style="padding: 4px; border: 1px solid #ddd;">PVP May.</th>
+                <th style="padding: 4px; border: 1px solid #ddd;">PVP Esp.</th>
+                <th style="padding: 4px; border: 1px solid #ddd;">Semáforo</th>
             </tr>
     """
-
-    # Bucle para llenar la tabla de Resumen General
+    
     for p in productos:
         color_txt = "red" if "🔴" in p.get("semaforo_color", "") else ("orange" if "🟡" in p.get("semaforo_color", "") else "green")
         estado_txt = "ROJO" if "🔴" in p.get("semaforo_color", "") else ("AMARILLO" if "🟡" in p.get("semaforo_color", "") else "VERDE")
         html += f"""
             <tr>
-                <td style="padding: 8px; border: 1px solid #ddd;">{p.get('nombre', '')}</td>
-                <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">{p.get('cantidad', 0)}</td>
-                <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${float(p.get('costo_final_unitario', 0)):,.2f}</td>
-                <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${float(p.get('pvp_normal', 0)):,.2f}</td>
-                <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${float(p.get('pvp_mayorista', 0)):,.2f}</td>
-                <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${float(p.get('pvp_especial', 0)):,.2f}</td>
-                <td style="padding: 8px; border: 1px solid #ddd; text-align: center; color: {color_txt}; font-weight: bold;">{estado_txt}</td>
+                <td style="padding: 4px; border: 1px solid #ddd; text-align: left;">{p['nombre']}</td>
+                <td style="padding: 4px; border: 1px solid #ddd; text-align: center;">{p['cantidad']}</td>
+                <td style="padding: 4px; border: 1px solid #ddd; text-align: right;">&#36; {float(p['costo_unitario']):,.2f}</td>
+                <td style="padding: 4px; border: 1px solid #ddd; text-align: right;">&#36; {float(p['pvp_normal']):,.2f}</td>
+                <td style="padding: 4px; border: 1px solid #ddd; text-align: right;">&#36; {float(p['pvp_mayorista']):,.2f}</td>
+                <td style="padding: 4px; border: 1px solid #ddd; text-align: right;">&#36; {float(p['pvp_especial']):,.2f}</td>
+                <td style="padding: 4px; border: 1px solid #ddd; text-align: center; font-weight: bold; color: {color_txt};">{estado_txt}</td>
             </tr>
         """
-
-    html += """
-        </table>
+    html += "</table>"
+    
+    # Tarjetas de Productos
+    html += """<h3 style="color: #1f4e78; margin-bottom: 10px; font-size: 14px;">Desglose Individual y Prorrateo de Gastos</h3>"""          
         
-        <h3 style="color: #1f4e78; margin-bottom: 10px;">Desglose Individual y Prorrateo de Gastos por Ítem</h3>
-    """
-
-    # Generar las alertas de reposición sincronizadas con el motor exacto
+    # Generar 🔴 las alertas de reposición sincronizadas con el motor exacto
     alertas_reposicion = generar_alertas_reposicion(productos, config)
     mapa_reposicion = {item.get('producto'): item for item in alertas_reposicion}
 
