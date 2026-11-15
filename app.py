@@ -1409,16 +1409,21 @@ def mostrar_flujo_caja(df_flujo, fecha_embarque_str, fecha_arribo_str, semana_em
     st.session_state["flujo_saldo_minimo"] = minimo_val
     st.session_state["flujo_ingreso_total"] = ingreso_total_val
     
-    # Guardar el texto de la recomendación según el semáforo
-    if minimo_val < 0:
-        st.session_state["flujo_recomendacion"] = "ALERTA CRÍTICA: Inyectar capital, negociar crédito o reducir el pedido."
-        st.session_state["flujo_color"] = "#c00000" # Rojo
-    elif minimo_val < 1000:
-        st.session_state["flujo_recomendacion"] = "LIQUIDEZ AJUSTADA: Reducir pedido en 10% o acelerar ventas."
-        st.session_state["flujo_color"] = "#bf8f00" # Amarillo
+    # LÓGICA CONDICIONAL: Las recomendaciones solo se guardan si el simulador está activo
+    if modo_simulacion:
+        if minimo_val < 0:
+            st.session_state["flujo_recomendacion"] = "ALERTA CRÍTICA: Inyectar capital, negociar crédito o reducir el pedido."
+            st.session_state["flujo_color"] = "#c00000" # Rojo
+        elif minimo_val < 1000:
+            st.session_state["flujo_recomendacion"] = "LIQUIDEZ AJUSTADA: Reducir pedido en 10% o acelerar ventas."
+            st.session_state["flujo_color"] = "#bf8f00" # Amarillo
+        else:
+            st.session_state["flujo_recomendacion"] = "FLUJO SALUDABLE: Capacidad para aumentar pedido en 10-20%."
+            st.session_state["flujo_color"] = "#006100" # Verde
     else:
-        st.session_state["flujo_recomendacion"] = "FLUJO SALUDABLE: Capacidad para aumentar pedido en 10-20%."
-        st.session_state["flujo_color"] = "#006100" # Verde
+        # Si el simulador está apagado, limpiamos las recomendaciones de la memoria
+        st.session_state["flujo_recomendacion"] = ""
+        st.session_state["flujo_color"] = "#333"    
 
 def exportar_csv_para_sheets(productos, config):
     filas = []
