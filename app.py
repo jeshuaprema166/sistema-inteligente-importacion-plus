@@ -1200,7 +1200,7 @@ def mostrar_flujo_caja(df_flujo, fecha_embarque_str, fecha_arribo_str, semana_em
         st.markdown(
             """
             <div style="background-color: #f8f9fa; padding: 6px 10px; border-radius: 6px; border: 1px solid #b8d4e5; margin-bottom: 8px; font-size: 12px; color: #0b2545;">
-                💡 <b>Modo Simulación Activo:</b> Si adelanta el pedido o cambia el crédito, el sistema recalculará cuándo se agota su stock real.
+                💡 <b>Modo de Compensación Activo:</b> Si adelanta el Pedido o cambia la forma de Pago, el Sistema recalculará cuándo se agota su stock real.
             </div>
             """,
             unsafe_allow_html=True
@@ -1224,7 +1224,7 @@ def mostrar_flujo_caja(df_flujo, fecha_embarque_str, fecha_arribo_str, semana_em
             margen_base = float(config.get("margen", 30.0))
             factor_m = (1.0 + (sim_margen / 100.0)) / (1.0 + (margen_base / 100.0)) if margen_base > 0 else 1.0
             
-            # Lógica de simulación de stock y saldo
+            # Lógica de Compensación de stock y saldo
             saldos_simulados = []
             ingresos_simulados = []
             capital_inicial_base = float(config.get("capital_inicial", 0.0)) + sim_cap
@@ -1249,7 +1249,7 @@ def mostrar_flujo_caja(df_flujo, fecha_embarque_str, fecha_arribo_str, semana_em
             for sem in range(1, 14):
                 ingreso_nuevo = 0.0
                 
-                # Simulamos ventas reales con el stock agotándose
+                # Compensamos ventas reales con el stock agotándose
                 if productos:
                     for i in range(len(productos)):
                         if isinstance(productos[i], dict):
@@ -1328,7 +1328,7 @@ def mostrar_flujo_caja(df_flujo, fecha_embarque_str, fecha_arribo_str, semana_em
     ax.axhline(0, color="red", linestyle="--", linewidth=1)
     ax.set_xlabel("Semana")
     ax.set_ylabel("Saldo acumulado (USD)")
-    ax.set_title("Saldo de caja proyectado (Simulación Dinámica)" if modo_simulacion else "Saldo de caja proyectado")
+    ax.set_title("Saldo de caja proyectado (Compensación Dinámica)" if modo_simulacion else "Saldo de caja proyectado")
     ax.grid(alpha=0.3)
     st.pyplot(fig)
 
@@ -1409,13 +1409,13 @@ def mostrar_flujo_caja(df_flujo, fecha_embarque_str, fecha_arribo_str, semana_em
     
     # Guardar el texto del Diagnóstico para el PDF
     if minimo_val >= 1000 and saldo_final_val >= minimo_val:
-        st.session_state["flujo_diagnostico_texto"] = "DIAGNÓSTICO ÓPTIMO (Saludable): El flujo de caja proyectado muestra una tendencia de crecimiento sólido. El saldo mínimo de caja supera holgadamente el umbral de riesgo."
+        st.session_state["flujo_diagnostico_texto"] = "DIAGNÓSTICO ÓPTIMO (Saludable ✅): El flujo de caja proyectado muestra una tendencia de crecimiento sólido. El saldo mínimo de caja supera holgadamente el umbral de riesgo."
         st.session_state["flujo_color_diag"] = "#006100"
     elif minimo_val >= 0:
-        st.session_state["flujo_diagnostico_texto"] = "DIAGNÓSTICO AJUSTADO (En Observación): El flujo proyectado presenta un margen ajustado. Su capital de trabajo se acerca al límite de seguridad. Considere negociar mayor plazo de pago."
+        st.session_state["flujo_diagnostico_texto"] = "DIAGNÓSTICO AJUSTADO (En Observación ⚠️): El flujo proyectado presenta un margen ajustado. Su capital de trabajo se acerca al límite de seguridad. Considere negociar mayor plazo de pago."
         st.session_state["flujo_color_diag"] = "#bf8f00"
     else:
-        st.session_state["flujo_diagnostico_texto"] = "DIAGNÓSTICO CRÍTICO (Riesgo de Déficit): ¡Atención gerencial! El modelo detecta un saldo mínimo negativo. Los compromisos superan el ritmo de ingresos previstos. Aplazar la condición de pago es urgente."
+        st.session_state["flujo_diagnostico_texto"] = "DIAGNÓSTICO CRÍTICO (Riesgo de Déficit 🆘): ¡Atención gerencial! El modelo detecta un saldo mínimo negativo. Los compromisos superan el ritmo de ingresos previstos. Renegociar la condición de pago es urgente."
         st.session_state["flujo_color_diag"] = "#c00000"
 
 def exportar_csv_para_sheets(productos, config):
