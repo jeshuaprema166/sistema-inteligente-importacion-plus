@@ -1365,40 +1365,11 @@ def mostrar_flujo_caja(df_flujo, fecha_embarque_str, fecha_arribo_str, semana_em
             """
         )
 
-    # --- MÓDULO DE RECOMENDACIONES DE SU ASESOR IA ---
-    st.markdown("---")
-    st.markdown("### 💡✨RECOMENDACIONES de su Asesor IA ✨🧠 a través del Simulador")
-    
-    faltante = abs(minimo_val) if minimo_val < 0 else 0
-    capital_sugerido = (faltante + 1500) if minimo_val < 1000 else 0 
-    
-    if minimo_val < 0:
-        st.error(f"""
-        **🚨 Plan de Acción Inmediato (Alerta de Quiebre):**
-        1. **Inyección de Capital:** Su punto más bajo es de **${minimo_val:,.0f}**. Le recomendamos inyectar al menos **${capital_sugerido:,.0f}** para cubrir el déficit y tener un colchón de al menos $1,500. Puede lograrlo con un pequeño Crédito Bancario o Adelanto al Pedido de sus Clientes por descuento.
-        2. **Negociación con Proveedor:** Vaya a la simulación, cambie "Cond. Pago" a **Crédito a 30 o 60 días**. Como verá en la gráfica, esto desplaza el pago del contenedor a las semanas donde ya ha vendido la mercancía en existencia.
-        3. **Ajuste del Pedido:** Si no consigue crédito ni capital, **reduzca el monto del próximo pedido entre un 10% y 20%** en el simulador. Un contenedor más pequeño le generará una salida de efectivo menor. O retrase la fecha del próximo pedido unas 2 ó 3 semanas hasta recoger más efectivo.
-        """)
-    elif 0 <= minimo_val < 1000:
-        st.warning(f"""
-        **⚠️ Plan de Acción Preventivo (Liquidez Ajustada):**
-        1. Su flujo es positivo, pero su colchón de seguridad es muy bajo (**${minimo_val:,.0f}**).
-        2. **Ajuste del Pedido:** **Reduzca un poco el monto de su próximo pedido**. Bajar un 10% en la cantidad de unidades solicitadas le dará un respiro inmediato a su caja.
-        3. **Acelerar Cobranzas o Ventas:** Si tiene cuentas por cobrar de clientes fieles, cobre antes de la semana crítica. Otra opción es hacer una **promoción rápida de sus productos de mayor rotación** para generar efectivo extra antes del pago.
-        """)
-    else:
-        st.success(f"""
-        **✅ Plan de Acción de Crecimiento (Flujo Saludable):**
-        1. **¡Felicidades!** Su flujo de caja es sólido, con un colchón mínimo de **${minimo_val:,.0f}**.
-        2. **Recomendación Estratégica:** Tiene la solidez para **aumentar el tamaño de su próximo pedido** en un 10% a 20%. Aproveche los descuentos por volumen que ofrecen los proveedores.
-        3. **Inversión:** Considere destinar un porcentaje del excedente a marketing para captar más clientes o a la compra de un nuevo producto de alta rotación.
-        """)
-
-    # --- GUARDAR PARA EL REPORTE PDF ---
+    # --- MÓDULO DE RECOMENDACIONES Y GUARDADO PARA PDF ---
     import io
     import base64
     
-    # Guardar la gráfica en memoria como imagen Base64
+    # 1. Guardar la gráfica en memoria como imagen Base64 (siempre se guarda para el PDF)
     buf = io.BytesIO()
     fig.savefig(buf, format="png", bbox_inches="tight", dpi=100)
     buf.seek(0)
@@ -1409,21 +1380,47 @@ def mostrar_flujo_caja(df_flujo, fecha_embarque_str, fecha_arribo_str, semana_em
     st.session_state["flujo_saldo_minimo"] = minimo_val
     st.session_state["flujo_ingreso_total"] = ingreso_total_val
     
-    # LÓGICA CONDICIONAL: Las recomendaciones solo se guardan si el simulador está activo
+    # 2. Lógica unificada (pantalla y PDF) solo si el simulador está activo
     if modo_simulacion:
+        st.markdown("---")
+        st.markdown("### 💡✨RECOMENDACIONES de su Asesor IA ✨🧠 a través del Simulador")
+        
+        faltante = abs(minimo_val) if minimo_val < 0 else 0
+        capital_sugerido = (faltante + 1500) if minimo_val < 1000 else 0 
+        
         if minimo_val < 0:
+            st.error(f"""
+            **🚨 Plan de Acción Inmediato (Alerta de Quiebre):**
+            1. **Inyección de Capital:** Su punto más bajo es de **${minimo_val:,.0f}**. Le recomendamos inyectar al menos **${capital_sugerido:,.0f}** para cubrir el déficit y tener un colchón de al menos $1,500. Puede lograrlo con un pequeño Crédito Bancario o Adelanto al Pedido de sus Clientes por descuento.
+            2. **Negociación con Proveedor:** Vaya a la simulación, cambie "Cond. Pago" a **Crédito a 30 o 60 días**. Como verá en la gráfica, esto desplaza el pago del contenedor a las semanas donde ya ha vendido la mercancía en existencia.
+            3. **Ajuste del Pedido:** Si no consigue crédito ni capital, **reduzca el monto del próximo pedido entre un 10% y 20%** en el simulador. Un contenedor más pequeño le generará una salida de efectivo menor. O retrase la fecha del próximo pedido unas 2 ó 3 semanas hasta recoger más efectivo.
+            """)
             st.session_state["flujo_recomendacion"] = "ALERTA CRÍTICA: Inyectar capital, negociar crédito o reducir el pedido."
             st.session_state["flujo_color"] = "#c00000" # Rojo
-        elif minimo_val < 1000:
+            
+        elif 0 <= minimo_val < 1000:
+            st.warning(f"""
+            **⚠️ Plan de Acción Preventivo (Liquidez Ajustada):**
+            1. Su flujo es positivo, pero su colchón de seguridad es muy bajo (**${minimo_val:,.0f}**).
+            2. **Ajuste del Pedido:** **Reduzca un poco el monto de su próximo pedido**. Bajar un 10% en la cantidad de unidades solicitadas le dará un respiro inmediato a su caja.
+            3. **Acelerar Cobranzas o Ventas:** Si tiene cuentas por cobrar de clientes fieles, cobre antes de la semana crítica. Otra opción es hacer una **promoción rápida de sus productos de mayor rotación** para generar efectivo extra antes del pago.
+            """)
             st.session_state["flujo_recomendacion"] = "LIQUIDEZ AJUSTADA: Reducir pedido en 10% o acelerar ventas."
             st.session_state["flujo_color"] = "#bf8f00" # Amarillo
+            
         else:
+            st.success(f"""
+            **✅ Plan de Acción de Crecimiento (Flujo Saludable):**
+            1. **¡Felicidades!** Su flujo de caja es sólido, con un colchón mínimo de **${minimo_val:,.0f}**.
+            2. **Recomendación Estratégica:** Tiene la solidez para **aumentar el tamaño de su próximo pedido** en un 10% a 20%. Aproveche los descuentos por volumen que ofrecen los proveedores.
+            3. **Inversión:** Considere destinar un porcentaje del excedente a marketing para captar más clientes o a la compra de un nuevo producto de alta rotación.
+            """)
             st.session_state["flujo_recomendacion"] = "FLUJO SALUDABLE: Capacidad para aumentar pedido en 10-20%."
             st.session_state["flujo_color"] = "#006100" # Verde
     else:
         # Si el simulador está apagado, limpiamos las recomendaciones de la memoria
         st.session_state["flujo_recomendacion"] = ""
-        st.session_state["flujo_color"] = "#333"    
+        st.session_state["flujo_color"] = "#333"
 
 def exportar_csv_para_sheets(productos, config):
     filas = []
