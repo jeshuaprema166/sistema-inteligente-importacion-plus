@@ -1712,7 +1712,8 @@ def crear_reporte_html(productos, gastos_contenedor, config):
                 <img src="https://i.postimg.cc/Hxhd38gS/JPV-Asesor-Importacion.jpg" style="max-height: 120px; border-radius: 4px;">
             </div>
         </div>
-
+        """
+        
     return html.replace('\n', '').strip()
     
 def generar_pdf_desde_html(html_content):
