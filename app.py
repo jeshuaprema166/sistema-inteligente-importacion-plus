@@ -1393,7 +1393,33 @@ def mostrar_flujo_caja(df_flujo, fecha_embarque_str, fecha_arribo_str, semana_em
         2. **Recomendación Estratégica:** Tiene la solidez para **aumentar el tamaño de su próximo pedido** en un 10% a 20%. Aproveche los descuentos por volumen que ofrecen los proveedores.
         3. **Inversión:** Considere destinar un porcentaje del excedente a marketing para captar más clientes o a la compra de un nuevo producto de alta rotación.
         """)
+
+    # --- GUARDAR PARA EL REPORTE PDF ---
+    import io
+    import base64
     
+    # Guardar la gráfica en memoria como imagen Base64
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", bbox_inches="tight", dpi=100)
+    buf.seek(0)
+    img_base64 = base64.b64encode(buf.read()).decode("utf-8")
+    
+    st.session_state["flujo_img"] = img_base64
+    st.session_state["flujo_saldo_final"] = saldo_final_val
+    st.session_state["flujo_saldo_minimo"] = minimo_val
+    st.session_state["flujo_ingreso_total"] = ingreso_total_val
+    
+    # Guardar el texto de la recomendación según el semáforo
+    if minimo_val < 0:
+        st.session_state["flujo_recomendacion"] = "ALERTA CRÍTICA: Inyectar capital, negociar crédito o reducir el pedido."
+        st.session_state["flujo_color"] = "#c00000" # Rojo
+    elif minimo_val < 1000:
+        st.session_state["flujo_recomendacion"] = "LIQUIDEZ AJUSTADA: Reducir pedido en 10% o acelerar ventas."
+        st.session_state["flujo_color"] = "#bf8f00" # Amarillo
+    else:
+        st.session_state["flujo_recomendacion"] = "FLUJO SALUDABLE: Capacidad para aumentar pedido en 10-20%."
+        st.session_state["flujo_color"] = "#006100" # Verde
+
 def exportar_csv_para_sheets(productos, config):
     filas = []
     for p in productos:
