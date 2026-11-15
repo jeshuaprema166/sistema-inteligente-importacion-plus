@@ -1713,7 +1713,6 @@ def crear_reporte_html(productos, gastos_contenedor, config):
             </div>
         </div>
         """
-        
     return html.replace('\n', '').strip()
     
 def generar_pdf_desde_html(html_content):
