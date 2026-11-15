@@ -1365,36 +1365,35 @@ def mostrar_flujo_caja(df_flujo, fecha_embarque_str, fecha_arribo_str, semana_em
             """
         )
 
-    # --- MÓDULO DE RECOMENDACIONES AUTOMÁTICAS DEL ASESOR IA ---
+    # --- MÓDULO DE RECOMENDACIONES DE SU ASESOR IA ---
     st.markdown("---")
-    st.markdown("### 💡 Recomendaciones Automáticas del Asesor IA")
+    st.markdown("### 💡✨RECOMENDACIONES de su Asesor IA ✨🧠 a través del Simulador")
     
-    # Calcular cuánto capital falta si estamos en déficit
     faltante = abs(minimo_val) if minimo_val < 0 else 0
-    capital_sugerido = (faltante + 1500) if minimo_val < 1000 else 0 # Colchón de seguridad de $1500
+    capital_sugerido = (faltante + 1500) if minimo_val < 1000 else 0 
     
     if minimo_val < 0:
         st.error(f"""
         **🚨 Plan de Acción Inmediato (Alerta de Quiebre):**
-        1. **Inyección de Capital:** Su punto más bajo es de **${minimo_val:,.0f}**. Le recomendamos inyectar al menos **${capital_sugerido:,.0f}** para cubrir el déficit y tener un colchón de $1,500. Esto lo puede lograr a través una solicitud de adelanto con descuento a clientes o préstamo bancario.
-        2. **Negociación con Proveedor:** Vaya a la simulación, cambie "Cond. Pago" a **Crédito a 30 o 60 días**. Como vio en la gráfica, esto desplaza el pago del contenedor a las semanas donde ya ha vendido la mercancía. 
-        3. **Aplazar Pedido:** Si no consigue crédito ni capital, considere atrasar la "Sem. Emisión del Pedido" 2 ó 3 semanas más para acumular más efectivo de las ventas generales actuales.
+        1. **Inyección de Capital:** Su punto más bajo es de **${minimo_val:,.0f}**. Le recomendamos inyectar al menos **${capital_sugerido:,.0f}** para cubrir el déficit y tener un colchón de al menos $1,500. Puede lograrlo con un pequeño Crédito Bancario o Adelanto al Pedido de sus Clientes por descuento.
+        2. **Negociación con Proveedor:** Vaya a la simulación, cambie "Cond. Pago" a **Crédito a 30 o 60 días**. Como verá en la gráfica, esto desplaza el pago del contenedor a las semanas donde ya ha vendido la mercancía en existencia.
+        3. **Ajuste del Pedido:** Si no consigue crédito ni capital, **reduzca el monto del próximo pedido entre un 10% y 20%** en el simulador. Un contenedor más pequeño le generará una salida de efectivo menor. O retrase la fecha del próximo pedido unas 2 ó 3 semanas hasta recoger más efectivo.
         """)
     elif 0 <= minimo_val < 1000:
         st.warning(f"""
         **⚠️ Plan de Acción Preventivo (Liquidez Ajustada):**
         1. Su flujo es positivo, pero su colchón de seguridad es muy bajo (**${minimo_val:,.0f}**).
-        2. **Recomendación:** Reduzca sus "Gastos Fijos" temporales, o **inyecte un capital adicional de ${capital_sugerido:,.0f}** tal y como lo indica el Simulador para dormir tranquilo!
-        3. **Oportunidad:** Si tiene la posibilidad de negociar un crédito de 30 días con su proveedor, hágalo. Le dará un respiro operativo.
+        2. **Ajuste del Pedido:** **Reduzca un poco el monto de su próximo pedido**. Bajar un 10% en la cantidad de unidades solicitadas le dará un respiro inmediato a su caja.
+        3. **Acelerar Cobranzas o Ventas:** Si tiene cuentas por cobrar de clientes fieles, cobre antes de la semana crítica. Otra opción es hacer una **promoción rápida de sus productos de mayor rotación** para generar efectivo extra antes del pago.
         """)
     else:
         st.success(f"""
         **✅ Plan de Acción de Crecimiento (Flujo Saludable):**
         1. **¡Felicidades!** Su flujo de caja es sólido, con un colchón mínimo de **${minimo_val:,.0f}**.
-        2. **Recomendación Estratégica:** Tiene la solidez para **aumentar el tamaño de su próximo pedido** en un 10% a 20%. Aproveche los descuentos por volumen.
-        3. **Inversión:** Considere destinar un porcentaje del excedente a marketing o a la compra de un nuevo producto de alta rotación.
+        2. **Recomendación Estratégica:** Tiene la solidez para **aumentar el tamaño de su próximo pedido** en un 10% a 20%. Aproveche los descuentos por volumen que ofrecen los proveedores.
+        3. **Inversión:** Considere destinar un porcentaje del excedente a marketing para captar más clientes o a la compra de un nuevo producto de alta rotación.
         """)
-
+    
 def exportar_csv_para_sheets(productos, config):
     filas = []
     for p in productos:
