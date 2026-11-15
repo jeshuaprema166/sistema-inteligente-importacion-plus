@@ -1686,16 +1686,17 @@ def crear_reporte_html(productos, gastos_contenedor, config):
             </div>
             """
         # --- FIN SECCIÓN FLUJO DE CAJA ---
-                
-        <!-- 3. Apéndice: Glosario Técnico -->
-        <div style="margin-top: 25px; page-break-inside: avoid; border-top: 1px solid #ccc; padding-top: 10px;">
-            <h3 style="color: #1f4e78; margin-bottom: 6px; font-size: 14px;">3. Apéndice: Glosario Técnico de Comercio Internacional</h3>
-            <p style="font-size: 10px; color: #555; margin: 3px 0;"><b>Valor FOB:</b> Costo neto de la mercancía en origen (fábrica o puerto de embarque).</p>
-            <p style="font-size: 10px; color: #555; margin: 3px 0;"><b>Factor Multiplicador:</b> Coeficiente global para determinar el costo real puesto en bodega por cada dólar invertido.</p>
-            <p style="font-size: 10px; color: #555; margin: 3px 0;"><b>Impacto Flete/FOB:</b> Relación porcentual entre el costo del flete y el FOB; mide si la carga es ligera o pesada.</p>
-            <p style="font-size: 10px; color: #555; margin: 3px 0;"><b>Costo Final Unitario:</b> Costo real de cada unidad ya nacionalizada (incluye flete, seguro, aranceles y gastos locales).</p>
-            <p style="font-size: 10px; color: #555; margin: 3px 0;"><b>Rentabilidad:</b> Porcentaje de ganancia neta estimada respecto al costo final unitario del producto.</p>
-        </div>
+
+        <h3 style="color: #1f4e78; margin-top: 30px;">Apéndice: Glosario Técnico</h3>
+        <ul style="font-size: 12px; color: #555; line-height: 1.6;">
+            <li><b>Valor FOB:</b> Costo neto de la mercancía en origen (fábrica o puerto de embarque).</li>
+            <li><b>Factor Multiplicador:</b> Coeficiente global para determinar el costo real puesto en bodega por cada dólar invertido.</li>
+            <li><b>Impacto Flete/FOB:</b> Relación porcentual entre el costo del flete y el FOB; mide si la carga es ligera o pesada.</li>
+            <li><b>Costo Final Unitario:</b> Costo real de cada unidad ya nacionalizada (incluye flete, seguro, aranceles y gastos locales).</li>
+            <li><b>Precio Sugerido:</b> Modelo matemático que parte del Costo Real Unitario y aplica la fórmula de fijación de precios basada en el margen deseado sobre el costo o precio de venta, buscando alinearse con el precio de equilibrio del mercado.</li>
+            <li><b>Rentabilidad:</b> Porcentaje de ganancia neta estimada respecto al costo final unitario del producto.</li>
+            <li><b>Flujo de Caja (Cash Flow):</b> Proyección financiera que registra el ingreso y egreso de efectivo semana a semana. Permite anticipar crisis de liquidez, evaluar el impacto de las condiciones de pago con proveedores y determinar el momento exacto en que se agota el inventario.</li>
+        </ul>
     </div>
     """
 
