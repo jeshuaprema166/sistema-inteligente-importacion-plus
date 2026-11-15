@@ -1705,7 +1705,7 @@ def crear_reporte_html(productos, gastos_contenedor, config):
             <p style="margin: 0 0 5px 0; font-size: 11px; color: #666; font-weight: bold;">Diseñado y elaborado por su Asesor de Importación Inteligente:</p>
             <h3 style="margin: 0; color: #1f4e78; font-size: 16px;">Prof. Jesús Pulido V.</h3>
             <p style="margin: 5px 0; font-size: 11px; color: #444;">
-                Teléfonos de contacto: 0424-728.3199 / 0416-291.6426<br>
+                Teléfonos de contacto: O424-728.3199 / O416-291.6426<br>
                 Correo: jeshua166@gmail.com
             </p>
             <div style="margin-top: 10px;">
