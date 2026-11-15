@@ -1701,7 +1701,7 @@ def crear_reporte_html(productos, gastos_contenedor, config):
             
     # Pie de página corporativo (Autoría de JPV)
     html += f"""
-        <div style="margin-top: 30px; page-break-inside: avoid; border: 1px solid #1f4e78; padding: 15px; border-radius: 6px; background-color: #fafafa; text-align: center;">
+        <div style="margin-top: 30px; page-break-inside: avoid; border: 1px solid #1f4e78; padding: 15px; background-color: #f8f9fa; border-radius: 8px; text-align: center;">
             <p style="margin: 0 0 5px 0; font-size: 11px; color: #666; font-weight: bold;">Diseñado y elaborado por su Asesor de Importación Inteligente:</p>
             <h3 style="margin: 0; color: #1f4e78; font-size: 16px;">Prof. Jesús Pulido V.</h3>
             <p style="margin: 5px 0; font-size: 11px; color: #444;">
@@ -1709,7 +1709,7 @@ def crear_reporte_html(productos, gastos_contenedor, config):
                 Correo: jeshua166@gmail.com
             </p>
             <div style="margin-top: 10px;">
-                <img src="https://i.postimg.cc/Hxhd38gS/JPV-Asesor-Importacion.jpg" style="max-height: 120px; border-radius: 4px;">
+                <img src="https://i.postimg.cc/Hxhd38gS/JPV-Asesor-Importacion.jpg" style="max-height: 120px; border-radius: 8px; border: 2px solid #1f4e78;" />
             </div>
         </div>
         """
