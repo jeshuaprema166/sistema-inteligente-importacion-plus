@@ -1342,39 +1342,61 @@ def mostrar_flujo_caja(df_flujo, fecha_embarque_str, fecha_arribo_str, semana_em
         Es un modelo financiero dinámico que simula la entrada de ingresos por ventas y la salida de compromisos operativos. **Nota importante:** El modelo ahora es realista y asume que las ventas caen a cero si el inventario se agota antes de que llegue el próximo contenedor (Semana de arribo).
         """
     )
-
+    
     if minimo_val >= 1000 and saldo_final_val >= minimo_val:
-        st.success(
-            f"""
-            **🟢 Diagnóstico Financiero Óptimo (Saludable):**  
-            El flujo de caja proyectado muestra una tendencia de crecimiento sólido. El saldo mínimo de caja es de **$ {minimo_val:,.0f}**, superando holgadamente el umbral de riesgo. La combinación de tiempos de emisión y pago protege la liquidez.
-            """
-        )
+        st.success(f"**🟢 Diagnóstico Financiero Óptimo (Saludable):** El flujo de caja proyectado muestra una tendencia de crecimiento sólido. El saldo mínimo de caja es de **$ {minimo_val:,.0f}**, superando holgadamente el umbral de riesgo.")
     elif minimo_val >= 0:
-        st.warning(
-            f"""
-            **🟡 Diagnóstico de Liquidez Ajustada (En Observación):**  
-            El flujo proyectado presenta un margen ajustado (Saldo Mínimo: **$ {minimo_val:,.0f}**). Su capital de trabajo se acerca al límite de seguridad. Considere negociar mayor plazo de pago con el proveedor o aumentar el capital inicial.
-            """
-        )
+        st.warning(f"**🟡 Diagnóstico de Liquidez Ajustada (En Observación):** El flujo proyectado presenta un margen ajustado (Saldo Mínimo: **$ {minimo_val:,.0f}**). Su capital de trabajo se acerca al límite de seguridad. Considere negociar mayor plazo de pago con el proveedor.")
     else:
-        st.error(
-            f"""
-            **🔴 Diagnóstico de Alerta Roja por Déficit (Riesgo Crítico):**  
-            ¡Atención gerencial! El modelo detecta un saldo mínimo negativo (**$ {minimo_val:,.0f}**). Los compromisos superan el ritmo de ingresos previstos. Además, si se agota el stock, las ventas caerán y el déficit será mayor. Aplazar la condición de pago a crédito o inyectar capital es urgente.
-            """
-        )
-
+        st.error(f"**🔴 Diagnóstico de Alerta Roja por Déficit (Riesgo Crítico):** ¡Atención gerencial! El modelo detecta un saldo mínimo negativo (**$ {minimo_val:,.0f}**). Aplazar la condición de pago a crédito o inyectar capital es urgente.")
+    
+    # --- MÓDULO DE RECOMENDACIONES (COMPENSADOR FINANCIERO) ---
+    if modo_simulacion:
+        st.markdown("---")
+        st.markdown("### 💡✨RECOMENDACIONES de su Asesor IA ✨🧠 a través del Compensador Financiero")
+        
+        faltante = abs(minimo_val) if minimo_val < 0 else 0
+        capital_sugerido = (faltante + 1500) if minimo_val < 1000 else 0 
+        
+        if minimo_val < 0:
+            st.error(f"""
+            **🚨 Plan de Acción Inmediato (Alerta de Quiebre):**
+            1. **Inyección de Capital:** Su punto más bajo es de **${minimo_val:,.0f}**. Le recomendamos inyectar al menos **${capital_sugerido:,.0f}** para cubrir el déficit y tener un colchón de al menos $1,500.
+            2. **Negociación con Proveedor:** Vaya a la simulación, cambie "Cond. Pago" a **Crédito a 30 o 60 días**. Como verá en la gráfica, esto desplaza el pago del contenedor a las semanas donde ya ha vendido la mercancía en existencia.
+            3. **Ajuste del Pedido:** Si no consigue crédito ni capital, **reduzca el monto del próximo pedido entre un 10% y 20%** en el simulador. Un contenedor más pequeño le generará una salida de efectivo menor.
+            """)
+            st.session_state["flujo_recomendacion"] = "ALERTA CRÍTICA: Inyectar capital, negociar crédito o reducir el pedido."
+            st.session_state["flujo_color"] = "#c00000"
+            
+        elif 0 <= minimo_val < 1000:
+            st.warning(f"""
+            **⚠️ Plan de Acción Preventivo (Liquidez Ajustada):**
+            1. Su flujo es positivo, pero su colchón de seguridad es muy bajo (**${minimo_val:,.0f}**).
+            2. **Ajuste del Pedido:** **Reduzca un poco el monto de su próximo pedido**. Bajar un 10% en la cantidad de unidades solicitadas le dará un respiro inmediato a su caja.
+            3. **Acelerar Cobranzas o Ventas:** Si tiene cuentas por cobrar de clientes fieles, cobre antes de la semana crítica.
+            """)
+            st.session_state["flujo_recomendacion"] = "LIQUIDEZ AJUSTADA: Reducir pedido en 10% o acelerar ventas."
+            st.session_state["flujo_color"] = "#bf8f00"
+            
+        else:
+            st.success(f"""
+            **✅ Plan de Acción de Crecimiento (Flujo Saludable):**
+            1. **¡Felicidades!** Su flujo de caja es sólido, con un colchón mínimo de **${minimo_val:,.0f}**.
+            2. **Recomendación Estratégica:** Tiene la solidez para **aumentar el tamaño de su próximo pedido** en un 10% a 20%.
+            3. **Inversión:** Considere destinar un porcentaje del excedente a marketing para captar más clientes.
+            """)
+            st.session_state["flujo_recomendacion"] = "FLUJO SALUDABLE: Capacidad para aumentar pedido en 10-20%."
+            st.session_state["flujo_color"] = "#006100"
     else:
         # Si el compensador está apagado, limpiamos las recomendaciones de la memoria
         st.session_state["flujo_recomendacion"] = ""
         st.session_state["flujo_color"] = "#333"
     
-    # --- GUARDAR LA GRÁFICA Y EL DIAGNÓSTICO PARA EL PDF (AL FINAL PARA EVITAR EL DELAY) ---
+    # --- GUARDAR LA GRÁFICA Y EL DIAGNÓSTICO PARA EL PDF ---
     import io
     import base64
     
-    # Generar la imagen Base64 aquí, cuando la gráfica ya está 100% actualizada
+    # Generar la imagen Base64
     buf = io.BytesIO()
     fig.savefig(buf, format="png", bbox_inches="tight", dpi=100)
     buf.seek(0)
@@ -1385,7 +1407,7 @@ def mostrar_flujo_caja(df_flujo, fecha_embarque_str, fecha_arribo_str, semana_em
     st.session_state["flujo_saldo_minimo"] = minimo_val
     st.session_state["flujo_ingreso_total"] = ingreso_total_val
     
-    # Guardar el texto del Diagnóstico (el que sale en pantalla) para el PDF
+    # Guardar el texto del Diagnóstico para el PDF
     if minimo_val >= 1000 and saldo_final_val >= minimo_val:
         st.session_state["flujo_diagnostico_texto"] = "DIAGNÓSTICO ÓPTIMO (Saludable): El flujo de caja proyectado muestra una tendencia de crecimiento sólido. El saldo mínimo de caja supera holgadamente el umbral de riesgo."
         st.session_state["flujo_color_diag"] = "#006100"
