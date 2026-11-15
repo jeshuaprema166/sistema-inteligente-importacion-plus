@@ -2693,8 +2693,33 @@ def main():
                     renderizar_pestana_salvavidas(productos, config)
                 with tab_reporte:
                     st.subheader("📄 Reporte Ejecutivo")
-                    if st.button("🔄 Actualizar Reporte con los últimos cambios", type="secondary"):
+                    # Inyectamos CSS para personalizar el botón del reporte
+                    st.markdown("""
+                        <style>
+                            /* Estilo para el botón de actualizar reporte */
+                            button[kind="secondary"] {
+                                background-color: #1f4e78 !important;
+                                color: white !important;
+                                border: 2px solid #153654 !important;
+                                font-weight: bold !important;
+                                font-size: 16px !important;
+                                padding: 10px 24px !important;
+                                border-radius: 8px !important;
+                                box-shadow: 0 4px 6px rgba(0,0,0,0.2) !important;
+                                transition: all 0.3s ease !important;
+                            }
+                            /* Efecto cuando pasa el mouse por encima (o lo toca en tablet) */
+                            button[kind="secondary"]:hover {
+                                background-color: #2a6a9e !important;
+                                transform: translateY(-2px) !important;
+                                box-shadow: 0 6px 12px rgba(0,0,0,0.3) !important;
+                            }
+                        </style>
+                    """, unsafe_allow_html=True)
+                    
+                    if st.button("🔁 ACTUALIZAR Reporte con los últimos cambios"):
                         st.rerun()
+                    
                     reporte_html = crear_reporte_html(productos, gastos_contenedor, config)
                     components.html(reporte_html, height=1500, scrolling=True)
                     st.info("💡 Para guardar este reporte como PDF, presione el botón de abajo.")
