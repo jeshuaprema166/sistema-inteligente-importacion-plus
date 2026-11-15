@@ -1698,23 +1698,23 @@ def crear_reporte_html(productos, gastos_contenedor, config):
         </div>
     </div>
     """
-            
+
     # Pie de página corporativo (Autoría de JPV)
     html += f"""
-        <div style="margin-top: 30px; page-break-inside: avoid; border: 1px solid #1f4e78; padding: 15px; background-color: #f8f9fa; border-radius: 8px; text-align: center;">
-            <p style="margin: 0 0 5px 0; font-size: 11px; color: #666; font-weight: bold;">Diseñado y elaborado por su Asesor de Importación Inteligente:</p>
-            <h3 style="margin: 0; color: #1f4e78; font-size: 16px;">Prof. Jesús Pulido V.</h3>
-            <p style="margin: 5px 0; font-size: 11px; color: #444;">
-                Teléfonos de contacto: O424-728.3199 / O416-291.6426<br>
-                Correo: jeshua166@gmail.com
-            </p>
-            <div style="margin-top: 10px;">
-                <img src="https://i.postimg.cc/Hxhd38gS/JPV-Asesor-Importacion.jpg" style="max-height: 120px; border-radius: 8px; border: 2px solid #1f4e78;" />
-            </div>
+    <div style="margin-top: 30px; page-break-inside: avoid; border: 1px solid #1f4e78; padding: 15px; background-color: #f8f9fa; border-radius: 8px; text-align: center;">
+        <p style="margin: 0 0 5px 0; font-size: 11px; color: #666; font-weight: bold;">Diseñado y elaborado por su Asesor de Importación Inteligente:</p>
+        <h3 style="margin: 0; color: #1f4e78; font-size: 16px;">Prof. Jesús Pulido V.</h3>
+        <p style="margin: 5px 0; font-size: 11px; color: #444;">
+            Teléfonos de contacto: 0424-728.3199 / 0416-291.6426<br>
+            Correo: jeshua166@gmail.com
+        </p>
+        <div style="margin-top: 10px;">
+            <img src="https://i.postimg.cc/Hxhd38gS/JPV-Asesor-Importacion.jpg" style="max-height: 120px; border-radius: 8px; border: 2px solid #1f4e78;" />
         </div>
-        """
+    </div>
+    """
     return html.replace('\n', '').strip()
-    
+               
 def generar_pdf_desde_html(html_content):
     try:
         result = io.BytesIO()
