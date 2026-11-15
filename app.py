@@ -1648,13 +1648,14 @@ def crear_reporte_html(productos, gastos_contenedor, config):
         """
         
     # --- SECCIÓN DE FLUJO DE CAJA (FUERA DEL BUCLE DE PRODUCTOS) ---
-    if "flujo_img" in st.session_state:
+    # Forzamos la lectura de los datos más recientes de la memoria en el instante de generar el reporte
+    if st.session_state.get("flujo_img"):
         saldo_final = st.session_state.get("flujo_saldo_final", 0)
         saldo_minimo = st.session_state.get("flujo_saldo_minimo", 0)
         ingreso_total = st.session_state.get("flujo_ingreso_total", 0)
         recomendacion = st.session_state.get("flujo_recomendacion", "")
         color_alerta = st.session_state.get("flujo_color", "#333")
-        img_b64 = st.session_state["flujo_img"]
+        img_b64 = st.session_state.get("flujo_img", "")
         
         # Nuevos datos del diagnóstico
         diag_texto = st.session_state.get("flujo_diagnostico_texto", "Sin diagnóstico generado.")
@@ -1681,7 +1682,7 @@ def crear_reporte_html(productos, gastos_contenedor, config):
             <p style="margin: 0; font-size: 12px; color: #333;"><b>Diagnóstico Financiero:</b> {diag_texto}</p>
         </div>
         """
-    
+        
         # Si el compensador está encendido (hay recomendación), imprimirla debajo del diagnóstico
         if recomendacion:
             html += f"""
