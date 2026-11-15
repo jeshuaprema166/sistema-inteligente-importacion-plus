@@ -1633,6 +1633,10 @@ def crear_reporte_html(productos, gastos_contenedor, config):
         recomendacion = st.session_state.get("flujo_recomendacion", "")
         color_alerta = st.session_state.get("flujo_color", "#333")
         img_b64 = st.session_state["flujo_img"]
+        
+        # Nuevos datos del diagnóstico
+        diag_texto = st.session_state.get("flujo_diagnostico_texto", "Sin diagnóstico generado.")
+        color_diag = st.session_state.get("flujo_color_diag", "#333")
     
         html += f"""
         <h3 style="color: #1f4e78; margin-top: 30px; font-size: 16px;">📅 Anexo: Proyección de Flujo de Caja (13 Semanas)</h3>
@@ -1650,10 +1654,21 @@ def crear_reporte_html(productos, gastos_contenedor, config):
             </tr>
         </table>
     
-        <div style="page-break-inside: avoid; background-color: #f8f9fa; border-left: 4px solid {color_alerta}; padding: 10px; margin-bottom: 20px;">
-            <p style="margin: 0; font-size: 12px; color: #333;"><b>Diagnóstico del Asesor IA:</b> {recomendacion}</p>
+        <!-- Diagnóstico Financiero (Siempre va) -->
+        <div style="page-break-inside: avoid; border-left: 4px solid {color_diag}; background-color: #f8f9fa; padding: 10px; margin-bottom: 15px;">
+            <p style="margin: 0; font-size: 12px; color: #333;"><b>Diagnóstico Financiero:</b> {diag_texto}</p>
         </div>
+        """
     
+        # Si el compensador está encendido (hay recomendación), imprimirla debajo del diagnóstico
+        if recomendacion:
+            html += f"""
+            <div style="page-break-inside: avoid; border-left: 4px solid {color_alerta}; background-color: #f8f9fa; padding: 10px; margin-bottom: 20px;">
+                <p style="margin: 0; font-size: 12px; color: #333;"><b>Recomendación del Asesor IA:</b> {recomendacion}</p>
+            </div>
+            """
+            
+        html += f"""
         <div style="text-align: center; page-break-inside: avoid;">
             <img src="data:image/png;base64,{img_b64}" style="width: 100%; max-width: 600px; border: 1px solid #ddd; border-radius: 5px; padding: 5px;" alt="Gráfica de Flujo de Caja" />
         </div>
