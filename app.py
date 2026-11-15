@@ -1677,20 +1677,20 @@ def crear_reporte_html(productos, gastos_contenedor, config):
             </tr>
         </table>
     
-        <!-- Diagnóstico Financiero (Siempre va) -->
-        <div style="page-break-inside: avoid; border-left: 4px solid {color_diag}; background-color: #f8f9fa; padding: 10px; margin-bottom: 15px;">
+        <!-- Diagnóstico Financiero (Fondo Tenue) -->
+        <div style="page-break-inside: avoid; background-color: {color_diag}20; border: 1px solid {color_diag}; border-left: 6px solid {color_diag}; padding: 10px; margin-bottom: 15px; border-radius: 4px;">
             <p style="margin: 0; font-size: 12px; color: #333;"><b>Diagnóstico Financiero:</b> {diag_texto}</p>
         </div>
         """
         
-        # Si el compensador está encendido (hay recomendación), imprimirla debajo del diagnóstico
+        # Si el compensador está encendido (hay recomendación), imprimirla con fondo tenue
         if recomendacion:
             html += f"""
-            <div style="page-break-inside: avoid; border-left: 4px solid {color_alerta}; background-color: #f8f9fa; padding: 10px; margin-bottom: 20px;">
+            <div style="page-break-inside: avoid; background-color: {color_alerta}20; border: 1px solid {color_alerta}; border-left: 6px solid {color_alerta}; padding: 10px; margin-bottom: 20px; border-radius: 4px;">
                 <p style="margin: 0; font-size: 12px; color: #333;"><b>Recomendación del Asesor IA:</b> {recomendacion}</p>
             </div>
             """
-            
+        
         html += f"""
         <div style="text-align: center; page-break-inside: avoid;">
             <img src="data:image/png;base64,{img_b64}" style="width: 100%; max-width: 600px; border: 1px solid #ddd; border-radius: 5px; padding: 5px;" alt="Gráfica de Flujo de Caja" />
